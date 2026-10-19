@@ -2,7 +2,7 @@
    Cinema Library Android — phone + Android TV
 
    A thin native shell around the live Cinema Library website
-   (https://lttlmario.github.io/-cinema-library), the Android counterpart of the
+   (https://lttlmario.github.io/cinema-library), the Android counterpart of the
    Electron desktop app. The WebView loads the deployed site directly,
    so any change to the site — new stream servers, fixed embeds —
    appears instantly, with no app update.
@@ -38,12 +38,12 @@ import android.webkit.WebViewClient
 class MainActivity : Activity() {
 
     companion object {
-        private const val SITE_URL = "https://lttlmario.github.io/-cinema-library/"
-        private const val SITE_ORIGIN = "https://lttlmario.github.io/-cinema-library"
+        private const val SITE_URL = "https://lttlmario.github.io/cinema-library/"
+        private const val SITE_ORIGIN = "https://lttlmario.github.io/cinema-library"
 
         // The site's Support button links here — the one pop-up we let
         // through, handed to the system browser (same as the desktop app).
-        private const val SUPPORT_URL = "https://github.com/LttlMario/-cinema-library"
+        private const val SUPPORT_URL = "https://github.com/LttlMario/cinema-library"
     }
 
     private lateinit var webView: WebView

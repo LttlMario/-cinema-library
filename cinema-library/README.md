@@ -4,10 +4,10 @@
 </div>
 <br/>
 
-[Cinema Library](https://lttlmario.github.io/-cinema-library/) is a simple movie and TV show search website powered by the TMDB API.
+[Cinema Library](https://lttlmario.github.io/cinema-library/) is a simple movie and TV show search website powered by the TMDB API.
 It lets users discover movies and TV shows and stream them directly within the website.
 
-🌐 Live demo: [cinemalibrary.nunesnetwork.com](https://lttlmario.github.io/-cinema-library/)
+🌐 Live demo: [cinemalibrary.nunesnetwork.com](https://lttlmario.github.io/cinema-library/)
 
 > **Alternative**: [TMDB-Player](https://github.com/TomasTNunes/TMDB-Player) — an open-source browser extension that lets you stream your favorite movies and TV shows directly through the TMDB website.
 
@@ -28,7 +28,7 @@ Prefer a real app over a browser tab? Cinema Library is also available as a nati
 - 🔄 Always up to date — loads the live site, so new servers and fixes appear instantly
 - ✅ No setup — no API token to enter, just install and open
 
-📥 Download it from the [latest release](https://github.com/LttlMario/-cinema-library/releases/latest).
+📥 Download it from the [latest release](https://github.com/LttlMario/cinema-library/releases/latest).
 
 🔄 Already installed? Download the newest installer from that same page and run it to update — no uninstall needed. See [Updating](app/windows/README.md#update) for details.
 
@@ -44,7 +44,7 @@ tablets, and **Android TV** (it shows up in the TV launcher).
 - 🔄 Always up to date — loads the live site, so new servers and fixes appear instantly
 - 📺 Android TV ready — installs and launches from the Leanback launcher
 
-📥 Download the APK from the [latest release](https://github.com/LttlMario/-cinema-library/releases/latest)
+📥 Download the APK from the [latest release](https://github.com/LttlMario/cinema-library/releases/latest)
 and sideload it (on TV: install via a file-manager app or `adb install`).
 
 👉 See the [Android app guide](app/android/README.md) for more info. -->

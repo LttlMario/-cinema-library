@@ -3,7 +3,7 @@
 A native Windows app that wraps the live Cinema Library website using
 [Electron](https://www.electronjs.org/).
 
-The window loads the deployed site (<https://lttlmario.github.io/-cinema-library>) directly, so it's
+The window loads the deployed site (<https://lttlmario.github.io/cinema-library>) directly, so it's
 **always up to date** — new stream servers, fixed embeds, and any other site change appear
 instantly, with no app update needed.
 
@@ -13,13 +13,13 @@ to open, so browsing and playback stay inside the app window — no stray browse
 ## Install
 
 📥 Download the latest installer (`Cinema Library Setup <version>.exe`) from the
-[latest release](https://github.com/LttlMario/-cinema-library/releases/latest), then run it.
+[latest release](https://github.com/LttlMario/cinema-library/releases/latest), then run it.
 
 ## Update
 
 Cinema Library doesn't auto-update — you update it by downloading the newest installer and
 running it. Grab the latest `Cinema Library Setup <version>.exe` from the
-[latest release](https://github.com/LttlMario/-cinema-library/releases/latest) and run it;
+[latest release](https://github.com/LttlMario/cinema-library/releases/latest) and run it;
 there's **no need to uninstall the old version first**.
 
 The installer detects your existing install and upgrades it in place: it replaces the

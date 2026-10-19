@@ -2,7 +2,7 @@
    Cinema Library Desktop — Electron main process
 
    A thin native shell around the live Cinema Library website
-   (https://lttlmario.github.io/-cinema-library). The window loads the deployed
+   (https://lttlmario.github.io/cinema-library). The window loads the deployed
    site directly, so any change to the site — new stream servers,
    fixed embeds — appears instantly, with no app rebuild or re-release.
 
@@ -16,12 +16,12 @@ const path = require('path');
 const fs = require('fs');
 
 /* ─── The live site this shell wraps ─── */
-const SITE_URL = 'https://lttlmario.github.io/-cinema-library/';
-const SITE_ORIGIN = new URL(SITE_URL).origin;   // https://lttlmario.github.io/-cinema-library
+const SITE_URL = 'https://lttlmario.github.io/cinema-library/';
+const SITE_ORIGIN = new URL(SITE_URL).origin;   // https://lttlmario.github.io/cinema-library
 
 /* The site's Support button links here — the one pop-up we let through,
    handed to the system browser instead of opening an app window. */
-const SUPPORT_URL = 'https://github.com/LttlMario/-cinema-library';
+const SUPPORT_URL = 'https://github.com/LttlMario/cinema-library';
 
 let mainWindow = null;
 

@@ -4,7 +4,7 @@ A native Android app that wraps the live Cinema Library website in a WebView —
 counterpart of the Windows desktop app. One APK works on **phones, tablets, and
 Android TV** (it registers both the regular and the Leanback TV launcher).
 
-The app loads the deployed site (<https://lttlmario.github.io/-cinema-library>) directly, so it's
+The app loads the deployed site (<https://lttlmario.github.io/cinema-library>) directly, so it's
 **always up to date** — new stream servers, fixed embeds, and any other site change
 appear instantly, with no app update needed.
 
@@ -21,7 +21,7 @@ It also presents a plain-Chrome User-Agent (the WebView default carries `; wv` /
 ## Install (sideload)
 
 1. Download `cinemalibrary-android.<version>.apk` from the
-   [latest release](https://github.com/LttlMario/-cinema-library/releases/latest).
+   [latest release](https://github.com/LttlMario/cinema-library/releases/latest).
 2. **Phone/tablet**: open the APK and allow "install unknown apps" when prompted.
 3. **Android TV**: install via a file manager app (e.g. *Send files to TV*, *X-plore*)
    or with adb: `adb install cinemalibrary-android.<version>.apk`.
