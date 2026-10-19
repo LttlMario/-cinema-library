@@ -378,13 +378,16 @@ const serverUrlResolvers = {
   //1: (p) => p.type === 'movie' ? `https://vidsrc.cc/v2/embed/movie/${p.id}?autoPlay=false` : `https://vidsrc.cc/v2/embed/tv/${p.id}/${p.season}/${p.episode}?autoPlay=false`, // Rakan (vidsrc.cc)
   1: (p) => p.type === 'movie' ? `https://vixsrc.to/movie/${p.id}?autoPlay=true&lang=en` : `https://vixsrc.to/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true&lang=en`,                                   // Rakan
   2: (p) => p.type === 'movie' ? `https://moviesapi.to/movie/${p.id}` : `https://moviesapi.to/tv/${p.id}-${p.season}-${p.episode}`,                                                                            // Bard
-  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1${subtitleParam(p, 'ds_lang')}` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1${subtitleParam(p, 'ds_lang')}`, // Xayah
+  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}`, // Xayah
   4: (p) => p.type === 'movie' ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave` : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&autonext=true&prioritize=true&lastserver=wave`, // Ekko
   5: (p) => p.type === 'movie' ? `https://vidfast.vc/movie/${p.id}?autoPlay=true${subtitleParam(p, 'sub')}` : `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true${subtitleParam(p, 'sub')}`,                         // Naafiri
   6: (p) => p.type === 'movie' ? `https://vidlink.pro/movie/${p.id}?title=true&poster=true&autoplay=true` : `https://vidlink.pro/tv/${p.id}/${p.season}/${p.episode}?title=true&poster=true&autoplay=true&nextbutton=true` // Ryze
 };
 function subtitleParam(p, key) {
   return p.subtitle && p.subtitle !== 'auto' ? `&${key}=${encodeURIComponent(p.subtitle)}` : '';
+}
+function resumeParam(p) {
+  return Number.isFinite(p.resumeAt) && p.resumeAt > 15 ? `&startAt=${Math.floor(p.resumeAt)}` : '';
 }
 
 /* ─── STATE ─── */
@@ -418,6 +421,12 @@ function readParams() {
   out.subtitle = ['ro', 'en', 'auto'].includes(p.get('sub'))
     ? p.get('sub')
     : (localStorage.getItem(SUBTITLE_KEY) || 'ro');
+  try {
+    const progress = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]');
+    const key = `${type}-${id}`;
+    const saved = progress.find(x => `${x.media_type || (x.title ? 'movie' : 'tv')}-${x.id}` === key);
+    out.resumeAt = Number(saved?.progressSeconds) || 0;
+  } catch { out.resumeAt = 0; }
   if (type === 'tv') {
     out.season  = parseInt(p.get('s'), 10) || 1;
     out.episode = parseInt(p.get('e'), 10) || 1;
@@ -478,6 +487,7 @@ function savePlaybackProgress() {
       release_date: item.release_date || '', first_air_date: item.first_air_date || '',
       vote_average: item.vote_average || 0, genre_ids: item.genre_ids || [],
       ...(state.type === 'tv' ? { season: state.season, episode: state.episode } : {}),
+      progressSeconds: Math.max(0, Math.floor(Number(state.resumeAt) || 0)),
       updatedAt: Date.now()
     };
     const key = `${state.type}-${state.id}`;
@@ -486,6 +496,25 @@ function savePlaybackProgress() {
     localStorage.setItem(PROGRESS_KEY, JSON.stringify([entry, ...saved].slice(0, 30)));
   } catch {}
 }
+
+function clearPlaybackProgress() {
+  try {
+    const key = `${state.type}-${state.id}`;
+    const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]')
+      .filter(x => `${x.media_type || (x.title ? 'movie' : 'tv')}-${x.id}` !== key);
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(saved));
+  } catch {}
+}
+
+window.addEventListener('message', event => {
+  if (event.origin !== 'https://vidsrc.sh' || event.data?.type !== 'PLAYER_EVENT') return;
+  const payload = event.data.data || {};
+  const progress = Number(payload.player_progress);
+  if (!Number.isFinite(progress) || !state || state.server !== 3) return;
+  state.resumeAt = progress;
+  if (payload.player_status === 'completed') clearPlaybackProgress();
+  else savePlaybackProgress();
+});
 
 function handlePlayerFailure(serverId) {
   updateServerStatus(serverId, 'failed');
@@ -574,12 +603,14 @@ async function setupTv() {
   seasonSel.addEventListener('change', async () => {
     state.season = parseInt(seasonSel.value) || 1;
     state.episode = 1;
+    state.resumeAt = 0;
     await populateEpisodes(true);
     savePlaybackProgress();
     loadPlayer();
   });
   episodeSel.addEventListener('change', () => {
     state.episode = parseInt(episodeSel.value) || 1;
+    state.resumeAt = 0;
     savePlaybackProgress();
     loadPlayer();
   });
@@ -645,6 +676,7 @@ async function goNextEpisode() {
   const seasonChanged = next.season !== state.season;
   state.season = next.season;
   state.episode = next.episode;
+  state.resumeAt = 0;
   if (seasonChanged) { $('season-select').value = state.season; await populateEpisodes(true); }
   else $('episode-select').value = state.episode;
   updateNextBtn();
