@@ -603,6 +603,8 @@
       border-top: 1px solid var(--line); background: var(--bg-elev);
     }
     .modal-actions { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem; }
+    .official-link { grid-column: 1 / -1; justify-self: start; font-size: 0.78rem; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+    .official-link:hover { color: var(--text); }
     .modal-watch-btn { width: 100%; padding: 0.95rem; font-size: 1.02rem; }
     .modal-favorite-btn { padding: 0.95rem 1rem; white-space: nowrap; }
     .modal-favorite-btn.active { color: #ffd166; border-color: rgba(255,209,102,.55); background: rgba(255,209,102,.1); }
@@ -781,6 +783,7 @@
           Play
         </button>
         <button class="btn modal-favorite-btn" id="modal-favorite-btn" type="button" aria-pressed="false">♡ Favorite</button>
+        <a class="official-link" id="official-link" href="#" target="_blank" rel="noopener noreferrer">Verifică opțiunile oficiale pe TMDB ↗</a>
       </div>
     </div>
   </div>
@@ -1400,6 +1403,7 @@ async function openModal(item) {
   $('modal-genres').innerHTML = genreNames.map(g => `<span class="genre-chip">${esc(g)}</span>`).join('');
 
   $('modal-overview').textContent = item.overview || 'No description available.';
+  $('official-link').href = `https://www.themoviedb.org/${type}/${encodeURIComponent(item.id)}/watch`;
 
   const tvSel = $('tv-selectors');
   const drEl  = $('modal-digital-release');
