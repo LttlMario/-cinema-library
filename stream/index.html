@@ -510,6 +510,7 @@ function resumeParam(p) {
 const $ = id => document.getElementById(id);
 const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v1';
 const TMDB_CACHE_TTL = 5 * 60 * 1000;
+const tmdbInFlight = new Map();
 function readTmdbCache() {
   try { return JSON.parse(sessionStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
 }
@@ -521,21 +522,33 @@ const tmdb = async path => {
   const cache = readTmdbCache();
   const cached = cache[localizedPath];
   if (cached && Date.now() - cached.time < TMDB_CACHE_TTL) return cached.data;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-  try {
-    const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
-    if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
-    const data = await r.json();
-    cache[localizedPath] = { time: Date.now(), data };
-    writeTmdbCache(cache);
-    return data;
-  } catch (error) {
-    if (cached) return cached.data;
-    const message = error.name === 'AbortError' ? 'TMDB nu a răspuns la timp.' : 'Catalogul TMDB nu este disponibil momentan.';
-    toast(message);
-    throw new Error(message);
-  } finally { clearTimeout(timeout); }
+
+  const pending = tmdbInFlight.get(localizedPath);
+  if (pending) return pending;
+
+  const request = (async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
+      if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
+      const data = await r.json();
+      cache[localizedPath] = { time: Date.now(), data };
+      writeTmdbCache(cache);
+      return data;
+    } catch (error) {
+      if (cached) return cached.data;
+      const message = error.name === 'AbortError' ? 'TMDB nu a răspuns la timp.' : 'Catalogul TMDB nu este disponibil momentan.';
+      toast(message);
+      throw new Error(message);
+    } finally {
+      clearTimeout(timeout);
+      tmdbInFlight.delete(localizedPath);
+    }
+  })();
+
+  tmdbInFlight.set(localizedPath, request);
+  return request;
 };
 
 let state = null;          // { type, id, season, episode, server, subtitle, title }
