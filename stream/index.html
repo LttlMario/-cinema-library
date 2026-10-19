@@ -199,6 +199,9 @@
       background: var(--bg-elev); z-index: 1; transition: opacity .4s; pointer-events: none;
     }
     .player-loading.hide { opacity: 0; }
+    .player-retry { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:4; padding:.7rem 1rem; border:1px solid var(--accent); border-radius:9px; background:rgba(20,20,26,.96); color:#fff; font:700 .82rem inherit; cursor:pointer; box-shadow:0 8px 24px rgba(0,0,0,.45); }
+    .player-retry:hover { background:var(--accent); }
+    .player-retry[hidden] { display:none; }
     .resume-prompt {
       position: absolute; inset: 0; z-index: 5; display: grid; place-items: center;
       padding: 1rem; background: rgba(0,0,0,.72); backdrop-filter: blur(5px);
@@ -354,6 +357,7 @@
       <div class="player-wrap" id="player-wrap">
         <div class="player-loading" id="player-loading" role="status" aria-live="polite" aria-label="Se încarcă playerul"><div class="spinner" aria-hidden="true"></div></div>
         <iframe id="player" title="Player video Cinema Library" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
+        <button class="player-retry" id="player-retry" type="button" hidden>Reîncearcă redarea</button>
         <button class="player-fullscreen-action" id="player-fullscreen" type="button" title="Full screen pentru player" aria-label="Full screen pentru player">⛶</button>
         <div class="resume-prompt" id="resume-prompt" hidden>
           <div class="resume-card">
@@ -601,6 +605,8 @@ function loadPlayer() {
   const loadToken = ++playerLoadToken;
   const src = serverUrlResolvers[state.server](state);
   const loader = $('player-loading');
+  const retry = $('player-retry');
+  if (retry) retry.hidden = true;
   loader.classList.remove('hide');
   loader.removeAttribute('aria-hidden');
 
@@ -696,7 +702,9 @@ function handlePlayerFailure(serverId) {
   updateServerStatus(serverId, 'failed');
   const next = SERVERS.find(s => !attemptedServers.has(s.id) && serverUrlResolvers[s.id]);
   if (!next) {
-    toast('Nicio sursă nu a putut încărca acest titlu. Încearcă din nou mai târziu.');
+    const retry = $('player-retry');
+    if (retry) retry.hidden = false;
+    toast('Nicio sursă nu a putut încărca acest titlu. Încearcă din nou.');
     attemptedServers.clear();
     return;
   }
@@ -1080,6 +1088,7 @@ $('back-btn').addEventListener('click', () => {
     serverSwitch.querySelector('span').textContent = expanded ? 'Schimbă playerul' : 'Ascunde celelalte playere';
   });
   buildServers();
+  $('player-retry').addEventListener('click', () => { attemptedServers.clear(); loadPlayer(); });
 
   // Start the preferred player immediately. TMDB metadata loads in parallel,
   // so the video does not wait for title details, posters, or episode lists.
