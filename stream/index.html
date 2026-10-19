@@ -557,7 +557,7 @@ function showFatal() {
     <div class="fatal">
       <h2>Title not found</h2>
       <p>This title does not exist or could not be loaded.</p>
-      <a href="/">Back to Cinema Library</a>
+      <a href="../">Back to Cinema Library</a>
     </div>`;
   document.title = 'Cinema Library';
 }
@@ -577,10 +577,13 @@ function toast(msg){
 }
 
 /* ─── NAV ─── */
-$('logo').addEventListener('click', () => { location.href = '/'; });
+// The site is deployed as a GitHub Pages project, so `/` points to the
+// account root. Resolve the parent directory to stay inside this repository.
+const HOME_URL = new URL('../', document.baseURI).href;
+$('logo').addEventListener('click', () => { location.href = HOME_URL; });
 $('back-btn').addEventListener('click', () => {
   if (history.length > 1 && document.referrer.includes(location.host)) history.back();
-  else location.href = '/';
+  else location.href = HOME_URL;
 });
 
 /* ─── INIT ─── */
@@ -591,7 +594,7 @@ $('back-btn').addEventListener('click', () => {
       <div class="fatal">
         <h2>Nothing to play</h2>
         <p>This link is missing the title information.</p>
-        <a href="/">Back to Cinema Library</a>
+        <a href="../">Back to Cinema Library</a>
       </div>`;
     document.title = 'Cinema Library';
     return;
