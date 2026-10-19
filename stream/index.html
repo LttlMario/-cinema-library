@@ -186,7 +186,8 @@
     @media (max-width:560px){.enhancer-controls{grid-template-columns:1fr}}
     .next-episode-action { position:absolute; right:1rem; bottom:5.35rem; z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
     .next-episode-action:hover { background:var(--accent); color:#fff; }
-    .player-fullscreen-action { position:absolute; right:.85rem; bottom:3.75rem; z-index:7; display:grid; place-items:center; width:42px; height:38px; padding:0; border:1px solid rgba(255,255,255,.42); border-radius:8px; background:rgba(10,10,14,.9); color:#fff; cursor:pointer; opacity:.92; box-shadow:0 4px 16px rgba(0,0,0,.5); }
+    .player-fullscreen-action { position:absolute; right:.85rem; bottom:1.15rem; z-index:7; display:grid; place-items:center; width:42px; height:38px; padding:0; border:1px solid rgba(255,255,255,.42); border-radius:8px; background:rgba(10,10,14,.9); color:#fff; cursor:pointer; opacity:.92; box-shadow:0 4px 16px rgba(0,0,0,.5); transition:opacity .22s ease, transform .22s ease, background .18s ease, border-color .18s ease; }
+    .player-wrap.controls-idle .player-fullscreen-action { opacity:0; pointer-events:none; transform:translateY(8px); }
     .player-fullscreen-action:hover { opacity:1; background:var(--accent); border-color:var(--accent-h); transform:translateY(-1px); }
     .player-fullscreen-action:focus-visible { opacity:1; outline:3px solid var(--accent-h); outline-offset:3px; }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
@@ -763,6 +764,24 @@ function togglePlayerFullscreen() {
   if (request) request.call(wrap).catch(() => toast('Full screen nu este disponibil în acest browser.'));
 }
 
+function setupPlayerFullscreenAutoHide() {
+  const wrap = $('player-wrap');
+  const button = $('player-fullscreen');
+  if (!wrap || !button) return;
+  let timer = 0;
+  const show = () => {
+    wrap.classList.remove('controls-idle');
+    clearTimeout(timer);
+    timer = window.setTimeout(() => wrap.classList.add('controls-idle'), 2600);
+  };
+  ['pointermove', 'mousemove', 'mousedown', 'touchstart', 'keydown'].forEach(eventName => {
+    document.addEventListener(eventName, show, { passive: eventName !== 'keydown' });
+  });
+  button.addEventListener('mouseenter', show, { passive: true });
+  wrap.addEventListener('mouseenter', show, { passive: true });
+  show();
+}
+
 function openPlayerInTvBrowser() {
   const next = new URL(window.location.href);
   next.searchParams.set('external', '1');
@@ -1120,6 +1139,7 @@ $('back-btn').addEventListener('click', () => {
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
   $('player-fullscreen').addEventListener('click', togglePlayerFullscreen);
+  setupPlayerFullscreenAutoHide();
   setupPlayerActions();
 })();
 
