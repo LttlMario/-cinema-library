@@ -1994,6 +1994,19 @@ function resetSearch() {
 }
 
 async function doSearch(q) {
+  if (q.length < 2) {
+    searchController?.abort();
+    resetSearch();
+    if (q.length === 1) {
+      $('search-results-section').classList.add('visible');
+      $('main').style.display = 'none';
+      $('hero').style.display = 'none';
+      $('search-term').textContent = `"${q}"`;
+      $('search-empty').style.display = 'block';
+      $('search-empty').querySelector('p').textContent = 'Scrie cel puțin 2 caractere pentru a căuta.';
+    }
+    return;
+  }
   const requestId = ++searchRequestId;
   searchController?.abort();
   searchController = new AbortController();
