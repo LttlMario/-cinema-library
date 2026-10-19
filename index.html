@@ -765,7 +765,7 @@
       transition: left .06s ease-out, top .06s ease-out;
       will-change: left, top;
     }
-    .tv-pointer-cursor::before { content: '➤'; transform: none; }
+    .tv-pointer-cursor::before { content: '➤'; transform: rotate(180deg); }
     html.tv-mode.keynav .tv-pointer-cursor { display: grid; }
     html.tv-mode.free-pointer .tv-pointer-cursor { display: grid; }
     html.tv-mode.free-pointer .tv-pointer-hover {
@@ -801,6 +801,7 @@
   // normal desktop and mobile website.
   if (new URLSearchParams(window.location.search).get('tv') === '1') {
     document.documentElement.classList.add('tv-mode');
+    try { sessionStorage.setItem('cinemalibrary_tv_mode', '1'); } catch (_) {}
   }
 </script>
 </head>
