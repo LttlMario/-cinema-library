@@ -384,7 +384,13 @@ const serverUrlResolvers = {
   6: (p) => p.type === 'movie' ? `https://vidlink.pro/movie/${p.id}?title=true&poster=true&autoplay=true` : `https://vidlink.pro/tv/${p.id}/${p.season}/${p.episode}?title=true&poster=true&autoplay=true&nextbutton=true` // Ryze
 };
 function subtitleParam(p, key) {
-  return p.subtitle && p.subtitle !== 'auto' ? `&${key}=${encodeURIComponent(p.subtitle)}` : '';
+  if (!p.subtitle || p.subtitle === 'auto') return '';
+  // Xayah/VidSrc accepts up to three language codes and uses the first
+  // available track. Romanian subtitles are published with several codes;
+  // keep all of them as a priority list so a broken `ro` track does not win
+  // over a valid `rum`/`ron` track.
+  const languagePriority = p.subtitle === 'ro' ? 'ro,rum,ron' : p.subtitle;
+  return `&${key}=${encodeURIComponent(languagePriority)}`;
 }
 function resumeParam(p) {
   return Number.isFinite(p.resumeAt) && p.resumeAt > 15 ? `&startAt=${Math.floor(p.resumeAt)}` : '';
