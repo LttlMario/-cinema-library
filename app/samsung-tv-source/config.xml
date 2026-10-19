@@ -2,7 +2,7 @@
 <widget xmlns="http://www.w3.org/ns/widgets"
         xmlns:tizen="http://tizen.org/ns/widgets"
         id="http://samsung.com/CinemaLibrary"
-        version="1.0.4"
+        version="1.0.5"
         viewmodes="maximized">
   <tizen:application id="CinemaTV01.CinemaLibrary"
                      package="CinemaTV01"
@@ -15,6 +15,7 @@
   <access origin="*" subdomains="true" />
   <tizen:privilege name="http://tizen.org/privilege/internet" />
   <tizen:privilege name="http://tizen.org/privilege/application.launch" />
+  <tizen:privilege name="http://tizen.org/privilege/application.info" />
   <tizen:setting screen-orientation="landscape"
                  context-menu="disable"
                  background-support="disable"
