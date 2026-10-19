@@ -121,12 +121,8 @@
     .genre-group-title { display: block; padding: 0.25rem 0.35rem 0.45rem; color: var(--muted); font-size: 0.66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
     .genre-option { display: block; width: 100%; padding: 0.48rem 0.55rem; border: 0; border-radius: 6px; background: transparent; color: var(--text); text-align: left; font: inherit; font-size: .82rem; cursor: pointer; }
     .genre-option:hover, .genre-option:focus-visible { background: var(--card-h); color: var(--text); }
-    .library-nav-btn {
-      padding: .45rem .8rem; border: 1px solid rgba(255,209,102,.38); border-radius: 99px;
-      background: rgba(255,209,102,.08); color: #ffd166; font-size: .8rem;
-      font-weight: 700; cursor: pointer; white-space: nowrap;
-    }
-    .library-nav-btn:hover { background: rgba(255,209,102,.16); border-color: rgba(255,209,102,.65); }
+    .library-nav-btn { padding: 4px 0; border: 0; background: transparent; color: var(--muted); font: 500 .86rem inherit; cursor: pointer; white-space: nowrap; }
+    .library-nav-btn:hover { color: var(--text); }
     @media (max-width: 620px) {
       .genre-menu { grid-template-columns: 1fr; width: min(300px, 88vw); }
       .genre-group + .genre-group { border-left: 0; border-top: 1px solid var(--line); padding: .8rem 0 0; }
@@ -141,6 +137,12 @@
       content: ''; position: absolute; left: 0; right: 0; bottom: -2px;
       height: 2px; background: var(--accent); border-radius: 2px;
     }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > .nav-link { background: transparent; border: 0; font: inherit; }
+    .nav-submenu { position:absolute; top:calc(100% + 14px); left:50%; transform:translateX(-50%); min-width:210px; padding:.55rem; background:var(--bg-elev); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); display:none; z-index:450; }
+    .nav-submenu.open { display:block; animation:pop .18s var(--ease); }
+    .nav-submenu a { display:block; padding:.55rem .65rem; border-radius:7px; color:var(--text); font-size:.8rem; white-space:nowrap; }
+    .nav-submenu a:hover { background:var(--card-h); color:var(--accent-h); }
 
     /* When the row runs out of room (TV viewports, narrow windows), the
        search input is the item that gives up width — min-width: 0 down the
@@ -735,17 +737,13 @@
 
   <nav class="nav-links">
     <span class="nav-link active" data-nav="home">Acasă</span>
-    <span class="nav-link" data-nav="trending">Genuri</span>
-    <a class="nav-link" href="catalog.html?country=US">Țară</a>
-    <a class="nav-link" href="catalog.html?type=movie">Filme</a>
-    <a class="nav-link" href="catalog.html?type=tv">Seriale</a>
+    <div class="nav-dropdown"><button class="nav-link" id="genre-btn" type="button" aria-expanded="false" aria-controls="genre-menu">Genuri⌄</button><div class="genre-menu" id="genre-menu" role="menu" aria-label="Selectează un gen"></div></div>
+    <div class="nav-dropdown"><button class="nav-link" type="button" data-menu="country-menu">Țară⌄</button><div class="nav-submenu" id="country-menu"><a href="catalog.html?type=movie&country=US">Statele Unite</a><a href="catalog.html?type=movie&country=GB">Marea Britanie</a><a href="catalog.html?type=movie&country=FR">Franța</a><a href="catalog.html?type=movie&country=DE">Germania</a><a href="catalog.html?type=movie&country=JP">Japonia</a><a href="catalog.html?type=movie&country=KR">Coreea de Sud</a><a href="catalog.html?type=movie&country=RO">România</a></div></div>
+    <div class="nav-dropdown"><button class="nav-link" type="button" data-menu="movies-menu">Filme⌄</button><div class="nav-submenu" id="movies-menu"><a href="catalog.html?type=movie">Toate filmele</a><a href="catalog.html?type=movie&sort=latest">Lansări recente</a><a href="catalog.html?type=movie&sort=top">Cele mai apreciate</a></div></div>
+    <div class="nav-dropdown"><button class="nav-link" type="button" data-menu="series-menu">Seriale⌄</button><div class="nav-submenu" id="series-menu"><a href="catalog.html?type=tv">Toate serialele</a><a href="catalog.html?type=tv&sort=latest">Seriale recente</a><a href="catalog.html?type=tv&sort=top">Cele mai apreciate</a></div></div>
     <a class="nav-link" href="watch-together.html">Vezi împreună</a>
-    <a class="nav-link" href="catalog.html?mode=top">Top IMDb</a>
+    <div class="nav-dropdown"><button class="nav-link" type="button" data-menu="top-menu">Top IMDb⌄</button><div class="nav-submenu" id="top-menu"><a href="catalog.html?mode=top&type=movie">Top filme</a><a href="catalog.html?mode=top&type=tv">Top seriale</a></div></div>
   </nav>
-  <div class="genre-wrap">
-    <button class="genre-btn" id="genre-btn" type="button" aria-expanded="false" aria-controls="genre-menu">Genuri⌄</button>
-    <div class="genre-menu" id="genre-menu" role="menu" aria-label="Selectează un gen"></div>
-  </div>
   <button class="library-nav-btn" id="favorites-nav" type="button" title="Deschide favoritele">♥ Favorite</button>
 
   <div class="nav-right">
@@ -1070,6 +1068,14 @@ genreMenu.addEventListener('click', e => {
   genreBtn.setAttribute('aria-expanded', 'false');
   showGenreResults(option.dataset.type, option.dataset.id, option.textContent);
 });
+
+document.querySelectorAll('[data-menu]').forEach(button => button.addEventListener('click', event => {
+  event.stopPropagation();
+  const menu = $(button.dataset.menu);
+  document.querySelectorAll('.nav-submenu.open').forEach(x => x !== menu && x.classList.remove('open'));
+  menu.classList.toggle('open');
+}));
+document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach(x => x.classList.remove('open')));
 
 SERVERS.forEach(s => {
   const el = document.createElement('div');
