@@ -10,3 +10,5 @@ html.cinema-shell-page{background:var(--shell-bg);color:var(--shell-text);min-he
 .cinema-shell-header .nav-links.mobile-open{position:absolute;top:70px;left:var(--shell-gutter);right:var(--shell-gutter);display:flex;flex-direction:column;align-items:stretch;gap:.25rem;padding:.65rem;background:var(--shell-elev);border:1px solid var(--shell-line);border-radius:12px;box-shadow:0 18px 50px #0009}.cinema-shell-header .nav-links.mobile-open .nav-link{display:block;width:100%;padding:.7rem .65rem;text-align:left}.cinema-shell-header .nav-links.mobile-open .nav-submenu{position:static;transform:none;min-width:0;margin:.1rem 0 .4rem;box-shadow:none}
 @media(max-width:860px){.mobile-nav-toggle{display:grid}.cinema-shell-header .nav-links.mobile-open{display:flex}.cinema-shell-header .nav-links:not(.mobile-open){display:none}.shell-hero{height:300px}}
 
+@media(max-width:560px){.cinema-shell-header .search-wrap input{display:none}.cinema-shell-header .search-wrap.search-open input{display:block;position:absolute;top:44px;right:0;width:min(78vw,280px);background:var(--shell-elev);border-color:var(--shell-line);box-shadow:0 12px 30px #0009}}
+
