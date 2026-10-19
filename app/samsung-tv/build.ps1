@@ -1,5 +1,5 @@
 param(
-  [string]$TizenStudio = 'C:\tizen-studio'
+  [string]$TizenStudio = 'D:\tizen-studio'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,7 +16,12 @@ Push-Location $project
 try {
   & $tizen package -t wgt -o $dist -- .
   if ($LASTEXITCODE -ne 0) { throw "Tizen CLI a eșuat cu codul $LASTEXITCODE." }
-  Write-Host "Pachetul Samsung TV a fost generat în $dist"
+  $generated = Join-Path $dist 'Cinema Library.wgt'
+  $deployPackage = Join-Path $dist 'CinemaTV01.wgt'
+  if (Test-Path -LiteralPath $generated) {
+    Copy-Item -LiteralPath $generated -Destination $deployPackage -Force
+  }
+  Write-Host "Pachetul Samsung TV a fost generat în $deployPackage"
 } finally {
   Pop-Location
 }
