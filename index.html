@@ -1406,12 +1406,11 @@ async function loadRow(cfg) {
 
   const scroller = buildRow(cfg);
   try {
-    const sep = cfg.endpoint.includes('?') ? '&' : '?';
-    const [p1, p2] = await Promise.all([
-      tmdb(cfg.endpoint),
-      tmdb(`${cfg.endpoint}${sep}page=2`),
-    ]);
-    const items = [...(p1.results || []), ...(p2.results || [])]
+    // Load the first page for the initial viewport. The catalog page remains
+    // available for deeper browsing, so the home screen does not spend its
+    // first paint fetching two pages for every row.
+    const data = await tmdb(cfg.endpoint);
+    const items = (data.results || [])
       .filter(r => r.poster_path)
       .map(r => ({ ...r, media_type: cfg.media || r.media_type }))
       .slice(0, 25);
@@ -1532,7 +1531,7 @@ async function loadHero() {
       const slide = document.createElement('div');
       slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
       slide.innerHTML = `
-        <div class="hero-bg" style="background-image:url('${backdrop(item.backdrop_path, 'original')}')"></div>
+       <div class="hero-bg" style="background-image:url('${backdrop(item.backdrop_path, 'w1280')}')"></div>
         <div class="hero-content">
           <div class="hero-badge"><span class="bolt">●</span> #${i + 1} Trending Today</div>
           <h1 class="hero-title">${esc(title)}</h1>
@@ -2002,10 +2001,8 @@ $('clear-filters').addEventListener('click', () => {
 /* ─── INIT ─── */
 (async function init() {
   renderLibraryRows();
-  await loadGenres();
+  await Promise.all([loadGenres(), loadHero(), loadTop10()]);
   populateAdvancedFilters();
-  await loadHero();
-  loadTop10();
   for (const cfg of CATEGORY_ROWS) loadRow(cfg);
 })();
 </script>
