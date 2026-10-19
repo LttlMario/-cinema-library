@@ -379,6 +379,7 @@
         <button class="player-action" data-action="favorite">♡ Favorite</button>
         <button class="player-action" data-action="together">● Vezi împreună</button>
         <button class="player-action" data-action="report">⚑ Raportează</button>
+        <button class="player-action" data-action="open-internet">🌐 Deschide în Internet</button>
         <button class="player-action" data-action="enhancer" aria-expanded="false">✦ Îmbunătățește imaginea</button>
       </div>
       <section class="enhancer-panel" id="enhancer-panel" hidden aria-label="Îmbunătățire imagine">
@@ -762,6 +763,18 @@ function togglePlayerFullscreen() {
   if (request) request.call(wrap).catch(() => toast('Full screen nu este disponibil în acest browser.'));
 }
 
+function openPlayerInTvBrowser() {
+  const next = new URL(window.location.href);
+  next.searchParams.set('external', '1');
+  const url = next.href;
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'open-in-tv-browser', url }, 'https://lttlmario.github.io');
+    toast('Se deschide playerul în Internet…');
+    return;
+  }
+  window.open(url, '_blank', 'noopener');
+}
+
 function applyEnhancer() {
   const values = ['brightness', 'contrast', 'saturation', 'warmth', 'clarity'].reduce((out, key) => {
     const input = $(`enhancer-${key}`);
@@ -821,6 +834,7 @@ function setupPlayerActions() {
     if (action === 'together') location.href = `../watch-together.html?type=${state.type}&id=${state.id}&s=${state.season || 1}&e=${state.episode || 1}`;
     if (action === 'report') window.open('https://github.com/LttlMario/cinema-library/issues/new?title=Problemă player&body=' + encodeURIComponent(`${state.title} (${state.id})`), '_blank', 'noopener');
     if (action === 'trailer') window.open(`https://www.themoviedb.org/${state.type}/${state.id}/videos`, '_blank', 'noopener');
+    if (action === 'open-internet') openPlayerInTvBrowser();
     if (action === 'next-episode') {
       button.hidden = true;
       const existingNext = $('nextep-btn');
@@ -1019,6 +1033,12 @@ function showFatal() {
 }
 
 function startPlayback() {
+  const params = new URLSearchParams(window.location.search);
+  const tvAppMode = params.get('tv') === '1' || sessionStorage.getItem('cinemalibrary_tv_mode') === '1';
+  if (tvAppMode && params.get('external') !== '1') {
+    openPlayerInTvBrowser();
+    return;
+  }
   const prompt = $('resume-prompt');
   if (!state.resumeAt || state.resumeAt <= 15) {
     loadPlayer();
@@ -1137,7 +1157,7 @@ $('back-btn').addEventListener('click', () => {
     }
     const playerControls = [
       $('player-fullscreen'), $('resume-continue'), $('resume-restart'),
-      $('enhancer-toggle'), $('enhancer-reset')
+      $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')
     ].filter(vis);
     if (playerControls.length) secs.push({ items: playerControls });
     const enhancerInputs = ['enhancer-brightness', 'enhancer-contrast', 'enhancer-saturation', 'enhancer-warmth', 'enhancer-clarity']
