@@ -373,9 +373,9 @@
       </div>
       <div class="player-actions" id="player-actions" aria-label="Acțiuni pentru titlu">
         <button class="player-action" data-action="trailer">▣ Trailer</button>
-        <button class="player-action" data-action="watched">● Marchează văzut</button>
-        <button class="player-action" data-action="later">▶ Mai târziu</button>
-        <button class="player-action" data-action="favorite">♡ Favorite</button>
+        <button class="player-action" data-action="watched" aria-pressed="false">● Marchează văzut</button>
+        <button class="player-action" data-action="later" aria-pressed="false">▶ Mai târziu</button>
+        <button class="player-action" data-action="favorite" aria-pressed="false">♡ Favorite</button>
         <button class="player-action" data-action="together">● Vezi împreună</button>
         <button class="player-action" data-action="report">⚑ Raportează</button>
         <button class="player-action" data-action="enhancer" aria-expanded="false">✦ Îmbunătățește imaginea</button>
@@ -743,7 +743,9 @@ function toggleLibrary(key, button) {
   const item = libraryItemFromState(), id = libraryId(item), saved = readLibrary(key);
   const next = saved.some(x => libraryId(x) === id) ? saved.filter(x => libraryId(x) !== id) : [item, ...saved];
   if (!writeLibrary(key, next)) return;
-  button.classList.toggle('active', readLibrary(key).some(x => libraryId(x) === id));
+  const active = readLibrary(key).some(x => libraryId(x) === id);
+  button.classList.toggle('active', active);
+  button.setAttribute('aria-pressed', String(active));
 }
 
 function togglePlayerFullscreen() {
@@ -802,6 +804,12 @@ function setupPlayerActions() {
   document.querySelectorAll('.player-action').forEach(button => {
     if (button.dataset.actionsBound === 'true') return;
     button.dataset.actionsBound = 'true';
+    const action = button.dataset.action;
+    if (action === 'favorite' || action === 'later' || action === 'watched') {
+      const key = action === 'favorite' ? LIBRARY_KEYS.favorites : action === 'later' ? LIBRARY_KEYS.watchLater : LIBRARY_KEYS.history;
+      const item = libraryItemFromState();
+      button.setAttribute('aria-pressed', String(readLibrary(key).some(x => libraryId(x) === libraryId(item))));
+    }
     button.addEventListener('click', () => {
     const action = button.dataset.action;
     if (action === 'enhancer') {
@@ -813,7 +821,7 @@ function setupPlayerActions() {
     }
     if (action === 'favorite') toggleLibrary(LIBRARY_KEYS.favorites, button);
     if (action === 'later') toggleLibrary(LIBRARY_KEYS.watchLater, button);
-    if (action === 'watched') { const item = libraryItemFromState(); writeLibrary(LIBRARY_KEYS.history, [item, ...readLibrary(LIBRARY_KEYS.history).filter(x => libraryId(x) !== libraryId(item))]); localStorage.removeItem(LIBRARY_KEYS.progress); button.classList.add('active'); toast('Titlul a fost marcat ca văzut.'); }
+    if (action === 'watched') { const item = libraryItemFromState(); writeLibrary(LIBRARY_KEYS.history, [item, ...readLibrary(LIBRARY_KEYS.history).filter(x => libraryId(x) !== libraryId(item))]); localStorage.removeItem(LIBRARY_KEYS.progress); button.classList.add('active'); button.setAttribute('aria-pressed', 'true'); toast('Titlul a fost marcat ca văzut.'); }
     if (action === 'together') location.href = `../watch-together.html?type=${state.type}&id=${state.id}&s=${state.season || 1}&e=${state.episode || 1}`;
     if (action === 'report') window.open('https://github.com/LttlMario/cinema-library/issues/new?title=Problemă player&body=' + encodeURIComponent(`${state.title} (${state.id})`), '_blank', 'noopener');
     if (action === 'trailer') window.open(`https://www.themoviedb.org/${state.type}/${state.id}/videos`, '_blank', 'noopener');
