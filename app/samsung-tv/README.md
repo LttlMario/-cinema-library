@@ -17,6 +17,8 @@ Aceasta este aplicația Tizen pentru instalare personală pe un Samsung Smart TV
 3. Importă folderul `app/samsung-tv` ca proiect Tizen Web.
 4. Selectează profilul `tv-samsung`, apoi construiește proiectul ca pachet `.wgt`.
 
+Pentru build automat, după instalarea Tizen Studio poți rula `build.ps1` din acest folder.
+
 ## Activare Developer Mode pe TV
 
 1. Deschide **Apps** din Smart Hub.
