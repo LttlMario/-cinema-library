@@ -14,6 +14,7 @@ async function tmdb(path) {
   return response.json();
 }
 const genres = {28:'Acțiune',12:'Aventură',16:'Animație',35:'Comedie',80:'Crimă',99:'Documentar',18:'Dramă',10751:'Familie',14:'Fantezie',36:'Istorie',27:'Groază',10402:'Muzică',9648:'Mister',10749:'Romantic',878:'SF',10770:'Film TV',53:'Thriller',10752:'Război',37:'Western'};
+const countries = {US:'Statele Unite',GB:'Marea Britanie',FR:'Franța',CA:'Canada',JP:'Japonia',KR:'Coreea de Sud',DE:'Germania',IN:'India',IT:'Italia',AU:'Australia',ES:'Spania',CN:'China',BE:'Belgia',MX:'Mexic',SE:'Suedia',PL:'Polonia',BR:'Brazilia',TR:'Turcia',RU:'Rusia'};
 const defaultPlayers = window.CINEMA_PLAYERS || [
   {id:'principal', label:'Player principal', icon:'▶'},
   {id:'alternativ', label:'Player alternativ', icon:'◉'},
@@ -35,7 +36,7 @@ function typeLabel(type){ return type === 'tv' ? 'Serial' : 'Film'; }
 function setupKeyHandler(){ $('#saveKey')?.addEventListener('click', () => { const key = $('#tmdbKey')?.value.trim(); if(key){ localStorage.setItem('cinema_tmdb_api_key', key); location.reload(); } }); }
 function injectShell(){
   if ($('#siteHeader')) return;
-  document.body.insertAdjacentHTML('afterbegin', `<header id="siteHeader" class="site-header"><div class="header-inner"><button id="menuToggle" class="menu-toggle" aria-label="Deschide meniul">☰</button><a class="brand" href="index.html">CINEMA<span>LIBRARY</span></a><nav class="desktop-nav"><a href="index.html">Acasă</a><a href="movies.html">Filme</a><a href="series.html">Seriale</a><a href="genres.html">Genuri</a></nav><div class="header-tools"><button id="headerSearchButton" class="icon-button" aria-label="Caută">⌕</button></div></div><div id="mobileNav" class="mobile-nav"><a href="index.html">Acasă</a><a href="movies.html">Filme</a><a href="series.html">Seriale</a><a href="genres.html">Genuri</a></div><div id="searchPanel" class="search-panel"><input id="globalSearch" placeholder="Introdu cuvinte cheie..." autocomplete="off"><button id="globalSearchButton" class="button">Caută</button></div></header>`);
+  document.body.insertAdjacentHTML('afterbegin', `<header id="siteHeader" class="site-header"><div class="header-inner"><button id="menuToggle" class="menu-toggle" aria-label="Deschide meniul">☰</button><a class="brand" href="index.html">CINEMA<span>LIBRARY</span></a><nav class="desktop-nav"><a href="index.html">Acasă</a><a href="movies.html">Filme</a><a href="series.html">Seriale</a><a href="genres.html">Genuri</a><a href="countries.html">Țări</a><a href="movies.html?sort=vote_average.desc">Top IMDb</a></nav><div class="header-tools"><button id="headerSearchButton" class="icon-button" aria-label="Caută">⌕</button></div></div><div id="mobileNav" class="mobile-nav"><a href="index.html">Acasă</a><a href="movies.html">Filme</a><a href="series.html">Seriale</a><a href="genres.html">Genuri</a><a href="countries.html">Țări</a><a href="movies.html?sort=vote_average.desc">Top IMDb</a></div><div id="searchPanel" class="search-panel"><input id="globalSearch" placeholder="Introdu cuvinte cheie..." autocomplete="off"><button id="globalSearchButton" class="button">Caută</button></div></header>`);
   document.body.insertAdjacentHTML('beforeend', '<footer class="site-footer"><div><a class="brand small-brand" href="index.html">CINEMA<span>LIBRARY</span></a><p>Catalog personal cu metadate TMDB și playere configurabile.</p></div><div><h4>Linkuri</h4><a href="movies.html">Filme</a><a href="series.html">Seriale</a><a href="genres.html">Genuri</a></div><div><h4>Informații</h4><a href="index.html">Despre catalog</a><a href="genres.html">Hartă genuri</a></div><p class="copyright">Metadate furnizate de TMDB. Conținutul iframe trebuie să fie autorizat.</p></footer>');
   $('#menuToggle')?.addEventListener('click', () => $('#mobileNav')?.classList.toggle('open'));
   $('#headerSearchButton')?.addEventListener('click', () => $('#searchPanel')?.classList.toggle('open'));
@@ -75,21 +76,25 @@ function filterOptions(type){
   if(genreSelect) genreSelect.innerHTML = '<option value="">Toate genurile</option>' + Object.entries(genres).map(([id,name]) => `<option value="${id}">${name}</option>`).join('');
   const yearSelect = $('#yearFilter');
   if(yearSelect){ const current = new Date().getFullYear(); yearSelect.innerHTML = '<option value="">Toți anii</option>' + Array.from({length:current-1949},(_,i)=>current-i).map(y=>`<option value="${y}">${y}</option>`).join(''); }
+  const countrySelect = $('#countryFilter');
+  if(countrySelect) countrySelect.innerHTML = '<option value="">Toate țările</option>' + Object.entries(countries).map(([code,name]) => `<option value="${code}">${name}</option>`).join('');
 }
 async function catalog(type){
   const page = $('#catalogPage'); if(!page) return;
   filterOptions(type);
   const params = new URLSearchParams(location.search);
   if(params.get('query')) $('#catalogQuery').value = params.get('query');
+  if(params.get('sort') && $('#sortFilter')) $('#sortFilter').value = params.get('sort');
   const load = async () => {
     const query = $('#catalogQuery')?.value.trim() || '';
     const genre = $('#genreFilter')?.value || params.get('genre') || '';
     const yearValue = $('#yearFilter')?.value || '';
+    const country = $('#countryFilter')?.value || params.get('country') || '';
     const sort = $('#sortFilter')?.value || 'popularity.desc';
     try{
       let data;
       if(query) data = await tmdb(`/search/${type}?query=${encodeURIComponent(query)}&page=1`);
-      else data = await tmdb(`/discover/${type}?sort_by=${sort}&with_genres=${encodeURIComponent(genre)}&primary_release_year=${type==='movie' ? encodeURIComponent(yearValue) : ''}&first_air_date_year=${type==='tv' ? encodeURIComponent(yearValue) : ''}&page=1`);
+      else data = await tmdb(`/discover/${type}?sort_by=${sort}&with_genres=${encodeURIComponent(genre)}&with_origin_country=${encodeURIComponent(country)}&primary_release_year=${type==='movie' ? encodeURIComponent(yearValue) : ''}&first_air_date_year=${type==='tv' ? encodeURIComponent(yearValue) : ''}&page=1`);
       const results = (data.results || []).map(x => ({...x, media_type:type}));
       renderGrid('#catalogGrid', results);
       const resultCount = $('#resultCount'); if(resultCount) resultCount.textContent = `${data.total_results || results.length} rezultate`;
@@ -164,6 +169,10 @@ function genresPage(){
   if(!$('#genresPage'))return;
   $('#genresPage').innerHTML=`<div class="page-heading"><span class="eyebrow">Explorează</span><h1>Genuri</h1><p>Alege o categorie pentru a descoperi filme și seriale.</p></div><div class="genre-grid">${Object.entries(genres).map(([id,name])=>`<a class="genre-tile" href="movies.html?genre=${id}"><span>✦</span><b>${name}</b><small>Vezi titlurile</small></a>`).join('')}</div>`;
 }
+function countriesPage(){
+  if(!$('#countriesPage')) return;
+  $('#countriesPage').innerHTML = `<div class="page-heading"><span class="eyebrow">Explorează</span><h1>Țări</h1><p>Alege țara de producție pentru a filtra catalogul.</p></div><div class="genre-grid">${Object.entries(countries).map(([code,name])=>`<a class="genre-tile" href="movies.html?country=${code}"><span>◎</span><b>${name}</b><small>Vezi titlurile</small></a>`).join('')}</div>`;
+}
 function accountPage(){
   if(!$('#accountPage'))return;
   const render=()=>{
@@ -173,6 +182,6 @@ function accountPage(){
 }
 function boot(){
   injectShell();
-  home(); catalog(document.body.dataset.catalogType); detail(); watch(); genresPage();
+  home(); catalog(document.body.dataset.catalogType); detail(); watch(); genresPage(); countriesPage();
 }
 boot();
