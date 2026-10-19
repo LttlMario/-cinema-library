@@ -50,7 +50,25 @@
     }
     function esc(value){return String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
     function render(){const query=$('search').value.trim().toLocaleLowerCase('ro-RO');const list=catalogs[current].filter(g=>g.name.toLocaleLowerCase('ro-RO').includes(query));status.textContent=`${list.length} genuri disponibile pentru ${current==='movie'?'filme':'seriale'}`;grid.innerHTML=list.map(g=>`<a class="genre-card" href="catalog.html?type=${current}&genre=${encodeURIComponent(g.id)}"><strong>${esc(g.name)}</strong><span aria-hidden="true">›</span></a>`).join('')||'<p class="empty">Nu am găsit niciun gen pentru căutarea ta.</p>'}
-    document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{current=tab.dataset.type;document.querySelectorAll('.tab').forEach(x=>{const active=x===tab;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});render()}));$('search').addEventListener('input',render);load();
+    const tabs=[...document.querySelectorAll('.tab')];
+    function selectTab(tab, moveFocus=false){
+      current=tab.dataset.type;
+      tabs.forEach(x=>{const active=x===tab;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1});
+      if(moveFocus) tab.focus();
+      render();
+    }
+    tabs.forEach(tab=>{
+      tab.addEventListener('click',()=>selectTab(tab));
+      tab.addEventListener('keydown',event=>{
+        const index=tabs.indexOf(tab);
+        if(!['ArrowLeft','ArrowRight','Home','End','Enter',' '].includes(event.key)) return;
+        event.preventDefault();
+        if(event.key==='Enter'||event.key===' ') { selectTab(tab); return; }
+        const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+        selectTab(tabs[next],true);
+      });
+    });
+    $('search').addEventListener('input',render);load();
   </script>
 <script src="assets/site-shell.js"></script>
 </body>
