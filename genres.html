@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Genuri — Cinema Library</title>
+  <link rel="icon" href="./assets/icons/cinema-library-favicon.png">
+  <style>
+    :root{--bg:#0a0a0d;--panel:#141419;--card:#1b1b22;--line:#302d36;--text:#f4f4f7;--muted:#9b98a3;--accent:#e50914;--accent-soft:rgba(229,9,20,.14)}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#241016 0,#0a0a0d 35%);color:var(--text);font:15px 'Hanken Grotesk',system-ui,sans-serif;min-height:100vh}
+    header{height:70px;display:flex;align-items:center;gap:2rem;padding:0 clamp(1rem,4vw,3.75rem);border-bottom:1px solid var(--line);background:rgba(9,9,12,.9);position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}
+    .logo{font-size:1.55rem;font-weight:800;color:var(--accent);white-space:nowrap;text-decoration:none}.nav{display:flex;gap:1.35rem;align-items:center}.nav a{color:#aaa;text-decoration:none;font-weight:600}.nav a:hover,.nav a.active{color:#fff}.nav a.active{border-bottom:2px solid var(--accent);padding-bottom:.55rem}
+    .search{margin-left:auto;padding:.65rem 1rem;width:min(330px,32vw);border:1px solid var(--line);border-radius:99px;background:#17161b;color:#fff;outline:none}.search:focus{border-color:var(--accent)}
+    main{max-width:1450px;margin:auto;padding:clamp(2rem,5vw,4rem) clamp(1rem,4vw,3.75rem)}.eyebrow{color:#ff3340;font-size:.75rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.head{display:flex;justify-content:space-between;align-items:end;gap:1rem;margin-bottom:1.7rem}.head h1{font-size:clamp(2rem,4vw,3.5rem);margin:.45rem 0 .5rem}.head p{color:var(--muted);margin:0;max-width:650px;line-height:1.55}
+    .tabs{display:flex;gap:.65rem;margin-bottom:1.5rem}.tab{padding:.7rem 1.2rem;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--muted);font:700 .9rem inherit;cursor:pointer}.tab.active,.tab:hover{background:var(--accent-soft);border-color:var(--accent);color:#fff}
+    .status{color:var(--muted);min-height:1.4rem}.genre-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem}.genre-card{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.15rem 1.2rem;border:1px solid var(--line);border-radius:13px;background:linear-gradient(135deg,var(--panel),var(--card));color:var(--text);text-decoration:none;transition:transform .18s,border-color .18s,background .18s}.genre-card:hover{transform:translateY(-3px);border-color:var(--accent);background:linear-gradient(135deg,var(--accent-soft),var(--card))}.genre-card strong{font-size:1rem}.genre-card span{color:var(--accent);font-size:1.25rem}.empty{color:var(--muted);padding:2rem 0}@media(max-width:800px){header{gap:1rem}.nav{display:none}.search{width:42px;margin-left:auto}.head{display:block}.tabs{overflow:auto}.genre-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.genre-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <a class="logo" href="./">Cinema Library</a>
+    <nav class="nav" aria-label="Navigație principală">
+      <a href="./">Acasă</a><a class="active" href="genres.html">Genuri</a><a href="catalog.html?type=movie">Filme</a><a href="catalog.html?type=tv">Seriale</a><a href="watch-together.html">Vezi împreună</a><a href="catalog.html?mode=top">Top IMDb</a>
+    </nav>
+    <input class="search" id="search" placeholder="Caută în genuri…" aria-label="Caută genuri">
+  </header>
+  <main>
+    <section class="head"><div><div class="eyebrow">Cinema Library</div><h1>Explorează după gen</h1><p>Alege mai întâi dacă vrei filme sau seriale, apoi selectează genul preferat pentru a vedea toate titlurile disponibile.</p></div></section>
+    <div class="tabs" role="tablist" aria-label="Tip de conținut"><button class="tab active" data-type="movie" role="tab" aria-selected="true">Filme</button><button class="tab" data-type="tv" role="tab" aria-selected="false">Seriale</button></div>
+    <p class="status" id="status">Se încarcă genurile…</p><section class="genre-grid" id="genre-grid"></section>
+  </main>
+  <script>
+    const token='__TMDB_TOKEN__', $=id=>document.getElementById(id), grid=$('genre-grid'), status=$('status'); let catalogs={movie:[],tv:[]}, current='movie';
+    async function load(){
+      try{
+        const [movies,shows]=await Promise.all(['movie','tv'].map(type=>fetch(`https://api.themoviedb.org/3/genre/${type}/list?language=ro-RO`,{headers:{Authorization:`Bearer ${token}`,accept:'application/json'}}).then(r=>r.json())));
+        catalogs.movie=movies.genres||[]; catalogs.tv=shows.genres||[]; render();
+      }catch{status.textContent='Genurile nu sunt disponibile momentan.'}
+    }
+    function render(){const query=$('search').value.trim().toLocaleLowerCase('ro-RO');const list=catalogs[current].filter(g=>g.name.toLocaleLowerCase('ro-RO').includes(query));status.textContent=`${list.length} genuri disponibile pentru ${current==='movie'?'filme':'seriale'}`;grid.innerHTML=list.map(g=>`<a class="genre-card" href="catalog.html?type=${current}&genre=${g.id}"><strong>${g.name}</strong><span aria-hidden="true">›</span></a>`).join('')||'<p class="empty">Nu am găsit niciun gen pentru căutarea ta.</p>'}
+    document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{current=tab.dataset.type;document.querySelectorAll('.tab').forEach(x=>{const active=x===tab;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});render()}));$('search').addEventListener('input',render);load();
+  </script>
+</body>
+</html>

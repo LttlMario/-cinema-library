@@ -737,7 +737,7 @@
 
   <nav class="nav-links">
     <span class="nav-link active" data-nav="home">Acasă</span>
-    <div class="nav-dropdown"><button class="nav-link" id="genre-btn" type="button" aria-expanded="false" aria-controls="genre-menu">Genuri⌄</button><div class="genre-menu" id="genre-menu" role="menu" aria-label="Selectează un gen"></div></div>
+    <a class="nav-link" href="genres.html">Genuri</a>
     <div class="nav-dropdown"><button class="nav-link" type="button" data-menu="country-menu">Țară⌄</button><div class="nav-submenu" id="country-menu"><a href="catalog.html?type=movie&country=US">Statele Unite</a><a href="catalog.html?type=movie&country=GB">Marea Britanie</a><a href="catalog.html?type=movie&country=FR">Franța</a><a href="catalog.html?type=movie&country=DE">Germania</a><a href="catalog.html?type=movie&country=JP">Japonia</a><a href="catalog.html?type=movie&country=KR">Coreea de Sud</a><a href="catalog.html?type=movie&country=RO">România</a></div></div>
     <div class="nav-dropdown"><button class="nav-link" type="button" data-menu="movies-menu">Filme⌄</button><div class="nav-submenu" id="movies-menu"><a href="catalog.html?type=movie">Toate filmele</a><a href="catalog.html?type=movie&sort=latest">Lansări recente</a><a href="catalog.html?type=movie&sort=top">Cele mai apreciate</a></div></div>
     <div class="nav-dropdown"><button class="nav-link" type="button" data-menu="series-menu">Seriale⌄</button><div class="nav-submenu" id="series-menu"><a href="catalog.html?type=tv">Toate serialele</a><a href="catalog.html?type=tv&sort=latest">Seriale recente</a><a href="catalog.html?type=tv&sort=top">Cele mai apreciate</a></div></div>
@@ -860,7 +860,7 @@
   <div class="footer-main">
     <div class="footer-links">
       <div><h3>Linkuri</h3><a href="catalog.html?type=movie">Filme</a><a href="catalog.html?type=tv">Seriale</a><a href="watch-together.html">Vezi împreună</a><a href="catalog.html?mode=top">Top IMDB</a></div>
-      <div><h3>Genuri</h3><a href="catalog.html?type=movie&genre=28">Filme de acțiune</a><a href="catalog.html?type=movie&genre=27">Filme horror</a><a href="catalog.html?type=movie&genre=878">Filme SF</a><a href="catalog.html?type=movie&genre=53">Filme thriller</a></div>
+      <div><h3>Genuri</h3><a href="genres.html">Toate genurile</a><a href="catalog.html?type=movie&genre=28">Filme de acțiune</a><a href="catalog.html?type=movie&genre=27">Filme horror</a><a href="catalog.html?type=movie&genre=878">Filme SF</a><a href="catalog.html?type=movie&genre=53">Filme thriller</a></div>
       <div><h3>Informații</h3><a href="contact.html">Contact</a><a href="terms.html">Termeni și condiții</a><a href="sitemap.html">Hartă site</a><a href="privacy.html">Confidențialitate</a></div>
     </div>
     <div class="footer-about"><h3>Despre noi</h3><p>Cinema Library este un catalog pentru filme și seriale, cu linkuri către servicii media terțe.</p><p>Nu stocăm fișiere video pe serverele noastre. Disponibilitatea și subtitrările pot varia în funcție de sursă.</p><div class="footer-features"><span>♛ Calitate înaltă</span><span>▶ Gratuit, mereu</span><span>ϟ Încărcare rapidă</span><span>▣ Subtitrări multiple</span></div></div>
@@ -1056,18 +1056,20 @@ const serverLabel = $('server-label');
 
 const genreMenu = $('genre-menu');
 const genreBtn = $('genre-btn');
-genreBtn.addEventListener('click', e => {
-  e.stopPropagation();
-  const open = genreMenu.classList.toggle('open');
-  genreBtn.setAttribute('aria-expanded', String(open));
-});
-genreMenu.addEventListener('click', e => {
-  const option = e.target.closest('.genre-option');
-  if (!option) return;
-  genreMenu.classList.remove('open');
-  genreBtn.setAttribute('aria-expanded', 'false');
-  showGenreResults(option.dataset.type, option.dataset.id, option.textContent);
-});
+if (genreMenu && genreBtn) {
+  genreBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = genreMenu.classList.toggle('open');
+    genreBtn.setAttribute('aria-expanded', String(open));
+  });
+  genreMenu.addEventListener('click', e => {
+    const option = e.target.closest('.genre-option');
+    if (!option) return;
+    genreMenu.classList.remove('open');
+    genreBtn.setAttribute('aria-expanded', 'false');
+    showGenreResults(option.dataset.type, option.dataset.id, option.textContent);
+  });
+}
 
 document.querySelectorAll('[data-menu]').forEach(button => button.addEventListener('click', event => {
   event.stopPropagation();
@@ -1100,8 +1102,8 @@ serverLabel.textContent = savedServer.name;
 serverBtn.addEventListener('click', e => { e.stopPropagation(); serverMenu.classList.toggle('open'); });
 document.addEventListener('click', () => {
   serverMenu.classList.remove('open');
-  genreMenu.classList.remove('open');
-  genreBtn.setAttribute('aria-expanded', 'false');
+  if (genreMenu) genreMenu.classList.remove('open');
+  if (genreBtn) genreBtn.setAttribute('aria-expanded', 'false');
 });
 
 /* ─── PLAYER URL ─── */
@@ -1595,6 +1597,7 @@ async function loadGenres() {
 }
 
 function buildGenreMenu() {
+  if (!genreMenu) return;
   genreMenu.innerHTML = ['movie', 'tv'].map(type => {
     const title = type === 'movie' ? 'Filme' : 'Seriale';
     const options = genreCatalog[type].slice().sort((a, b) => a.name.localeCompare(b.name))
@@ -2043,7 +2046,7 @@ $('clear-filters').addEventListener('click', () => {
     // so Up/Down walks the vertical list)
     if (serverMenu.classList.contains('open'))
       return [...serverMenu.querySelectorAll('.server-item')].map(i => ({ key: null, items: [i] }));
-    if (genreMenu.classList.contains('open'))
+    if (genreMenu && genreMenu.classList.contains('open'))
       return [...genreMenu.querySelectorAll('.genre-option')].map(i => ({ key: null, items: [i] }));
 
     const secs = [];
