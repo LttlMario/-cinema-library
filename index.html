@@ -1908,7 +1908,16 @@ $('modal-watch-btn').addEventListener('click', () => {
   const s = parseInt($('season-select')?.value  || 1);
   const e = parseInt($('episode-select')?.value || 1);
   libraryUpsert(LIBRARY_KEYS.progress, currentModalItem, { season: s, episode: e });
-  window.location.href = playerUrl(currentModalItem, s, e);
+  const destination = new URL(playerUrl(currentModalItem, s, e), document.baseURI);
+  destination.searchParams.set('external', '1');
+  const tvMode = new URLSearchParams(window.location.search).get('tv') === '1'
+    || sessionStorage.getItem('cinemalibrary_tv_mode') === '1';
+  if (tvMode && window.parent !== window) {
+    window.parent.postMessage({ type: 'open-in-tv-browser', url: destination.href }, 'https://lttlmario.github.io');
+    toast('Se deschide playerul în Internet…');
+    return;
+  }
+  window.location.href = destination.href;
 });
 
 $('modal-favorite-btn').addEventListener('click', () => {
