@@ -576,7 +576,10 @@
       flex-shrink: 0; padding: 0.85rem 2rem 1.2rem;
       border-top: 1px solid var(--line); background: var(--bg-elev);
     }
+    .modal-actions { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem; }
     .modal-watch-btn { width: 100%; padding: 0.95rem; font-size: 1.02rem; }
+    .modal-favorite-btn { padding: 0.95rem 1rem; white-space: nowrap; }
+    .modal-favorite-btn.active { color: #ffd166; border-color: rgba(255,209,102,.55); background: rgba(255,209,102,.1); }
 
     /* ─────────────── TOAST ─────────────── */
     #toast {
@@ -740,10 +743,13 @@
           </div>
         </div>
       </div>
-      <button class="btn btn-primary modal-watch-btn" id="modal-watch-btn">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        Play
-      </button>
+      <div class="modal-actions">
+        <button class="btn btn-primary modal-watch-btn" id="modal-watch-btn">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Play
+        </button>
+        <button class="btn modal-favorite-btn" id="modal-favorite-btn" type="button" aria-pressed="false">♡ Favorite</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1018,6 +1024,83 @@ function buildRow(cfg, { top10 = false } = {}) {
   return scroller;
 }
 
+/* ─── PERSONAL LIBRARY ─── */
+const LIBRARY_KEYS = {
+  favorites: 'cinemalibrary_favorites',
+  history: 'cinemalibrary_history',
+  progress: 'cinemalibrary_progress',
+};
+
+function libraryRead(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); }
+  catch { return []; }
+}
+
+function libraryWrite(key, items) {
+  localStorage.setItem(key, JSON.stringify(items.slice(0, 30)));
+}
+
+function libraryItem(item) {
+  return {
+    id: item.id,
+    media_type: mediaOf(item),
+    title: item.title,
+    name: item.name,
+    poster_path: item.poster_path,
+    backdrop_path: item.backdrop_path,
+    release_date: item.release_date,
+    first_air_date: item.first_air_date,
+    vote_average: item.vote_average,
+    genre_ids: item.genre_ids || [],
+  };
+}
+
+function libraryKey(item) { return `${mediaOf(item)}-${item.id}`; }
+
+function libraryUpsert(key, item, extra = {}) {
+  const saved = libraryRead(key).filter(x => libraryKey(x) !== libraryKey(item));
+  saved.unshift({ ...libraryItem(item), ...extra, updatedAt: Date.now() });
+  libraryWrite(key, saved);
+}
+
+function rememberTitle(item) {
+  libraryUpsert(LIBRARY_KEYS.history, item);
+  renderLibraryRows();
+}
+
+function isFavorite(item) {
+  return libraryRead(LIBRARY_KEYS.favorites).some(x => libraryKey(x) === libraryKey(item));
+}
+
+function updateFavoriteButton() {
+  const btn = $('modal-favorite-btn');
+  if (!btn || !currentModalItem) return;
+  const active = isFavorite(currentModalItem);
+  btn.classList.toggle('active', active);
+  btn.setAttribute('aria-pressed', String(active));
+  btn.textContent = active ? '♥ Favorite' : '♡ Favorite';
+}
+
+function renderLibraryRows() {
+  document.querySelectorAll('.library-row').forEach(row => row.remove());
+  const sections = [
+    { key: LIBRARY_KEYS.progress, title: 'Continuă vizionarea', subtitle: 'Titlurile începute recent' },
+    { key: LIBRARY_KEYS.favorites, title: 'Favoritele tale', subtitle: 'Salvate pentru mai târziu' },
+    { key: LIBRARY_KEYS.history, title: 'Istoric', subtitle: 'Vizionate recent' },
+  ];
+  const container = $('rows-container');
+  sections.reverse().forEach(section => {
+    const items = libraryRead(section.key);
+    if (!items.length) return;
+    const scroller = buildRow({ title: section.title, subtitle: section.subtitle });
+    const row = scroller.closest('.row');
+    row.classList.add('library-row');
+    scroller.innerHTML = '';
+    items.slice(0, 12).forEach(entry => scroller.appendChild(makeCard(entry)));
+    container.prepend(row);
+  });
+}
+
 async function loadRow(cfg) {
   if (cfg.isDigitalRow) { await loadDigitalRow(cfg); return; }
 
@@ -1224,6 +1307,7 @@ async function openModal(item) {
   const m       = matchPct(item.vote_average);
 
   currentModalItem = { ...item, media_type: type };
+  rememberTitle(currentModalItem);
 
   const bg = backdrop(item.backdrop_path) || poster(item.poster_path, 'w780');
   $('modal-backdrop-img').style.backgroundImage = bg ? `url('${bg}')` : 'none';
@@ -1262,6 +1346,7 @@ async function openModal(item) {
   // (phone gesture, TV remote, browser) closes it instead of leaving the page.
   if (!(history.state && history.state.cinemalibraryModal)) history.pushState({ cinemalibraryModal: true }, '');
   if (window.__knavModalOpened) window.__knavModalOpened();
+  updateFavoriteButton();
 
   // Open scrolled to the title (just above "FILM // Title"); if it all fits, this stays at the top.
   requestAnimationFrame(() => {
@@ -1367,7 +1452,20 @@ $('modal-watch-btn').addEventListener('click', () => {
   if (!currentModalItem) return;
   const s = parseInt($('season-select')?.value  || 1);
   const e = parseInt($('episode-select')?.value || 1);
+  libraryUpsert(LIBRARY_KEYS.progress, currentModalItem, { season: s, episode: e });
   window.location.href = playerUrl(currentModalItem, s, e);
+});
+
+$('modal-favorite-btn').addEventListener('click', () => {
+  if (!currentModalItem) return;
+  const key = libraryKey(currentModalItem);
+  const favorites = libraryRead(LIBRARY_KEYS.favorites);
+  const next = favorites.some(item => libraryKey(item) === key)
+    ? favorites.filter(item => libraryKey(item) !== key)
+    : [{ ...libraryItem(currentModalItem), updatedAt: Date.now() }, ...favorites];
+  libraryWrite(LIBRARY_KEYS.favorites, next);
+  updateFavoriteButton();
+  renderLibraryRows();
 });
 
 $('modal-close').addEventListener('click', closeModal);
@@ -1497,6 +1595,7 @@ document.querySelectorAll('.filter-tab').forEach(tab => {
 
 /* ─── INIT ─── */
 (async function init() {
+  renderLibraryRows();
   loadGenres();
   await loadHero();
   loadTop10();
