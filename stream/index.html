@@ -399,6 +399,7 @@ let state = null;          // { type, id, season, episode, server, subtitle, tit
 let tvData = null;         // /tv/{id} details
 const seasonCache = {};    // cached season episode lists
 const attemptedServers = new Set();
+const PROGRESS_KEY = 'cinemalibrary_progress';
 
 /* ─── PARAMS ─── */
 function readParams() {
@@ -462,7 +463,28 @@ function loadPlayer() {
 
   setTimeout(() => loader.classList.add('hide'), 4000); // fail-safe
   syncUrl();
+  savePlaybackProgress();
   if (state.title) updateTitleBar();
+}
+
+function savePlaybackProgress() {
+  if (!state?.title) return;
+  try {
+    const item = state.media || {};
+    const entry = {
+      id: state.id, media_type: state.type,
+      title: item.title || state.title, name: item.name || state.title,
+      poster_path: item.poster_path || null, backdrop_path: item.backdrop_path || null,
+      release_date: item.release_date || '', first_air_date: item.first_air_date || '',
+      vote_average: item.vote_average || 0, genre_ids: item.genre_ids || [],
+      ...(state.type === 'tv' ? { season: state.season, episode: state.episode } : {}),
+      updatedAt: Date.now()
+    };
+    const key = `${state.type}-${state.id}`;
+    const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]')
+      .filter(x => `${x.media_type || (x.title ? 'movie' : 'tv')}-${x.id}` !== key);
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify([entry, ...saved].slice(0, 30)));
+  } catch {}
 }
 
 function handlePlayerFailure(serverId) {
@@ -532,7 +554,9 @@ async function setupTv() {
     tvData = await tmdb(`/tv/${state.id}`);
     if (!tvData || (!tvData.name && !tvData.original_name)) throw new Error('not found');
     state.title = tvData.name || tvData.original_name;
+    state.media = { ...tvData, media_type: 'tv' };
     updateTitleBar();
+    savePlaybackProgress();
 
     const seasons = (tvData.seasons || []).filter(s => s.season_number > 0);
     seasonSel.innerHTML = (seasons.length ? seasons : [{ season_number: 1, episode_count: 1 }])
@@ -551,10 +575,12 @@ async function setupTv() {
     state.season = parseInt(seasonSel.value) || 1;
     state.episode = 1;
     await populateEpisodes(true);
+    savePlaybackProgress();
     loadPlayer();
   });
   episodeSel.addEventListener('change', () => {
     state.episode = parseInt(episodeSel.value) || 1;
+    savePlaybackProgress();
     loadPlayer();
   });
 
@@ -622,6 +648,7 @@ async function goNextEpisode() {
   if (seasonChanged) { $('season-select').value = state.season; await populateEpisodes(true); }
   else $('episode-select').value = state.episode;
   updateNextBtn();
+  savePlaybackProgress();
   loadPlayer();
 }
 
@@ -631,11 +658,13 @@ async function setupMovie() {
     const data = await tmdb(`/movie/${state.id}`);
     if (!data || (!data.title && !data.original_title)) throw new Error('not found');
     state.title = data.title || data.original_title;
+    state.media = { ...data, media_type: 'movie' };
   } catch {
     showFatal();
     return;
   }
   updateTitleBar();
+  savePlaybackProgress();
 }
 
 /* ─── UTILS ─── */
