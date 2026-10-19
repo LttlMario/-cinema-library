@@ -11,7 +11,7 @@
 
   document.documentElement.classList.add('tv-mode');
   var style = document.createElement('style');
-  style.textContent = '.tv-pointer-cursor{position:fixed;left:0;top:0;width:34px;height:34px;display:grid;place-items:center;pointer-events:none;z-index:10001;color:#fff;font:900 27px/1 Arial,sans-serif;text-shadow:0 2px 5px #000,0 0 4px #000;filter:drop-shadow(0 0 5px rgba(229,9,20,.95));transition:left .06s ease-out,top .06s ease-out}.tv-pointer-cursor:before{content:"➤";transform:rotate(180deg)}.tv-pointer-hover{outline:4px solid #ff5260!important;outline-offset:4px;box-shadow:0 0 0 8px rgba(229,9,20,.22),0 14px 34px rgba(0,0,0,.65)!important}.free-pointer .tv-pointer-cursor{display:grid}';
+  style.textContent = '.tv-pointer-cursor{position:fixed;left:0;top:0;width:34px;height:34px;display:grid;place-items:center;pointer-events:none;z-index:10001;color:#fff;font:900 27px/1 Arial,sans-serif;text-shadow:0 2px 5px #000,0 0 4px #000;filter:drop-shadow(0 0 5px rgba(229,9,20,.95));transition:left .06s ease-out,top .06s ease-out}.tv-pointer-cursor:before{content:"◀"}.tv-pointer-hover{outline:4px solid #ff5260!important;outline-offset:4px;box-shadow:0 0 0 8px rgba(229,9,20,.22),0 14px 34px rgba(0,0,0,.65)!important}.free-pointer .tv-pointer-cursor{display:grid}';
   document.head.appendChild(style);
 
   var cursor = document.createElement('div');
