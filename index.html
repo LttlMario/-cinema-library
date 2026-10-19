@@ -844,11 +844,11 @@
       <div id="tv-selectors" style="display:none">
         <div class="modal-selectors">
           <div>
-            <div class="field-label">Season</div>
+            <div class="field-label">Sezon</div>
             <select id="season-select" class="modal-select"></select>
           </div>
           <div>
-            <div class="field-label">Episode</div>
+            <div class="field-label">Episod</div>
             <select id="episode-select" class="modal-select"></select>
           </div>
         </div>
@@ -856,7 +856,7 @@
       <div class="modal-actions">
         <button class="btn btn-primary modal-watch-btn" id="modal-watch-btn">
           <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          Play
+          Redă
         </button>
         <button class="btn modal-favorite-btn" id="modal-favorite-btn" type="button" aria-pressed="false">♡ Favorite</button>
         <button class="btn modal-later-btn" id="modal-later-btn" type="button" aria-pressed="false">＋ Mai târziu</button>
@@ -1198,7 +1198,7 @@ function makeCard(item, { drDate = null, removeKey = null } = {}) {
     <div class="card-info">
       <div class="card-info-top">
         <span class="mini-play"><svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-        ${m ? `<span class="match">${m}% Match</span>` : ''}
+        ${m ? `<span class="match">${m}% potrivire</span>` : ''}
       </div>
       <div class="card-info-title">${esc(title)}</div>
       <div class="card-info-meta">${year(date)} · ★ ${rating(item.vote_average)}</div>
@@ -1583,18 +1583,18 @@ async function loadHero() {
       slide.innerHTML = `
        <div class="hero-bg" style="background-image:url('${backdrop(item.backdrop_path, 'w1280')}')"></div>
         <div class="hero-content">
-          <div class="hero-badge"><span class="bolt">●</span> #${i + 1} Trending Today</div>
+          <div class="hero-badge"><span class="bolt">●</span> #${i + 1} În tendințe azi</div>
           <h1 class="hero-title">${esc(title)}</h1>
           <div class="hero-meta">
-            ${m ? `<span class="match">${m}% Match</span>` : ''}
+            ${m ? `<span class="match">${m}% potrivire</span>` : ''}
             <span>${year(date)}</span>
-            <span class="chip">${isMovie ? 'FILM' : 'SERIES'}</span>
+            <span class="chip">${isMovie ? 'FILM' : 'SERIAL'}</span>
             <span>★ ${rating(item.vote_average)}</span>
           </div>
-          <p class="hero-overview">${esc(item.overview || 'No description available.')}</p>
+          <p class="hero-overview">${esc(item.overview || 'Nu există descriere pentru acest titlu.')}</p>
           <div class="hero-actions">
             <button class="btn btn-primary hero-play">
-              <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play
+              <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Redă
             </button>
           </div>
         </div>`;
@@ -1678,7 +1678,7 @@ async function openModal(item) {
   $('modal-title').textContent = title;
 
   $('modal-meta').innerHTML = `
-    ${m ? `<span class="match">${m}% Match</span>` : ''}
+    ${m ? `<span class="match">${m}% potrivire</span>` : ''}
     <span>${year(date)}</span>
     <span>★ ${rating(item.vote_average)}</span>
     ${item.original_language ? `<span class="chip">${esc(item.original_language.toUpperCase())}</span>` : ''}`;
@@ -1686,7 +1686,7 @@ async function openModal(item) {
   const genreNames = (item.genre_ids || []).map(id => genreMap[id]).filter(Boolean).slice(0, 4);
   $('modal-genres').innerHTML = genreNames.map(g => `<span class="genre-chip">${esc(g)}</span>`).join('');
 
-  $('modal-overview').textContent = item.overview || 'No description available.';
+  $('modal-overview').textContent = item.overview || 'Nu există descriere pentru acest titlu.';
   $('official-link').href = `https://www.themoviedb.org/${type}/${encodeURIComponent(item.id)}/watch`;
 
   const tvSel = $('tv-selectors');
@@ -1734,7 +1734,7 @@ async function fetchDigitalReleaseBadge(movieId) {
 
     if (!found) {
       el.className = 'dr-none';
-      el.innerHTML = '<span class="dr-dot"></span>Not yet digitally released';
+      el.innerHTML = '<span class="dr-dot"></span>Încă nu este lansat digital';
       return;
     }
 
@@ -1744,11 +1744,11 @@ async function fetchDigitalReleaseBadge(movieId) {
 
     if (releaseDate > now) {
       el.className = 'dr-future';
-      el.innerHTML = `<span class="dr-dot"></span>Digital release · ${label}`;
+      el.innerHTML = `<span class="dr-dot"></span>Lansare digitală · ${label}`;
     } else {
       el.className = 'dr-available';
       // CHANGE 1: show the date even when already released
-      el.innerHTML = `<span class="dr-dot"></span>Digitally Released · ${label}`;
+      el.innerHTML = `<span class="dr-dot"></span>Lansat digital · ${label}`;
     }
   } catch {
     el.className = ''; el.innerHTML = '';
@@ -1768,8 +1768,8 @@ async function loadTvSeasons(id, resume = null) {
     if (!details) { details = await tmdb(`/tv/${id}`); tvDetails[id] = details; }
     const seasons = (details.seasons || []).filter(s => s.season_number > 0);
     seasonSel.innerHTML = seasons.map(s =>
-      `<option value="${s.season_number}" data-eps="${s.episode_count}">Season ${s.season_number} &nbsp;·&nbsp; ${s.episode_count} ep</option>`
-    ).join('') || '<option value="1">Season 1</option>';
+      `<option value="${s.season_number}" data-eps="${s.episode_count}">Sezonul ${s.season_number} &nbsp;·&nbsp; ${s.episode_count} episoade</option>`
+    ).join('') || '<option value="1">Sezonul 1</option>';
 
     seasonSel.replaceWith(seasonSel.cloneNode(true));
     const freshSel = $('season-select');
@@ -1782,7 +1782,7 @@ async function loadTvSeasons(id, resume = null) {
       $('episode-select').value = resume.episode;
     }
   } catch {
-    seasonSel.innerHTML = '<option value="1">Season 1</option>';
+    seasonSel.innerHTML = '<option value="1">Sezonul 1</option>';
     await updateEpisodes(id);
   }
 }
@@ -1815,7 +1815,7 @@ async function updateEpisodes(tvId) {
       }).join('');
     } else { throw new Error('no episodes'); }
   } catch {
-    epSel.innerHTML = Array.from({ length: eps }, (_, i) => `<option value="${i+1}">Episode ${i+1}</option>`).join('');
+      epSel.innerHTML = Array.from({ length: eps }, (_, i) => `<option value="${i+1}">Episodul ${i+1}</option>`).join('');
   }
 }
 
