@@ -1,5 +1,9 @@
-const CACHE = 'cinema-library-shell-v1';
-const SHELL = ['./', './index.html', './404.html', './contribute.html', './manifest.webmanifest'];
+const CACHE = 'cinema-library-shell-v2';
+const SHELL = [
+  './', './index.html', './catalog.html', './genres.html', './stream/index.html',
+  './404.html', './contribute.html', './manifest.webmanifest',
+  './assets/site-shell.css', './assets/site-shell.js', './assets/icons/cinema-library-favicon.png'
+];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
   self.skipWaiting();
@@ -12,8 +16,10 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
   event.respondWith(fetch(request).then(response => {
+    if (!response.ok) return response;
     const copy = response.clone();
     caches.open(CACHE).then(cache => cache.put(request, copy));
     return response;
   }).catch(() => caches.match(request).then(response => response || caches.match('./404.html'))));
 });
+
