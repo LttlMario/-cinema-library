@@ -368,6 +368,9 @@
       overscroll-behavior-x: contain;
     }
     .scroller::-webkit-scrollbar { display: none; }
+    .row-error { min-height: 118px; display: grid; place-items: center; gap: .55rem; padding: 1rem; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); text-align: center; }
+    .row-error button { padding: .55rem .8rem; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent-soft); color: var(--text); font: 600 .78rem inherit; cursor: pointer; }
+    .row-error button:hover { background: var(--accent); color: #fff; }
     @media (hover: none) { .scroller { overflow-x: auto; } }
 
     .arrow {
@@ -1317,6 +1320,23 @@ function buildRow(cfg, { top10 = false } = {}) {
   return scroller;
 }
 
+function showRowError(scroller, retry) {
+  scroller.innerHTML = '';
+  const box = document.createElement('div');
+  box.className = 'row-error';
+  box.innerHTML = '<span>Conținutul nu este disponibil momentan.</span>';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Încearcă din nou';
+  button.addEventListener('click', () => {
+    button.disabled = true;
+    scroller.closest('.row')?.remove();
+    retry();
+  });
+  box.appendChild(button);
+  scroller.appendChild(box);
+}
+
 /* ─── PERSONAL LIBRARY ─── */
 const LIBRARY_KEYS = {
   favorites: 'cinemalibrary_favorites',
@@ -1499,7 +1519,7 @@ async function loadRow(cfg) {
     if (!items.length) { scroller.closest('.row').remove(); return; }
     items.forEach(item => scroller.appendChild(makeCard(item)));
   } catch (e) {
-    scroller.closest('.row').remove();
+    showRowError(scroller, () => loadRow(cfg));
   }
 }
 
@@ -1568,7 +1588,7 @@ async function loadDigitalRow(cfg) {
     scroller.innerHTML = '';
     drDates.slice(0, 25).forEach(({ item }) => scroller.appendChild(makeCard(item)));
   } catch (e) {
-    scroller.closest('.row').remove();
+    showRowError(scroller, () => loadDigitalRow(cfg));
   }
 }
 
@@ -1592,7 +1612,7 @@ async function loadTop10() {
       scroller.appendChild(wrap);
     });
   } catch (e) {
-    scroller.closest('.row').remove();
+    showRowError(scroller, loadTop10);
   }
 }
 
