@@ -1743,10 +1743,19 @@ async function showGenreResults(type, genreId, genreName) {
   $('year-filter').value = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
   try {
-    const endpoint = `/discover/${type}?with_genres=${encodeURIComponent(genreId)}&sort_by=popularity.desc&include_adult=false&page=1`;
-    const data = await tmdb(endpoint);
-    searchResults = (data.results || [])
-      .filter(item => item.poster_path)
+    const endpoint = `/discover/${type}?with_genres=${encodeURIComponent(genreId)}&sort_by=popularity.desc&include_adult=false`;
+    // TMDB returns only 20 results per page. Load several pages so a genre
+    // selection is useful beyond the first screen of popular titles.
+    const pages = await Promise.all(
+      Array.from({ length: 5 }, (_, i) => tmdb(`${endpoint}&page=${i + 1}`))
+    );
+    const seen = new Set();
+    searchResults = pages.flatMap(data => data.results || [])
+      .filter(item => {
+        if (!item.poster_path || seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      })
       .map(item => ({ ...item, media_type: type }));
     $('search-spinner').style.display = 'none';
     renderSearchResults();
