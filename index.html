@@ -7,11 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" href="./assets/icons/icon_16.png" sizes="16x16">
-  <link rel="icon" href="./assets/icons/icon_32.png" sizes="32x32">
-  <link rel="icon" href="./assets/icons/icon_48.png" sizes="48x48">
-  <link rel="icon" href="./assets/icons/icon_64.png" sizes="64x64">
-  <link rel="icon" href="./assets/icons/icon_128.png" sizes="128x128">
+  <link rel="icon" href="./assets/icons/cinema-library-favicon.png" type="image/png">
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#0a0a0d">
 
@@ -639,12 +635,14 @@
       flex-shrink: 0; padding: 0.85rem 2rem 1.2rem;
       border-top: 1px solid var(--line); background: var(--bg-elev);
     }
-    .modal-actions { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem; }
+    .modal-actions { display: grid; grid-template-columns: 1fr auto auto; gap: 0.7rem; }
     .official-link { grid-column: 1 / -1; justify-self: start; font-size: 0.78rem; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
     .official-link:hover { color: var(--text); }
     .modal-watch-btn { width: 100%; padding: 0.95rem; font-size: 1.02rem; }
     .modal-favorite-btn { padding: 0.95rem 1rem; white-space: nowrap; }
     .modal-favorite-btn.active { color: #ffd166; border-color: rgba(255,209,102,.55); background: rgba(255,209,102,.1); }
+    .modal-later-btn { padding: 0.95rem 1rem; white-space: nowrap; }
+    .modal-later-btn.active { color: #8ec5ff; border-color: rgba(142,197,255,.55); background: rgba(142,197,255,.1); }
 
     /* ─────────────── TOAST ─────────────── */
     #toast {
@@ -819,6 +817,7 @@
           Play
         </button>
         <button class="btn modal-favorite-btn" id="modal-favorite-btn" type="button" aria-pressed="false">♡ Favorite</button>
+        <button class="btn modal-later-btn" id="modal-later-btn" type="button" aria-pressed="false">＋ Mai târziu</button>
         <a class="official-link" id="official-link" href="#" target="_blank" rel="noopener noreferrer">Verifică opțiunile oficiale pe TMDB ↗</a>
       </div>
     </div>
@@ -1176,6 +1175,7 @@ function buildRow(cfg, { top10 = false } = {}) {
 /* ─── PERSONAL LIBRARY ─── */
 const LIBRARY_KEYS = {
   favorites: 'cinemalibrary_favorites',
+  watchLater: 'cinemalibrary_watch_later',
   history: 'cinemalibrary_history',
   progress: 'cinemalibrary_progress',
 };
@@ -1230,11 +1230,25 @@ function updateFavoriteButton() {
   btn.textContent = active ? '♥ Favorite' : '♡ Favorite';
 }
 
+function isWatchLater(item) {
+  return libraryRead(LIBRARY_KEYS.watchLater).some(x => libraryKey(x) === libraryKey(item));
+}
+
+function updateWatchLaterButton() {
+  const btn = $('modal-later-btn');
+  if (!btn || !currentModalItem) return;
+  const active = isWatchLater(currentModalItem);
+  btn.classList.toggle('active', active);
+  btn.setAttribute('aria-pressed', String(active));
+  btn.textContent = active ? '✓ În listă' : '＋ Mai târziu';
+}
+
 function renderLibraryRows() {
   document.querySelectorAll('.library-row').forEach(row => row.remove());
   const sections = [
     { key: LIBRARY_KEYS.progress, title: 'Continuă vizionarea', subtitle: 'Titlurile începute recent', clearable: true },
     { key: LIBRARY_KEYS.favorites, title: 'Favoritele tale', subtitle: 'Salvate pentru mai târziu' },
+    { key: LIBRARY_KEYS.watchLater, title: 'Vizionează mai târziu', subtitle: 'Lista ta personală' },
     { key: LIBRARY_KEYS.history, title: 'Istoric', subtitle: 'Vizionate recent', clearable: true },
   ];
   const container = $('rows-container');
@@ -1522,6 +1536,7 @@ async function openModal(item) {
   if (!(history.state && history.state.cinemalibraryModal)) history.pushState({ cinemalibraryModal: true }, '');
   if (window.__knavModalOpened) window.__knavModalOpened();
   updateFavoriteButton();
+  updateWatchLaterButton();
 
   // Open scrolled to the title (just above "FILM // Title"); if it all fits, this stays at the top.
   requestAnimationFrame(() => {
@@ -1646,6 +1661,18 @@ $('modal-favorite-btn').addEventListener('click', () => {
     : [{ ...libraryItem(currentModalItem), updatedAt: Date.now() }, ...favorites];
   libraryWrite(LIBRARY_KEYS.favorites, next);
   updateFavoriteButton();
+  renderLibraryRows();
+});
+
+$('modal-later-btn').addEventListener('click', () => {
+  if (!currentModalItem) return;
+  const key = libraryKey(currentModalItem);
+  const saved = libraryRead(LIBRARY_KEYS.watchLater);
+  const next = saved.some(item => libraryKey(item) === key)
+    ? saved.filter(item => libraryKey(item) !== key)
+    : [{ ...libraryItem(currentModalItem), updatedAt: Date.now() }, ...saved];
+  libraryWrite(LIBRARY_KEYS.watchLater, next);
+  updateWatchLaterButton();
   renderLibraryRows();
 });
 
