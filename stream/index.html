@@ -768,7 +768,7 @@ function openPlayerInTvBrowser() {
   next.searchParams.set('external', '1');
   const url = next.href;
   if (window.parent !== window) {
-    window.parent.postMessage({ type: 'open-in-tv-browser', url }, 'https://lttlmario.github.io');
+      window.parent.postMessage({ type: 'open-in-tv-browser', url }, '*');
     toast('Se deschide playerul în Internet…');
     return;
   }
