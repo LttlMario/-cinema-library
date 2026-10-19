@@ -22,6 +22,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.Message
 import android.view.KeyEvent
@@ -34,6 +35,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.window.OnBackInvokedDispatcher
 
 class MainActivity : Activity() {
 
@@ -160,6 +162,13 @@ class MainActivity : Activity() {
             webView.loadUrl(SITE_URL)
         }
 
+        // Android 13+: use the predictive-back callback; older versions use the legacy fallback below.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+            ) { handleBack() }
+        }
+
         // TV: give the WebView focus so the D-pad works immediately.
         webView.requestFocus()
     }
@@ -207,8 +216,10 @@ class MainActivity : Activity() {
     }
 
     /* ─── Back: exit fullscreen video → page history → leave app ─── */
-    @Deprecated("Deprecated in API 33; fine for a single-activity shell")
-    override fun onBackPressed() {
+    @Suppress("DEPRECATION")
+    override fun onBackPressed() = handleBack()
+
+    private fun handleBack() {
         when {
             customView != null -> exitFullscreenVideo()
             webView.canGoBack() -> webView.goBack()
