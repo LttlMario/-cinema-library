@@ -121,6 +121,12 @@
     .genre-group-title { display: block; padding: 0.25rem 0.35rem 0.45rem; color: var(--muted); font-size: 0.66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
     .genre-option { display: block; width: 100%; padding: 0.48rem 0.55rem; border: 0; border-radius: 6px; background: transparent; color: var(--text); text-align: left; font: inherit; font-size: .82rem; cursor: pointer; }
     .genre-option:hover, .genre-option:focus-visible { background: var(--card-h); color: var(--text); }
+    .library-nav-btn {
+      padding: .45rem .8rem; border: 1px solid rgba(255,209,102,.38); border-radius: 99px;
+      background: rgba(255,209,102,.08); color: #ffd166; font-size: .8rem;
+      font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+    .library-nav-btn:hover { background: rgba(255,209,102,.16); border-color: rgba(255,209,102,.65); }
     @media (max-width: 620px) {
       .genre-menu { grid-template-columns: 1fr; width: min(300px, 88vw); }
       .genre-group + .genre-group { border-left: 0; border-top: 1px solid var(--line); padding: .8rem 0 0; }
@@ -717,6 +723,7 @@
     <button class="genre-btn" id="genre-btn" type="button" aria-expanded="false" aria-controls="genre-menu">Genuri⌄</button>
     <div class="genre-menu" id="genre-menu" role="menu" aria-label="Selectează un gen"></div>
   </div>
+  <button class="library-nav-btn" id="favorites-nav" type="button" title="Deschide favoritele">♥ Favorite</button>
 
   <div class="nav-right">
     <div class="search-wrap open" id="search-wrap">
@@ -1258,6 +1265,7 @@ function renderLibraryRows() {
     const scroller = buildRow({ title: section.title, subtitle: section.subtitle });
     const row = scroller.closest('.row');
     row.classList.add('library-row');
+    row.dataset.libraryKey = section.key;
     if (section.clearable) {
       const clear = document.createElement('button');
       clear.className = 'library-clear';
@@ -1275,6 +1283,15 @@ function renderLibraryRows() {
     container.prepend(row);
   });
 }
+
+$('favorites-nav').addEventListener('click', () => {
+  const row = document.querySelector(`[data-library-key="${LIBRARY_KEYS.favorites}"]`);
+  if (!row) {
+    toast('Nu ai titluri favorite încă. Deschide un titlu și apasă Favorite.');
+    return;
+  }
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
 
 async function loadRow(cfg) {
   if (cfg.isDigitalRow) { await loadDigitalRow(cfg); return; }
