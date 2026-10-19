@@ -18,5 +18,24 @@
 
 (function(){const wrap=document.querySelector('.cinema-shell-header .search-wrap'),toggle=wrap?.querySelector('.search-toggle'),input=wrap?.querySelector('input');if(!wrap||!toggle||!input)return;toggle.addEventListener('click',event=>{event.stopPropagation();const open=wrap.classList.toggle('search-open');if(open)input.focus()});input.addEventListener('keydown',event=>{if(event.key==='Escape'){wrap.classList.remove('search-open');input.blur()}});document.addEventListener('click',event=>{if(!event.target.closest('.search-wrap'))wrap.classList.remove('search-open')})})();
 
-(function(){const buttons=[...document.querySelectorAll('[data-shell-menu]')];if(!buttons.length)return;buttons.forEach(button=>{const menu=document.getElementById('shell-'+button.dataset.shellMenu);button.setAttribute('aria-expanded','false');if(menu)button.setAttribute('aria-controls',menu.id);button.addEventListener('click',()=>button.setAttribute('aria-expanded',String(menu?.classList.contains('open'))))});document.addEventListener('click',event=>{if(!event.target.closest('.nav-dropdown'))buttons.forEach(button=>button.setAttribute('aria-expanded','false'))})})();
+(function(){
+  const buttons=[...document.querySelectorAll('[data-shell-menu]')];
+  if(!buttons.length)return;
+  const closeMenus=()=>buttons.forEach(button=>{button.setAttribute('aria-expanded','false');document.getElementById('shell-'+button.dataset.shellMenu)?.classList.remove('open')});
+  const openMenu=button=>{closeMenus();const menu=document.getElementById('shell-'+button.dataset.shellMenu);if(!menu)return;menu.classList.add('open');button.setAttribute('aria-expanded','true')};
+  buttons.forEach(button=>{
+    const menu=document.getElementById('shell-'+button.dataset.shellMenu);
+    button.setAttribute('aria-expanded','false');
+    if(menu)button.setAttribute('aria-controls',menu.id);
+    button.addEventListener('click',event=>{event.stopPropagation();if(menu?.classList.contains('open'))closeMenus();else openMenu(button)});
+    button.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){event.preventDefault();closeMenus();button.focus();return}
+      if(event.key==='ArrowDown'||event.key==='Enter'||event.key===' '){
+        event.preventDefault();openMenu(button);menu?.querySelector('a')?.focus();
+      }
+    });
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenus()});
+  document.addEventListener('click',event=>{if(!event.target.closest('.nav-dropdown'))closeMenus()});
+})();
 
