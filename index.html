@@ -2417,6 +2417,10 @@ $('clear-filters').addEventListener('click', () => {
     y = Math.min(y, window.innerHeight - 38);
     updateTarget();
   });
+  document.addEventListener('mousemove', function () {
+    document.documentElement.classList.remove('free-pointer');
+    if (target) { target.classList.remove('tv-pointer-hover'); target = null; }
+  }, { passive: true });
   moveCursor(0, 0);
 })();
 </script>
