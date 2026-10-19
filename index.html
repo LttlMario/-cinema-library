@@ -892,6 +892,23 @@
   <div class="footer-bottom"><a href="sitemap.html">Hartă site</a><a href="contact.html">Contact</a><a href="terms.html">Termeni și condiții</a><a href="privacy.html">Confidențialitate</a></div>
 </footer>
 
+<script>
+  document.querySelectorAll('.download-card').forEach((card, index) => {
+    const platform = ['desktop', 'android', 'ios'][index];
+    if (!platform) return;
+    if (card.tagName !== 'A') {
+      const link = document.createElement('a');
+      link.className = card.className.replace('download-card-disabled', '').trim();
+      link.innerHTML = card.innerHTML;
+      card.replaceWith(link);
+      card = link;
+    }
+    card.href = `download.html?platform=${platform}`;
+    card.removeAttribute('target');
+    card.removeAttribute('rel');
+  });
+</script>
+
 <!-- ─────────────── TOAST ─────────────── -->
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08080b">
+  <title>Instalează Cinema Library</title>
+  <link rel="icon" href="assets/icons/cinema-library-favicon.png" type="image/png">
+  <style>
+    :root{--bg:#08080b;--card:#15151c;--line:rgba(255,255,255,.1);--text:#f4f4f7;--muted:#a0a0ad;--accent:#e50914;--accent-h:#ff3340;--max:920px}
+    *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--text);font-family:'Hanken Grotesk',system-ui,sans-serif}main{max-width:var(--max);margin:0 auto;padding:3rem var(--shell-gutter,clamp(1rem,4vw,3.75rem)) 4rem}.download-card-page{background:linear-gradient(145deg,#1c1015,#121218 62%);border:1px solid var(--line);border-radius:22px;padding:clamp(1.25rem,4vw,3rem);box-shadow:0 24px 70px #0008}.download-eyebrow{display:inline-flex;align-items:center;gap:.45rem;color:#ff6670;font-size:.76rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.download-eyebrow::before{content:'↓';display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;letter-spacing:0}.download-card-page h1{margin:.75rem 0 .5rem;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.04em}.download-card-page>p{max-width:680px;color:var(--muted);line-height:1.65}.download-version{display:inline-block;margin:.5rem 0 1.5rem;padding:.35rem .6rem;border:1px solid rgba(255,255,255,.14);border-radius:99px;color:var(--muted);font-size:.76rem}.download-steps{display:grid;gap:.75rem;margin:1.5rem 0 2rem;padding:0;list-style:none}.download-steps li{display:grid;grid-template-columns:32px 1fr;gap:.7rem;align-items:start;padding:.8rem 0;border-top:1px solid var(--line);line-height:1.5}.download-steps li:first-child{border-top:0}.step-number{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:rgba(229,9,20,.16);color:var(--accent-h);font-weight:800;font-size:.8rem}.download-cta{display:inline-flex;align-items:center;gap:.6rem;padding:.8rem 1.05rem;border:1px solid var(--accent);border-radius:10px;background:var(--accent);color:#fff;font-weight:800;text-decoration:none;box-shadow:0 10px 26px rgba(229,9,20,.24)}.download-cta:hover{background:var(--accent-h);border-color:var(--accent-h);transform:translateY(-1px)}.download-note{margin-top:1.25rem;padding:.85rem 1rem;border-left:3px solid var(--accent);border-radius:0 10px 10px 0;background:rgba(255,255,255,.045);color:var(--muted);font-size:.84rem;line-height:1.55}.download-back{display:inline-block;margin-top:1.25rem;color:var(--muted);font-size:.85rem}.download-back:hover{color:var(--accent-h)}:focus-visible{outline:3px solid var(--accent-h);outline-offset:3px}
+  </style>
+</head>
+<body>
+  <main>
+    <section class="download-card-page" id="download-content" aria-live="polite">
+      <span class="download-eyebrow">Cinema Library</span>
+      <h1>Instalează aplicația</h1>
+      <p>Pregătim instrucțiunile pentru dispozitivul tău…</p>
+    </section>
+  </main>
+  <script>
+    const downloads = {
+      desktop: {
+        eyebrow: 'Windows Desktop',
+        title: 'Instalează Cinema Library pe Windows',
+        intro: 'Aplicația desktop oferă aceeași experiență Cinema Library într-o fereastră dedicată și păstrează setările locale.',
+        version: 'Versiunea actuală · Windows x64',
+        steps: ['Apasă butonul de descărcare de mai jos.', 'Deschide fișierul .exe după ce s-a terminat descărcarea.', 'Urmează pașii Next → Install → Finish. Se va crea și o scurtătură pe Desktop.'],
+        button: 'Descarcă pentru Windows (.exe)',
+        href: 'https://github.com/LttlMario/cinema-library/releases/download/v1.1.2/cinemalibrary-windows.setup.1.1.2.exe',
+        note: 'La actualizări, instalează noul fișier peste versiunea veche. Nu trebuie să dezinstalezi aplicația.'
+      },
+      android: {
+        eyebrow: 'Android',
+        title: 'Instalează Cinema Library pe Android',
+        intro: 'APK-ul oficial funcționează pe telefoane, tablete și Android TV.',
+        version: 'Versiunea actuală · Android APK',
+        steps: ['Apasă butonul de descărcare și deschide APK-ul.', 'Dacă Android cere permisiunea, permite instalarea aplicațiilor din această sursă.', 'Apasă Instalează, apoi deschide Cinema Library din lista de aplicații.'],
+        button: 'Descarcă pentru Android (.apk)',
+        href: 'https://github.com/LttlMario/cinema-library/releases/download/v1.1.2/cinemalibrary-android.1.0.0.apk',
+        note: 'Pe Android TV poți transfera APK-ul printr-o aplicație de tip Send Files to TV sau îl poți instala prin ADB.'
+      },
+      ios: {
+        eyebrow: 'iPhone și iPad',
+        title: 'Adaugă Cinema Library pe ecranul principal',
+        intro: 'Pe iOS, Cinema Library se instalează ca aplicație web direct din Safari. Nu este nevoie de App Store.',
+        version: 'Funcționează pe iPhone și iPad',
+        steps: ['Deschide Cinema Library în Safari: lttlmario.github.io/cinema-library/.', 'Apasă butonul Share din bara Safari.', 'Alege Add to Home Screen / Adaugă pe ecranul principal.', 'Confirmă cu Add / Adaugă. Pictograma Cinema Library va apărea printre aplicațiile tale.'],
+        note: 'Folosește Safari pentru instalare; după adăugare, aplicația se deschide într-o fereastră dedicată, ca o aplicație normală.'
+      }
+    };
+    const platform = new URLSearchParams(location.search).get('platform') || 'desktop';
+    const data = downloads[platform] || downloads.desktop;
+    const content = document.getElementById('download-content');
+    content.innerHTML = `<span class="download-eyebrow">${data.eyebrow}</span><h1>${data.title}</h1><p>${data.intro}</p><span class="download-version">${data.version}</span><ol class="download-steps">${data.steps.map((step, index) => `<li><span class="step-number">${index + 1}</span><span>${step}</span></li>`).join('')}</ol>${data.href ? `<a class="download-cta" href="${data.href}" download>${data.button}<span aria-hidden="true">↓</span></a>` : ''}<p class="download-note">${data.note}</p><a class="download-back" href="./">← Înapoi la Cinema Library</a>`;
+    document.title = `${data.eyebrow} · Cinema Library`;
+  </script>
+  <script src="assets/site-shell.js"></script>
+</body>
+</html>
