@@ -1109,13 +1109,13 @@ $('back-btn').addEventListener('click', () => {
     if (cur) cur.classList.remove('kf');
     cur = el;
     el.classList.add('kf');
-    if (el.tagName === 'SELECT' || el.tagName === 'BUTTON') el.focus({ preventScroll: true });
+    if (el.tagName === 'SELECT' || el.tagName === 'BUTTON' || el.tagName === 'INPUT') el.focus({ preventScroll: true });
     if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
   }
 
   function getSections() {
     const secs = [];
-    const header = [$('back-btn'), $('contribute-btn'), $('theme-toggle')].filter(vis);
+    const header = [$('back-btn'), $('logo'), $('contribute-btn'), $('theme-toggle')].filter(vis);
     if (header.length) secs.push({ items: header });
     const tv = $('tv-panel');
     if (tv && !tv.hidden) {
@@ -1124,8 +1124,18 @@ $('back-btn').addEventListener('click', () => {
       const next = $('nextep-btn');
       if (vis(next)) secs.push({ items: [next] });
     }
+    const playerControls = [
+      $('player-fullscreen'), $('resume-continue'), $('resume-restart'),
+      $('enhancer-toggle'), $('enhancer-reset')
+    ].filter(vis);
+    if (playerControls.length) secs.push({ items: playerControls });
+    const enhancerInputs = ['enhancer-brightness', 'enhancer-contrast', 'enhancer-saturation', 'enhancer-warmth', 'enhancer-clarity']
+      .map(id => $(id)).filter(vis);
+    if (enhancerInputs.length) secs.push({ items: enhancerInputs });
     const subtitle = $('subtitle-select');
     if (vis(subtitle)) secs.push({ items: [subtitle] });
+    const serverSwitch = $('server-switch-btn');
+    if (vis(serverSwitch)) secs.push({ items: [serverSwitch] });
     // The player itself is a focus stop: selecting it just scrolls the video
     // to the middle of the screen (handy on a TV). It's a cross-origin iframe,
     // so we never send real focus into it — setFocus only adds the highlight
@@ -1189,6 +1199,12 @@ $('back-btn').addEventListener('click', () => {
       cur.click();
       return;
     }
+
+    // Let the TV adjust image-enhancer sliders natively with Left/Right.
+    // The navigation engine must not steal those keys while a range control
+    // is focused.
+    const ae = document.activeElement;
+    if (ae && ae.tagName === 'INPUT' && ae.type === 'range' && arrows[k]) return;
 
     if (arrows[k]) { e.preventDefault(); move(arrows[k][0], arrows[k][1]); }
   });
