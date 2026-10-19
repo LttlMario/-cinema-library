@@ -11,4 +11,5 @@ html.cinema-shell-page{background:var(--shell-bg);color:var(--shell-text);min-he
 @media(max-width:860px){.mobile-nav-toggle{display:grid}.cinema-shell-header .nav-links.mobile-open{display:flex}.cinema-shell-header .nav-links:not(.mobile-open){display:none}.shell-hero{height:300px}}
 
 @media(max-width:560px){.cinema-shell-header .search-wrap input{display:none}.cinema-shell-header .search-wrap.search-open input{display:block;position:absolute;top:44px;right:0;width:min(78vw,280px);background:var(--shell-elev);border-color:var(--shell-line);box-shadow:0 12px 30px #0009}}
+@media(max-width:560px){.cinema-shell-header{gap:.55rem}.cinema-shell-header .logo{font-size:1.28rem}.cinema-shell-header .nav-right{gap:.25rem}.cinema-shell-header .search-toggle,.cinema-shell-header .theme-toggle{width:34px;height:34px}.mobile-nav-toggle{width:34px;height:34px}}
 
