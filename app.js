@@ -192,7 +192,7 @@ function setupManualPlayerPanel(type,id){
     const e=episode?.value.trim() || "1";
     const params=new URLSearchParams({id:String(id),type});
     if(type === "tv"){ params.set("season",s); params.set("episode",e); }
-    generated.textContent=`watch.html?${params.toString()}#${encodeURIComponent(server)}`;
+    generated.textContent=new URL(`watch.html?${params.toString()}#${encodeURIComponent(server)}`,location.href).href;
   };
   document.querySelector("#generateTflixLink")?.addEventListener("click",generateTflixLink);
   document.querySelector("#copyTflixLink")?.addEventListener("click",async()=>{
