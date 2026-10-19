@@ -19,5 +19,6 @@
                  background-support="disable"
                  encryption="disable"
                  install-location="auto"
+                 pointing-device-support="enable"
                  hwkey-event="enable" />
 </widget>
