@@ -1347,15 +1347,22 @@ $('import-library').addEventListener('change', event => {
 });
 
 function libraryRead(key) {
-  try { return JSON.parse(localStorage.getItem(key) || '[]'); }
-  catch { return []; }
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch { return []; }
 }
 
 function libraryWrite(key, items) {
+  const seen = new Set();
   const clean = (Array.isArray(items) ? items : []).filter(item => {
     if (!item) return false;
     const type = mediaOf(item);
-    return item && Number.isFinite(Number(item.id)) && (type === 'movie' || type === 'tv');
+    if (!Number.isFinite(Number(item.id)) || (type !== 'movie' && type !== 'tv')) return false;
+    const id = `${type}-${item.id}`;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
   });
   try { localStorage.setItem(key, JSON.stringify(clean.slice(0, 30))); } catch { toast('Biblioteca locală nu a putut fi salvată.'); }
 }
