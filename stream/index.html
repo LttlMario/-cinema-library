@@ -6,6 +6,8 @@
   <title>Cinema Library — Watch</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://vidsrc.sh" crossorigin>
+  <link rel="dns-prefetch" href="//vidsrc.sh">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="../assets/icons/cinema-library-favicon.png" type="image/png">
   <link rel="manifest" href="../manifest.webmanifest">
@@ -164,6 +166,20 @@
     .player-actions { display:flex; flex-wrap:wrap; gap:.55rem; padding:1rem 0 0; }
     .player-action { border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:10px; padding:.65rem .85rem; font:600 .78rem inherit; cursor:pointer; }
     .player-action:hover,.player-action.active { border-color:var(--accent); background:var(--accent-soft); }
+    .enhancer-panel { margin-top:.75rem; padding:1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); }
+    .enhancer-panel[hidden] { display:none; }
+    .enhancer-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.8rem; }
+    .enhancer-heading strong { font-size:.86rem; }
+    .enhancer-note { margin-top:.75rem; color:var(--muted); font-size:.7rem; line-height:1.4; }
+    .enhancer-presets { display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:1rem; }
+    .enhancer-preset, .enhancer-reset { padding:.5rem .7rem; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--text); font:600 .74rem inherit; cursor:pointer; }
+    .enhancer-preset:hover, .enhancer-preset.active, .enhancer-reset:hover { border-color:var(--accent); background:var(--accent-soft); }
+    .enhancer-controls { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; }
+    .enhancer-control { display:grid; gap:.35rem; }
+    .enhancer-control label { display:flex; justify-content:space-between; gap:.5rem; color:var(--muted); font-size:.7rem; font-weight:700; }
+    .enhancer-control output { color:var(--text); font-variant-numeric:tabular-nums; }
+    .enhancer-control input { width:100%; accent-color:var(--accent); cursor:pointer; }
+    @media (max-width:560px){.enhancer-controls{grid-template-columns:1fr}}
     .next-episode-action { position:absolute; right:1rem; bottom:4.1rem; z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
     .next-episode-action:hover { background:var(--accent); color:#fff; }
     .player-fullscreen-action { position:absolute; top:.75rem; right:.75rem; z-index:7; padding:.55rem .7rem; border:1px solid rgba(255,255,255,.28); border-radius:8px; background:rgba(10,10,14,.78); color:#fff; cursor:pointer; opacity:.78; }
@@ -241,6 +257,16 @@
 
     /* Servers */
     .server-grid { display: flex; flex-direction: column; gap: 0.55rem; }
+    .server-grid:not(.expanded) .server-card:not(.selected) { display: none; }
+    .server-switch-btn {
+      width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+      margin: 0 0 .75rem; padding: .6rem .75rem; border: 1px solid var(--line);
+      border-radius: var(--radius); background: rgba(255,255,255,.04); color: var(--muted);
+      font: 600 .76rem inherit; cursor: pointer; transition: background .18s, color .18s, border-color .18s;
+    }
+    .server-switch-btn:hover, .server-switch-btn[aria-expanded="true"] { color: var(--text); background: var(--card-h); border-color: rgba(255,255,255,.2); }
+    .server-switch-btn .switch-chevron { transition: transform .18s; }
+    .server-switch-btn[aria-expanded="true"] .switch-chevron { transform: rotate(180deg); }
     .server-card {
       display: flex; align-items: center; gap: 0.75rem; text-align: left;
       padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: var(--radius);
@@ -344,7 +370,23 @@
         <button class="player-action" data-action="favorite">♡ Favorite</button>
         <button class="player-action" data-action="together">● Vezi împreună</button>
         <button class="player-action" data-action="report">⚑ Raportează</button>
+        <button class="player-action" data-action="enhancer" aria-expanded="false">✦ Îmbunătățește imaginea</button>
       </div>
+      <section class="enhancer-panel" id="enhancer-panel" hidden aria-label="Îmbunătățire imagine">
+        <div class="enhancer-heading"><strong>Enhancer imagine</strong><button class="enhancer-reset" id="enhancer-reset" type="button">Resetează</button></div>
+        <div class="enhancer-presets" role="group" aria-label="Presetări imagine">
+          <button class="enhancer-preset active" type="button" data-preset="normal">Normal</button>
+          <button class="enhancer-preset" type="button" data-preset="cinema">Cinema</button>
+          <button class="enhancer-preset" type="button" data-preset="bright">Mai luminos</button>
+          <button class="enhancer-preset" type="button" data-preset="clear">Contrast ridicat</button>
+        </div>
+        <div class="enhancer-controls">
+          <div class="enhancer-control"><label for="enhancer-brightness">Luminozitate <output id="enhancer-brightness-value">100%</output></label><input id="enhancer-brightness" type="range" min="80" max="135" value="100"></div>
+          <div class="enhancer-control"><label for="enhancer-contrast">Contrast <output id="enhancer-contrast-value">100%</output></label><input id="enhancer-contrast" type="range" min="85" max="135" value="100"></div>
+          <div class="enhancer-control"><label for="enhancer-saturation">Culoare <output id="enhancer-saturation-value">100%</output></label><input id="enhancer-saturation" type="range" min="80" max="125" value="100"></div>
+        </div>
+        <p class="enhancer-note">Reglajul schimbă aspectul imaginii pe acest dispozitiv. Nu modifică rezoluția sau bitrate-ul sursei Xayah.</p>
+      </section>
       <section class="player-details" id="player-details" hidden></section>
     </div>
 
@@ -375,7 +417,10 @@
         </select>
         <p class="subtitle-help">Preferința este memorată pe acest dispozitiv. Unele surse aplică limba direct, iar altele permit alegerea din player.</p>
       </div>
-      <div class="panel-title">Streaming Servers</div>
+      <div class="panel-title">Player</div>
+      <button class="server-switch-btn" id="server-switch-btn" type="button" aria-expanded="false" aria-controls="server-grid">
+        <span>Schimbă playerul</span><span class="switch-chevron" aria-hidden="true">⌄</span>
+      </button>
       <div class="server-grid" id="server-grid"></div>
     </div>
   </main>
@@ -412,6 +457,13 @@ const HEADERS = {
 
 const STORAGE_KEY = 'cinemalibrary_server_v2';
 const SUBTITLE_KEY = 'cinemalibrary_subtitle_v1';
+const ENHANCER_KEY = 'cinemalibrary_image_enhancer_v1';
+const ENHANCER_PRESETS = {
+  normal: { brightness: 100, contrast: 100, saturation: 100 },
+  cinema: { brightness: 105, contrast: 112, saturation: 105 },
+  bright: { brightness: 118, contrast: 104, saturation: 100 },
+  clear: { brightness: 100, contrast: 124, saturation: 108 }
+};
 
 const SERVERS = [
   { id: 1, name: 'Rakan',   note: 'Generally better quality.' },
@@ -568,6 +620,7 @@ function loadPlayer() {
   // Use replace so iframe loads don't pollute the browser history stack
   frame.src = src;
   old.replaceWith(frame);
+  applyEnhancer();
 
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
@@ -680,9 +733,48 @@ function togglePlayerFullscreen() {
   if (request) request.call(wrap).catch(() => toast('Full screen nu este disponibil în acest browser.'));
 }
 
+function applyEnhancer() {
+  const values = ['brightness', 'contrast', 'saturation'].reduce((out, key) => {
+    const input = $(`enhancer-${key}`);
+    out[key] = Number(input?.value) || 100;
+    const output = $(`enhancer-${key}-value`);
+    if (output) output.textContent = `${out[key]}%`;
+    return out;
+  }, {});
+  const player = $('player');
+  if (player) player.style.filter = `brightness(${values.brightness}%) contrast(${values.contrast}%) saturate(${values.saturation}%)`;
+  try { localStorage.setItem(ENHANCER_KEY, JSON.stringify(values)); } catch {}
+  document.querySelectorAll('.enhancer-preset').forEach(button => button.classList.toggle('active', button.dataset.preset === 'custom'));
+}
+
+function setEnhancer(values, preset = 'custom') {
+  Object.entries(values).forEach(([key, value]) => {
+    const input = $(`enhancer-${key}`);
+    if (input) input.value = value;
+  });
+  applyEnhancer();
+  document.querySelectorAll('.enhancer-preset').forEach(button => button.classList.toggle('active', button.dataset.preset === preset));
+}
+
+function setupEnhancer() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(ENHANCER_KEY) || 'null'); } catch {}
+  setEnhancer(saved && typeof saved === 'object' ? saved : ENHANCER_PRESETS.normal, saved ? 'custom' : 'normal');
+  ['brightness', 'contrast', 'saturation'].forEach(key => $(`enhancer-${key}`)?.addEventListener('input', () => applyEnhancer()));
+  document.querySelectorAll('.enhancer-preset').forEach(button => button.addEventListener('click', () => setEnhancer(ENHANCER_PRESETS[button.dataset.preset], button.dataset.preset)));
+  $('enhancer-reset').addEventListener('click', () => setEnhancer(ENHANCER_PRESETS.normal, 'normal'));
+}
+
 function setupPlayerActions() {
   document.querySelectorAll('.player-action').forEach(button => button.addEventListener('click', () => {
     const action = button.dataset.action;
+    if (action === 'enhancer') {
+      const panel = $('enhancer-panel');
+      const open = panel.hidden;
+      panel.hidden = !open;
+      button.classList.toggle('active', open);
+      button.setAttribute('aria-expanded', String(open));
+    }
     if (action === 'favorite') toggleLibrary(LIBRARY_KEYS.favorites, button);
     if (action === 'later') toggleLibrary(LIBRARY_KEYS.watchLater, button);
     if (action === 'watched') { const item = libraryItemFromState(); writeLibrary(LIBRARY_KEYS.history, [item, ...readLibrary(LIBRARY_KEYS.history).filter(x => libraryId(x) !== libraryId(item))]); localStorage.removeItem(LIBRARY_KEYS.progress); button.classList.add('active'); toast('Titlul a fost marcat ca văzut.'); }
@@ -711,6 +803,7 @@ function revealInlineNextEpisode() {
 function buildServers() {
   const grid = $('server-grid');
   grid.innerHTML = '';
+  grid.classList.toggle('expanded', grid.dataset.expanded === 'true');
   SERVERS.forEach(s => {
     const el = document.createElement('button');
     el.className = 'server-card' + (s.id === state.server ? ' selected' : '');
@@ -725,6 +818,7 @@ function buildServers() {
     el.addEventListener('click', () => {
       if (s.id === state.server) return;
       state.server = s.id;
+      localStorage.setItem(STORAGE_KEY, String(s.id));
       attemptedServers.clear();
       document.querySelectorAll('.server-card').forEach(c => c.classList.toggle('selected', c === el));
       loadPlayer();
@@ -947,13 +1041,25 @@ $('back-btn').addEventListener('click', () => {
     loadPlayer();
     toast(state.subtitle === 'ro' ? 'Subtitrarea română este activă' : 'Preferința de subtitrare a fost salvată');
   });
+  const serverSwitch = $('server-switch-btn');
+  const serverGrid = $('server-grid');
+  serverSwitch.addEventListener('click', () => {
+    const expanded = serverGrid.dataset.expanded === 'true';
+    serverGrid.dataset.expanded = String(!expanded);
+    serverGrid.classList.toggle('expanded', !expanded);
+    serverSwitch.setAttribute('aria-expanded', String(!expanded));
+    serverSwitch.querySelector('span').textContent = expanded ? 'Schimbă playerul' : 'Ascunde celelalte playere';
+  });
   buildServers();
 
+  // Start the preferred player immediately. TMDB metadata loads in parallel,
+  // so the video does not wait for title details, posters, or episode lists.
+  startPlayback();
+  setupEnhancer();
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
   $('player-fullscreen').addEventListener('click', togglePlayerFullscreen);
   setupPlayerActions();
-  startPlayback();
 })();
 
 /* ─── TV / D-PAD NAVIGATION ───
@@ -1072,3 +1178,4 @@ $('back-btn').addEventListener('click', () => {
 <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
+
