@@ -762,8 +762,10 @@
       color: #fff; font: 900 27px/1 Arial, sans-serif;
       text-shadow: 0 2px 5px #000, 0 0 4px #000;
       filter: drop-shadow(0 0 5px rgba(229,9,20,.95));
+      transition: left .06s ease-out, top .06s ease-out;
+      will-change: left, top;
     }
-    .tv-pointer-cursor::before { content: '➤'; transform: rotate(-18deg); }
+    .tv-pointer-cursor::before { content: '➤'; transform: none; }
     html.tv-mode.keynav .tv-pointer-cursor { display: grid; }
     html.tv-mode.free-pointer .tv-pointer-cursor { display: grid; }
     html.tv-mode.free-pointer .tv-pointer-hover {
@@ -2372,7 +2374,7 @@ $('clear-filters').addEventListener('click', () => {
   var x = Math.round(window.innerWidth / 2);
   var y = Math.round(window.innerHeight / 2);
   var target = null;
-  var speed = 34;
+  var speed = 26;
   var keys = { 37: [-1, 0], 38: [0, -1], 39: [1, 0], 40: [0, 1] };
 
   function moveCursor(dx, dy) {
