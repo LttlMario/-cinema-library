@@ -21,6 +21,11 @@ window.CINEMA_PROVIDER_DOCS = {
   }
 };
 
+window.CINEMA_PROVIDER_BUILDERS = {
+  voidverseMovie: tmdbId => `https://player.voidverse.me/embed/movie/${encodeURIComponent(tmdbId)}`,
+  voidverseEpisode: (tmdbId, season, episode) => `https://player.voidverse.me/embed/tv/${encodeURIComponent(tmdbId)}?s=${encodeURIComponent(season)}&e=${encodeURIComponent(episode)}`
+};
+
 window.CINEMA_SOURCES = {
   'movie:550': {
     principal: { label: 'Player de test legal — Big Buck Bunny', url: 'https://www.youtube.com/embed/aqz-KE-bpKQ' }
