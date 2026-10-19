@@ -164,11 +164,14 @@ function setupProviderDocPanel(type,id){
     const raw=document.querySelector("#manualPlayerUrl")?.value.trim() || "";
     const url=safeUrl(raw);
     if(!url){ showNotice("Link invalid","Introdu un URL HTTPS valid pentru un iframe."); return; }
-    const key=sourceKey(type,id);
+    const seasonValue=type === "tv" ? document.querySelector("#voidverseSeason")?.value.trim() : "";
+    const episodeValue=type === "tv" ? document.querySelector("#voidverseEpisode")?.value.trim() : "";
+    const key=sourceKey(type,id,seasonValue,episodeValue);
     const stored=localSources();
     stored[key]={label:"Player principal configurat local",url};
     localStorage.setItem("cinema_custom_sources",JSON.stringify(stored));
-    location.href=`watch.html?id=${encodeURIComponent(id)}&type=${type}#principal`;
+    const episodeQuery=type === "tv" && seasonValue && episodeValue ? `&season=${encodeURIComponent(seasonValue)}&episode=${encodeURIComponent(episodeValue)}` : "";
+    location.href=`watch.html?id=${encodeURIComponent(id)}&type=${type}${episodeQuery}#principal`;
   });
   document.querySelectorAll(".copy-voidverse").forEach(button=>button.addEventListener("click",async()=>{
     const value=document.querySelector("#"+button.dataset.copyTarget)?.textContent || "";
