@@ -1256,6 +1256,10 @@ $('back-btn').addEventListener('click', () => {
     }
     if ((key === 'Enter' || event.keyCode === 13) && target) { event.preventDefault(); event.stopImmediatePropagation(); target.click(); }
   }, true);
+  document.addEventListener('mousemove', function () {
+    document.documentElement.classList.remove('free-pointer');
+    if (target) { target.classList.remove('tv-pointer-hover'); target = null; }
+  }, { passive: true });
   cursor.style.left = x + 'px'; cursor.style.top = y + 'px';
   updateTarget();
 })();
