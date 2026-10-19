@@ -580,12 +580,11 @@ function loadPlayer() {
   frame.src = src;
   old.replaceWith(frame);
 
-  const loadTimeout = serverId === 3 ? 30000 : 12000;
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
     loader.classList.add('hide');
     fail();
-  }, loadTimeout);
+  }, 12000);
   syncUrl();
   savePlaybackProgress();
   if (state.title) updateTitleBar();
