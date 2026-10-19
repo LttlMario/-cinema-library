@@ -1,7 +1,7 @@
 const CACHE = 'cinema-library-shell-v4';
 const SHELL = [
   './', './index.html', './catalog.html', './genres.html', './stream/index.html',
-  './404.html', './contribute.html', './manifest.webmanifest',
+  './404.html', './contribute.html', './watch-together.html', './about.html', './contact.html', './terms.html', './privacy.html', './sitemap.html', './manifest.webmanifest',
   './assets/site-shell.css', './assets/site-shell.js', './assets/icons/cinema-library-favicon.png'
 ];
 const CACHEABLE = /\.(?:html?|css|js|webmanifest|png|jpe?g|svg|ico|woff2?)$/i;
