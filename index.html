@@ -99,6 +99,9 @@
     /* Samsung TV wrapper: give the remote-friendly header more presence and
        make its controls easier to read from the sofa. Desktop/mobile keep the
        original dimensions. */
+    html.tv-mode {
+      font-size: 112%;
+    }
     html.tv-mode header {
       height: 98px;
       gap: clamp(1.4rem, 3vw, 2.8rem);
@@ -113,6 +116,12 @@
     html.tv-mode #theme-toggle,
     html.tv-mode #server-btn,
     html.tv-mode #contribute-btn { min-width: 52px; min-height: 52px; }
+    html.tv-mode .hero-title { font-size: clamp(2.6rem, 5vw, 5.2rem); }
+    html.tv-mode .row-title { font-size: 1.55rem; }
+    html.tv-mode .card-info-title { font-size: .98rem; }
+    html.tv-mode .card-info-meta { font-size: .82rem; }
+    html.tv-mode .filter-tab { font-size: 1rem; padding: .7rem 1.05rem; }
+    html.tv-mode .modal-title { font-size: 2.4rem; }
 
     .logo {
       font-family: 'Bricolage Grotesque', sans-serif;
