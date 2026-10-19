@@ -309,7 +309,7 @@ const HEADERS = {
   'accept': 'application/json'
 };
 
-const STORAGE_KEY = 'cinemalibrary_server';
+const STORAGE_KEY = 'cinemalibrary_server_v2';
 
 const SERVERS = [
   { id: 1, name: 'Rakan',   note: 'Generally better quality.' },
@@ -325,7 +325,7 @@ const serverUrlResolvers = {
   //1: (p) => p.type === 'movie' ? `https://vidsrc.cc/v2/embed/movie/${p.id}?autoPlay=false` : `https://vidsrc.cc/v2/embed/tv/${p.id}/${p.season}/${p.episode}?autoPlay=false`, // Rakan (vidsrc.cc)
   1: (p) => p.type === 'movie' ? `https://vixsrc.to/movie/${p.id}?autoPlay=true&lang=en` : `https://vixsrc.to/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true&lang=en`,                                   // Rakan
   2: (p) => p.type === 'movie' ? `https://moviesapi.to/movie/${p.id}` : `https://moviesapi.to/tv/${p.id}-${p.season}-${p.episode}`,                                                                            // Bard
-  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1`,                        // Xayah
+  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1&ds_lang=ro` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1&ds_lang=ro`, // Xayah — Romanian subtitles
   4: (p) => p.type === 'movie' ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave` : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&autonext=true&prioritize=true&lastserver=wave`, // Ekko
   5: (p) => p.type === 'movie' ? `https://vidfast.vc/movie/${p.id}?autoPlay=true` : `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true`,                                                   // Naafiri
   6: (p) => p.type === 'movie' ? `https://vidlink.pro/movie/${p.id}?title=true&poster=true&autoplay=true` : `https://vidlink.pro/tv/${p.id}/${p.season}/${p.episode}?title=true&poster=true&autoplay=true&nextbutton=true` // Ryze
@@ -353,7 +353,7 @@ function readParams() {
   let server = parseInt(p.get('server'), 10);
   if (!server || !serverUrlResolvers[server]) {
     const saved = parseInt(localStorage.getItem(STORAGE_KEY), 10);
-    server = (saved && serverUrlResolvers[saved]) ? saved : 1;
+    server = (saved && serverUrlResolvers[saved]) ? saved : 3;
   }
 
   const out = { type, id, server };

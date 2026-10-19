@@ -779,10 +779,10 @@ const CATEGORY_ROWS = [
 ];
 
 /* ─── STATE ─── */
-const STORAGE_KEY = 'cinemalibrary_server';
+const STORAGE_KEY = 'cinemalibrary_server_v2';
 let currentServer = (() => {
   const saved = localStorage.getItem(STORAGE_KEY);
-  return saved ? parseInt(saved, 10) : 1;
+  return saved ? parseInt(saved, 10) : 3;
 })();
 let currentFilter = 'all';
 let searchResults = [];
