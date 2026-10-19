@@ -940,6 +940,7 @@ let currentFilter = 'all';
 let searchResults = [];
 let searchRequestId = 0;
 let currentModalItem = null;
+let modalReturnFocus = null;
 let tvDetails = {};
 let genreMap = {};
 const genreCatalog = { movie: [], tv: [] };
@@ -1689,6 +1690,7 @@ async function openModal(item) {
   const date    = item.release_date || item.first_air_date;
   const m       = matchPct(item.vote_average);
 
+  modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   currentModalItem = { ...item, media_type: type };
   rememberTitle(currentModalItem);
 
@@ -1731,6 +1733,7 @@ async function openModal(item) {
   // (phone gesture, TV remote, browser) closes it instead of leaving the page.
   if (!(history.state && history.state.cinemalibraryModal)) history.pushState({ cinemalibraryModal: true }, '');
   if (window.__knavModalOpened) window.__knavModalOpened();
+  $('modal-close').focus({ preventScroll: true });
   updateFavoriteButton();
   updateWatchLaterButton();
 
@@ -1874,7 +1877,16 @@ $('modal-later-btn').addEventListener('click', () => {
 
 $('modal-close').addEventListener('click', closeModal);
 $('modal-backdrop').addEventListener('click', e => { if (e.target === $('modal-backdrop')) closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => {
+  if (!$('modal-backdrop').classList.contains('open')) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeModal(); return; }
+  if (e.key !== 'Tab') return;
+  const focusable = [...$('modal').querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(el => el.getClientRects().length);
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 
 function closeModal(fromPop) {
   if (!$('modal-backdrop').classList.contains('open')) return;
@@ -1882,7 +1894,10 @@ function closeModal(fromPop) {
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
   currentModalItem = null;
+  const returnFocus = modalReturnFocus;
+  modalReturnFocus = null;
   if (window.__knavModalClosed) window.__knavModalClosed();
+  if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
   // Closing by any means other than Back itself unwinds the modal's
   // history entry, so the next Back doesn't have to be pressed twice.
   if (fromPop !== true && history.state && history.state.cinemalibraryModal) history.back();
