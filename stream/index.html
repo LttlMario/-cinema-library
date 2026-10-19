@@ -193,10 +193,6 @@
     .resume-actions button { padding: .65rem .9rem; border-radius: 8px; font: inherit; cursor: pointer; }
     .resume-continue { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
     .resume-restart { border: 1px solid var(--line); background: transparent; color: var(--text); }
-    .idle-prompt { position:absolute; inset:0; z-index:7; display:grid; place-items:center; padding:1rem; background:rgba(0,0,0,.76); backdrop-filter:blur(5px); }
-    .idle-prompt[hidden] { display:none; }
-    .idle-card { width:min(430px,100%); padding:1.35rem; text-align:center; background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--radius-lg); box-shadow:var(--shadow); }
-    .idle-card h2 { font-size:1.1rem; margin-bottom:.45rem; }.idle-card p { color:var(--muted); font-size:.86rem; margin-bottom:1rem; }.idle-actions { display:flex; justify-content:center; gap:.65rem; flex-wrap:wrap; }.idle-actions button { padding:.65rem .9rem; border-radius:8px; font:inherit; cursor:pointer; }.idle-continue { border:1px solid var(--accent); background:var(--accent); color:#fff; }.idle-stop { border:1px solid var(--line); background:transparent; color:var(--text); }
     .spinner {
       width: 38px; height: 38px; border: 3px solid var(--line);
       border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite;
@@ -334,13 +330,6 @@
               <button class="resume-continue" id="resume-continue" type="button">Continuă de unde am rămas</button>
               <button class="resume-restart" id="resume-restart" type="button">Începe de la început</button>
             </div>
-          </div>
-        </div>
-        <div class="idle-prompt" id="idle-prompt" hidden>
-          <div class="idle-card">
-            <h2>Mai urmărești?</h2>
-            <p>Nu a fost detectată nicio interacțiune timp de două ore. Redarea a fost pusă pe pauză.</p>
-            <div class="idle-actions"><button class="idle-continue" id="idle-continue" type="button">Da, continuă</button><button class="idle-stop" id="idle-stop" type="button">Oprește redarea</button></div>
           </div>
         </div>
         <button class="player-action next-episode-action" id="next-episode-action" data-action="next-episode" type="button" hidden>▶ Următorul episod</button>
@@ -495,10 +484,6 @@ const libraryId = item => `${item.media_type || (item.title ? 'movie' : 'tv')}-$
 const attemptedServers = new Set();
 const PROGRESS_KEY = 'cinemalibrary_progress';
 let playerLoadToken = 0;
-const IDLE_LIMIT_MS = 2 * 60 * 60 * 1000;
-let idleTimer = null;
-let idlePaused = false;
-let completedEpisodeKey = '';
 
 /* ─── PARAMS ─── */
 function readParams() {
@@ -589,41 +574,7 @@ function loadPlayer() {
   syncUrl();
   savePlaybackProgress();
   if (state.title) updateTitleBar();
-  armIdleTimer();
 }
-
-function sendPlayerCommand(command) {
-  const frame = $('player');
-  if (!frame?.contentWindow) return;
-  const targetOrigin = state?.server === 3 ? 'https://vidsrc.sh' : '*';
-  [{ type: 'PLAYER_COMMAND', command }, { type: 'PLAYER_COMMAND', action: command }, { type: command.toUpperCase() }]
-    .forEach(message => { try { frame.contentWindow.postMessage(message, targetOrigin); } catch {} });
-}
-
-function armIdleTimer() {
-  clearTimeout(idleTimer);
-  if (!state || state.type !== 'tv' || idlePaused) return;
-  idleTimer = setTimeout(showIdlePrompt, IDLE_LIMIT_MS);
-}
-
-function showIdlePrompt() {
-  if (!state || state.type !== 'tv') return;
-  idlePaused = true;
-  clearTimeout(idleTimer);
-  sendPlayerCommand('pause');
-  $('idle-prompt').hidden = false;
-}
-
-function continueAfterIdlePrompt() {
-  idlePaused = false;
-  $('idle-prompt').hidden = true;
-  sendPlayerCommand('play');
-  armIdleTimer();
-}
-
-['mousemove', 'mousedown', 'touchstart', 'keydown'].forEach(eventName => {
-  document.addEventListener(eventName, () => { if (!idlePaused) armIdleTimer(); }, { passive: true });
-});
 
 function savePlaybackProgress() {
   if (!state?.title) return;
@@ -664,13 +615,6 @@ window.addEventListener('message', event => {
   const duration = Number(payload.player_duration ?? payload.duration ?? payload.duration_seconds);
   const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
   if (state?.server === 3 && (completed || (remaining !== null && remaining <= 60 && remaining >= 0) || (!Number.isFinite(duration) && progress >= 99))) revealInlineNextEpisode();
-  if (completed && state?.server === 3 && state.type === 'tv') {
-    const episodeKey = `${state.id}-${state.season}-${state.episode}`;
-    if (episodeKey !== completedEpisodeKey && computeNext()) {
-      completedEpisodeKey = episodeKey;
-      setTimeout(() => { if (!idlePaused && state?.type === 'tv' && `${state.id}-${state.season}-${state.episode}` === episodeKey) goNextEpisode(); }, 350);
-    }
-  }
   if (!Number.isFinite(progress) || !state || state.server !== 3) return;
   state.resumeAt = progress;
   if (completed) clearPlaybackProgress();
@@ -1002,8 +946,6 @@ $('back-btn').addEventListener('click', () => {
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
   setupPlayerActions();
-  $('idle-continue').addEventListener('click', continueAfterIdlePrompt);
-  $('idle-stop').addEventListener('click', () => { $('idle-prompt').hidden = true; toast('Redarea a rămas pe pauză.'); });
   startPlayback();
 })();
 
