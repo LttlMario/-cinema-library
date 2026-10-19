@@ -1611,6 +1611,7 @@ async function loadHero() {
 
       const slide = document.createElement('div');
       slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
+      slide.setAttribute('aria-hidden', String(i !== 0));
       slide.innerHTML = `
        <div class="hero-bg" style="background-image:url('${backdrop(item.backdrop_path, 'w1280')}')"></div>
         <div class="hero-content">
@@ -1639,6 +1640,9 @@ async function loadHero() {
     items.forEach((_, i) => {
       const d = document.createElement('button');
       d.className = 'hero-dot' + (i === 0 ? ' active' : '');
+      d.type = 'button';
+      d.setAttribute('aria-label', `Afișează recomandarea ${i + 1}`);
+      d.setAttribute('aria-current', String(i === 0));
       d.addEventListener('click', () => goToHero(i));
       dots.appendChild(d);
     });
@@ -1653,10 +1657,14 @@ function goToHero(i) {
   const slides = document.querySelectorAll('.hero-slide');
   const dots   = document.querySelectorAll('.hero-dot');
   slides[heroIndex]?.classList.remove('active');
+  slides[heroIndex]?.setAttribute('aria-hidden', 'true');
   dots[heroIndex]?.classList.remove('active');
+  dots[heroIndex]?.setAttribute('aria-current', 'false');
   heroIndex = (i + heroSlides.length) % heroSlides.length;
   slides[heroIndex]?.classList.add('active');
+  slides[heroIndex]?.setAttribute('aria-hidden', 'false');
   dots[heroIndex]?.classList.add('active');
+  dots[heroIndex]?.setAttribute('aria-current', 'true');
   const bg = slides[heroIndex]?.querySelector('.hero-bg');
   if (bg) {
     bg.style.animation = 'none';
