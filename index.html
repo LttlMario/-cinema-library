@@ -571,9 +571,9 @@
       backdrop-filter: blur(6px); z-index: 600;
       display: flex; align-items: flex-start; justify-content: center;
       padding: 4vh 1rem; overflow-y: auto;
-      opacity: 0; pointer-events: none; transition: opacity .25s;
+      opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .25s, visibility 0s linear .25s;
     }
-    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .modal-backdrop.open { opacity: 1; visibility: visible; pointer-events: all; transition-delay: 0s; }
     .modal {
       background: var(--bg-elev); border: 1px solid var(--line);
       border-radius: var(--radius-lg); box-shadow: 0 30px 90px rgba(0,0,0,0.85);
@@ -822,7 +822,7 @@
 </section>
 
 <!-- ─────────────── MODAL ─────────────── -->
-<div class="modal-backdrop" id="modal-backdrop">
+<div class="modal-backdrop" id="modal-backdrop" aria-hidden="true">
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-overview">
     <button class="modal-close" id="modal-close" aria-label="Închide detaliile">✕</button>
     <div class="modal-scroll">
@@ -1743,6 +1743,7 @@ async function openModal(item) {
   }
 
   $('modal-backdrop').classList.add('open');
+  $('modal-backdrop').setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
 
@@ -1908,6 +1909,7 @@ document.addEventListener('keydown', e => {
 function closeModal(fromPop) {
   if (!$('modal-backdrop').classList.contains('open')) return;
   $('modal-backdrop').classList.remove('open');
+  $('modal-backdrop').setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
   currentModalItem = null;
