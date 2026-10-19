@@ -166,6 +166,8 @@
     .player-action:hover,.player-action.active { border-color:var(--accent); background:var(--accent-soft); }
     .next-episode-action { position:absolute; right:1rem; bottom:4.1rem; z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
     .next-episode-action:hover { background:var(--accent); color:#fff; }
+    .player-fullscreen-action { position:absolute; top:.75rem; right:.75rem; z-index:7; padding:.55rem .7rem; border:1px solid rgba(255,255,255,.28); border-radius:8px; background:rgba(10,10,14,.78); color:#fff; cursor:pointer; opacity:.78; }
+    .player-fullscreen-action:hover { opacity:1; background:var(--accent); }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
     .player-details img { width:130px; aspect-ratio:2/3; object-fit:cover; border-radius:8px; }
     .player-details h1 { margin:0 0 .5rem; font-size:1.35rem; color:var(--accent-h); }
@@ -322,6 +324,7 @@
       <div class="player-wrap" id="player-wrap">
         <div class="player-loading" id="player-loading"><div class="spinner"></div></div>
         <iframe id="player" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
+        <button class="player-fullscreen-action" id="player-fullscreen" type="button" title="Full screen pentru player" aria-label="Full screen pentru player">⛶</button>
         <div class="resume-prompt" id="resume-prompt" hidden>
           <div class="resume-card">
             <h2>Vrei să continui vizionarea?</h2>
@@ -665,6 +668,18 @@ function toggleLibrary(key, button) {
   button.classList.toggle('active', readLibrary(key).some(x => libraryId(x) === id));
 }
 
+function togglePlayerFullscreen() {
+  const wrap = $('player-wrap');
+  if (!wrap) return;
+  const active = document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap;
+  if (active) {
+    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+    return;
+  }
+  const request = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+  if (request) request.call(wrap).catch(() => toast('Full screen nu este disponibil în acest browser.'));
+}
+
 function setupPlayerActions() {
   document.querySelectorAll('.player-action').forEach(button => button.addEventListener('click', () => {
     const action = button.dataset.action;
@@ -936,6 +951,7 @@ $('back-btn').addEventListener('click', () => {
 
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
+  $('player-fullscreen').addEventListener('click', togglePlayerFullscreen);
   setupPlayerActions();
   startPlayback();
 })();
