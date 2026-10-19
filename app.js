@@ -228,6 +228,11 @@ async function watch(){
   let item={title:'Titlu video'};
   try{ item=await tmdb(`/${type}/${id}`); }catch(_){}
   const map=sourceMap(type,id,season,episode);
+  if(!map.principal){
+    const videos=await tmdb(`/${type}/${id}/videos`).catch(()=>({results:[]}));
+    const trailer=(videos.results||[]).find(video=>video.site==='YouTube' && (video.type==='Trailer'||video.type==='Teaser') && video.key);
+    if(trailer) map.principal={label:'Trailer oficial YouTube',url:`https://www.youtube.com/embed/${encodeURIComponent(trailer.key)}`};
+  }
   page.innerHTML=`<section class="watch-head"><a href="detail.html?id=${id}&type=${type}" class="back-link">← Înapoi la detalii</a><div><span class="eyebrow">${typeLabel(type)}${episode ? ` · S${season} E${episode}` : ''}</span><h1>${esc(title(item))}</h1><p>Încearcă unul dintre player-ele de mai jos.</p>${type === "tv" && season && episode ? `<a id="nextEpisodeButton" class="button next-episode-button hidden" href="#">Următorul episod →</a>` : ""}</div></section><section class="watch-layout"><div class="watch-player-area"><div id="iframeNotice" class="iframe-notice"><span class="notice-symbol">!</span><div><b id="iframeNoticeTitle">Alege un player</b><p id="iframeNoticeText">Selectează un buton pentru a începe.</p></div></div><div id="iframeBox" class="iframe-box hidden"><iframe id="contentFrame" title="Player video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div><aside class="watch-sidebar"><h2>Surse autorizate</h2><p class="muted">Butoanele sunt afișate pentru fiecare titlu, chiar și înainte de configurarea linkurilor.</p><div class="watch-player-buttons">${defaultPlayers.map(player=>`<button class="watch-player-button ${map[player.id]?.url ? 'ready':''}" data-player="${player.id}" type="button"><span class="player-icon">${player.icon||'▶'}</span><span><b>${esc(player.label)}</b><small>${map[player.id]?.url ? 'Configurat' : 'Nu este configurat'}</small></span><strong>›</strong></button>`).join('')}</div></aside></section>`;
   const noticeTitle=$('#iframeNoticeTitle'), noticeText=$('#iframeNoticeText'), iframeBox=$('#iframeBox'), frame=$('#contentFrame');
   const selectPlayer=(idPlayer)=>{
