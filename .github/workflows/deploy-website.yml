@@ -11,24 +11,16 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-${{ github.sha }}
+  group: pages
   cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Skip stale commits
-        run: |
-          latest_sha=$(git ls-remote origin refs/heads/main | cut -f1)
-          test "$GITHUB_SHA" = "$latest_sha" || {
-            echo "Skipping stale commit $GITHUB_SHA; current main is $latest_sha"
-            exit 1
-          }
+        uses: actions/checkout@v4
 
       - name: Inject TMDB token
         run: |
@@ -37,22 +29,22 @@ jobs:
           sed -i "s|__TMDB_TOKEN__|${{ secrets.TMDB_TOKEN }}|g" stream/index.html
           sed -i "s|__TMDB_TOKEN__|${{ secrets.TMDB_TOKEN }}|g" catalog.html
           sed -i "s|__TMDB_TOKEN__|${{ secrets.TMDB_TOKEN }}|g" genres.html
-          for page in about.html catalog.html contact.html contribute.html genres.html privacy.html sitemap.html terms.html watch-together.html 404.html; do sed -i 's#</head>#<link rel="stylesheet" href="assets/site-shell.css"><script defer src="assets/site-shell.js"></script></head>#' "$page"; done
+          for page in about.html catalog.html contact.html contribute.html download.html genres.html privacy.html sitemap.html terms.html watch-together.html 404.html; do sed -i 's#</head>#<link rel="stylesheet" href="assets/site-shell.css"><script defer src="assets/site-shell.js"></script></head>#' "$page"; done
 
       - name: Prepare Pages artifact
-        run: mkdir -p public && mv index.html 404.html contribute.html catalog.html genres.html about.html contact.html terms.html privacy.html sitemap.html watch-together.html manifest.webmanifest sw.js assets stream public/
+        run: mkdir -p public && mv index.html 404.html contribute.html download.html catalog.html genres.html about.html contact.html terms.html privacy.html sitemap.html watch-together.html manifest.webmanifest sw.js assets stream public/
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v3
         with:
           path: public
 
   deploy:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       pages: write
       id-token: write
@@ -64,4 +56,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4
