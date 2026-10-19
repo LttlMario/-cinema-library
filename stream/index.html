@@ -164,7 +164,7 @@
     .player-actions { display:flex; flex-wrap:wrap; gap:.55rem; padding:1rem 0 0; }
     .player-action { border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:10px; padding:.65rem .85rem; font:600 .78rem inherit; cursor:pointer; }
     .player-action:hover,.player-action.active { border-color:var(--accent); background:var(--accent-soft); }
-    .next-episode-action { position:absolute; left:50%; bottom:1.25rem; transform:translateX(-50%); z-index:6; border-color:var(--accent); background:rgba(20,20,26,.94); color:var(--accent-h); box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; }
+    .next-episode-action { position:absolute; right:1rem; bottom:4.1rem; z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
     .next-episode-action:hover { background:var(--accent); color:#fff; }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
     .player-details img { width:130px; aspect-ratio:2/3; object-fit:cover; border-radius:8px; }
@@ -611,8 +611,10 @@ window.addEventListener('message', event => {
   const payload = event.data.data || {};
   const status = String(payload.player_status || payload.status || '').toLowerCase();
   const completed = ['completed', 'ended', 'finished', 'finish'].includes(status);
-  if (completed && state?.server === 3) revealInlineNextEpisode();
   const progress = Number(payload.player_progress);
+  const duration = Number(payload.player_duration ?? payload.duration ?? payload.duration_seconds);
+  const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
+  if (state?.server === 3 && (completed || (remaining !== null && remaining <= 60 && remaining >= 0) || (!Number.isFinite(duration) && progress >= 99))) revealInlineNextEpisode();
   if (!Number.isFinite(progress) || !state || state.server !== 3) return;
   state.resumeAt = progress;
   if (completed) clearPlaybackProgress();
@@ -681,7 +683,8 @@ function revealInlineNextEpisode() {
   const next = state?.type === 'tv' ? computeNext() : null;
   if (!btn || !next) return;
   btn.hidden = false;
-  btn.textContent = `▶ Următorul episod · S${next.season} E${next.episode}`;
+  btn.textContent = `Următorul episod  ▶  S${next.season} E${next.episode}`;
+  btn.title = `Pornește sezonul ${next.season}, episodul ${next.episode}`;
 }
 
 /* ─── SERVERS ─── */
@@ -819,7 +822,7 @@ function updateNextBtn() {
 
 async function goNextEpisode() {
   const next = computeNext();
-  if (!next) return;
+  if (!next) { toast('Următorul episod nu este disponibil.'); return; }
   $('next-episode-action').hidden = true;
   const seasonChanged = next.season !== state.season;
   state.season = next.season;
@@ -830,6 +833,7 @@ async function goNextEpisode() {
   updateNextBtn();
   savePlaybackProgress();
   loadPlayer();
+  toast(`Se încarcă S${state.season} E${state.episode}…`);
 }
 
 /* ─── MOVIE TITLE ─── */
