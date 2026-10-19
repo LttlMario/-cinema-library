@@ -59,7 +59,7 @@ tablets, and **Android TV** (it shows up in the TV launcher).
 
 📥 Download the APK from the [latest release](https://github.com/LttlMario/cinema-library/releases/latest)
 and sideload it (on TV: install via a file-manager app or `adb install`).
-
+ 
 👉 See the [Android app guide](app/android/README.md) for more info. -->
 
 
