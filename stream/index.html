@@ -173,6 +173,7 @@
     .enhancer-panel[hidden] { display:none; }
     .enhancer-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.8rem; }
     .enhancer-heading strong { font-size:.86rem; }
+    .enhancer-heading-actions { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; justify-content:flex-end; }
     .enhancer-note { margin-top:.75rem; color:var(--muted); font-size:.7rem; line-height:1.4; }
     .enhancer-presets { display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:1rem; }
     .enhancer-preset, .enhancer-reset { padding:.5rem .7rem; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--text); font:600 .74rem inherit; cursor:pointer; }
@@ -183,11 +184,8 @@
     .enhancer-control output { color:var(--text); font-variant-numeric:tabular-nums; }
     .enhancer-control input { width:100%; accent-color:var(--accent); cursor:pointer; }
     @media (max-width:560px){.enhancer-controls{grid-template-columns:1fr}}
-    .next-episode-action { position:absolute; right:1rem; bottom:clamp(5.35rem,8vw,7rem); z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
+    .next-episode-action { position:absolute; right:1rem; bottom:5.35rem; z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
     .next-episode-action:hover { background:var(--accent); color:#fff; }
-    @media (max-width:560px) {
-      .next-episode-action { left:.55rem; right:.55rem; bottom:clamp(5.6rem,16vw,7rem); width:calc(100% - 1.1rem); min-width:0; padding:.58rem .7rem; font-size:.74rem; }
-    }
     .player-fullscreen-action { position:absolute; top:.75rem; right:.75rem; z-index:7; padding:.55rem .7rem; border:1px solid rgba(255,255,255,.28); border-radius:8px; background:rgba(10,10,14,.78); color:#fff; cursor:pointer; opacity:.78; }
     .player-fullscreen-action:hover { opacity:1; background:var(--accent); }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
@@ -379,7 +377,7 @@
         <button class="player-action" data-action="enhancer" aria-expanded="false">✦ Îmbunătățește imaginea</button>
       </div>
       <section class="enhancer-panel" id="enhancer-panel" hidden aria-label="Îmbunătățire imagine">
-        <div class="enhancer-heading"><strong>Enhancer imagine</strong><button class="enhancer-reset" id="enhancer-reset" type="button">Resetează</button></div>
+        <div class="enhancer-heading"><strong>Enhancer imagine</strong><span class="enhancer-heading-actions"><button class="enhancer-reset" id="enhancer-toggle" type="button" aria-pressed="true">Activ</button><button class="enhancer-reset" id="enhancer-reset" type="button">Resetează</button></span></div>
         <div class="enhancer-presets" role="group" aria-label="Presetări imagine">
           <button class="enhancer-preset active" type="button" data-preset="normal">Normal</button>
           <button class="enhancer-preset" type="button" data-preset="cinema">Cinema</button>
@@ -468,6 +466,8 @@ const HEADERS = {
 const STORAGE_KEY = 'cinemalibrary_server_v2';
 const SUBTITLE_KEY = 'cinemalibrary_subtitle_v1';
 const ENHANCER_KEY = 'cinemalibrary_image_enhancer_v1';
+const ENHANCER_ENABLED_KEY = 'cinemalibrary_image_enhancer_enabled_v1';
+let enhancerEnabled = true;
 const ENHANCER_PRESETS = {
   normal: { brightness: 100, contrast: 100, saturation: 100, warmth: 0, clarity: 0 },
   cinema: { brightness: 105, contrast: 110, saturation: 104, warmth: 5, clarity: 4 },
@@ -513,51 +513,32 @@ function resumeParam(p) {
 const $ = id => document.getElementById(id);
 const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v1';
 const TMDB_CACHE_TTL = 5 * 60 * 1000;
-const TMDB_CACHE_LIMIT = 80;
-const tmdbInFlight = new Map();
 function readTmdbCache() {
   try { return JSON.parse(sessionStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
 }
 function writeTmdbCache(cache) {
-  try {
-    const entries = Object.entries(cache)
-      .sort(([, a], [, b]) => (b?.time || 0) - (a?.time || 0))
-      .slice(0, TMDB_CACHE_LIMIT);
-    sessionStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(Object.fromEntries(entries)));
-  } catch {}
+  try { sessionStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(cache)); } catch {}
 }
 const tmdb = async path => {
   const localizedPath = `${path}${path.includes('?') ? '&' : '?'}language=ro-RO`;
   const cache = readTmdbCache();
   const cached = cache[localizedPath];
   if (cached && Date.now() - cached.time < TMDB_CACHE_TTL) return cached.data;
-
-  const pending = tmdbInFlight.get(localizedPath);
-  if (pending) return pending;
-
-  const request = (async () => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-    try {
-      const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
-      if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
-      const data = await r.json();
-      cache[localizedPath] = { time: Date.now(), data };
-      writeTmdbCache(cache);
-      return data;
-    } catch (error) {
-      if (cached) return cached.data;
-      const message = error.name === 'AbortError' ? 'TMDB nu a răspuns la timp.' : 'Catalogul TMDB nu este disponibil momentan.';
-      toast(message);
-      throw new Error(message);
-    } finally {
-      clearTimeout(timeout);
-      tmdbInFlight.delete(localizedPath);
-    }
-  })();
-
-  tmdbInFlight.set(localizedPath, request);
-  return request;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
+    if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
+    const data = await r.json();
+    cache[localizedPath] = { time: Date.now(), data };
+    writeTmdbCache(cache);
+    return data;
+  } catch (error) {
+    if (cached) return cached.data;
+    const message = error.name === 'AbortError' ? 'TMDB nu a răspuns la timp.' : 'Catalogul TMDB nu este disponibil momentan.';
+    toast(message);
+    throw new Error(message);
+  } finally { clearTimeout(timeout); }
 };
 
 let state = null;          // { type, id, season, episode, server, subtitle, title }
@@ -782,8 +763,10 @@ function applyEnhancer() {
   const contrast = values.contrast + values.clarity;
   const saturation = values.saturation + Math.round(values.clarity * .15);
   const sepia = Math.max(0, values.warmth) * .45;
-  if (player) player.style.filter = `brightness(${values.brightness}%) contrast(${contrast}%) saturate(${saturation}%) sepia(${sepia}%) hue-rotate(${values.warmth * .6}deg)`;
-  try { localStorage.setItem(ENHANCER_KEY, JSON.stringify(values)); } catch {}
+  if (player) player.style.filter = enhancerEnabled ? `brightness(${values.brightness}%) contrast(${contrast}%) saturate(${saturation}%) sepia(${sepia}%) hue-rotate(${values.warmth * .6}deg)` : 'none';
+  const toggle = $('enhancer-toggle');
+  if (toggle) { toggle.textContent = enhancerEnabled ? 'Activ' : 'Inactiv'; toggle.setAttribute('aria-pressed', String(enhancerEnabled)); }
+  try { localStorage.setItem(ENHANCER_KEY, JSON.stringify(values)); localStorage.setItem(ENHANCER_ENABLED_KEY, String(enhancerEnabled)); } catch {}
   document.querySelectorAll('.enhancer-preset').forEach(button => button.classList.toggle('active', button.dataset.preset === 'custom'));
 }
 
@@ -798,25 +781,13 @@ function setEnhancer(values, preset = 'custom') {
 
 function setupEnhancer() {
   let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(ENHANCER_KEY) || 'null'); } catch {}
+  try { saved = JSON.parse(localStorage.getItem(ENHANCER_KEY) || 'null'); enhancerEnabled = localStorage.getItem(ENHANCER_ENABLED_KEY) !== 'false'; } catch {}
   const savedValues = saved && typeof saved === 'object' ? { ...ENHANCER_PRESETS.normal, ...saved } : ENHANCER_PRESETS.normal;
   setEnhancer(savedValues, saved ? 'custom' : 'normal');
   ['brightness', 'contrast', 'saturation', 'warmth', 'clarity'].forEach(key => $(`enhancer-${key}`)?.addEventListener('input', () => applyEnhancer()));
   document.querySelectorAll('.enhancer-preset').forEach(button => button.addEventListener('click', () => setEnhancer(ENHANCER_PRESETS[button.dataset.preset], button.dataset.preset)));
-  $('enhancer-reset').addEventListener('click', () => setEnhancer(ENHANCER_PRESETS.normal, 'normal'));
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeEnhancer();
-  });
-}
-
-function closeEnhancer() {
-  const panel = $('enhancer-panel');
-  const button = document.querySelector('[data-action="enhancer"]');
-  if (!panel || panel.hidden) return;
-  panel.hidden = true;
-  button?.classList.remove('active');
-  button?.setAttribute('aria-expanded', 'false');
-  button?.focus({ preventScroll: true });
+  $('enhancer-toggle').addEventListener('click', () => { enhancerEnabled = !enhancerEnabled; applyEnhancer(); });
+  $('enhancer-reset').addEventListener('click', () => { enhancerEnabled = true; setEnhancer(ENHANCER_PRESETS.normal, 'normal'); });
 }
 
 function setupPlayerActions() {
@@ -1057,7 +1028,7 @@ function fmtDate(d){
   if (!d) return '';
   const dt = new Date(d);
   if (isNaN(dt)) return '';
-  return dt.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
+  return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 function toast(msg){
   const t = $('toast');
