@@ -670,6 +670,13 @@ function savePlaybackProgress() {
     const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]')
       .filter(x => `${x.media_type || (x.title ? 'movie' : 'tv')}-${x.id}` !== key);
     localStorage.setItem(PROGRESS_KEY, JSON.stringify([entry, ...saved].slice(0, 30)));
+
+    // Keep a durable recent-history entry as soon as the title is opened.
+    // This survives leaving the TV app and is separate from the resume point.
+    const historyItem = libraryItemFromState();
+    const history = readLibrary(LIBRARY_KEYS.history)
+      .filter(x => libraryId(x) !== key);
+    writeLibrary(LIBRARY_KEYS.history, [historyItem, ...history]);
   } catch {}
 }
 
