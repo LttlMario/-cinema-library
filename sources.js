@@ -1,18 +1,33 @@
-// Configurează aici doar playere iframe pentru conținut pe care ai dreptul să îl distribui.
-// Cheia este "<tip>:<id TMDB>", de exemplu "movie:27205" sau "tv:1399".
-// Poți adăuga mai multe servere; ele apar ca butoane pe pagina de vizionare.
-// URL-ul trebuie să fie HTTPS și să permită încărcarea în iframe.
-window.CINEMA_SOURCES = {
-  "movie:27205": [
-    { label: "Trailer oficial Warner Bros.", url: "https://www.youtube.com/embed/Qwe6qXFTdgc" }
-  ],
-  "movie:157336": [
-    { label: "Trailer oficial Paramount Movies", url: "https://www.youtube.com/embed/4T4wxDnTYLg" }
-  ],
+// Player-ele apar pentru fiecare titlu, chiar dacă nu au încă un URL.
+// Adaugă aici numai iframe-uri pentru conținut pe care ai dreptul să îl folosești.
+window.CINEMA_PLAYERS = [
+  { id: 'principal', label: 'Player principal', icon: '▶' },
+  { id: 'alternativ', label: 'Player alternativ', icon: '◉' },
+  { id: 'server3', label: 'Server 3', icon: '◆' },
+  { id: 'server4', label: 'Server 4', icon: '◇' }
+];
 
-  // Exemplu de structură pentru un titlu nou:
-  // "tv:12345": [
-  //   { label: "Server principal", url: "https://domeniul-tau.example/embed/ID" },
-  //   { label: "Server alternativ", url: "https://alt-domeniu.example/embed/ID" }
-  // ]
+window.CINEMA_SOURCES = {
+  'movie:27205': {
+    principal: { label: 'Trailer oficial Warner Bros.', url: 'https://www.youtube.com/embed/Qwe6qXFTdgc' }
+  },
+  'movie:157336': {
+    principal: { label: 'Trailer oficial Paramount Movies', url: 'https://www.youtube.com/embed/4T4wxDnTYLg' }
+  }
+
+  // Film:
+  // 'movie:12345': {
+  //   principal: { label: 'Server principal', url: 'https://domeniul-tau.example/embed/ID' },
+  //   alternativ: { label: 'Server alternativ', url: 'https://alt-domeniu.example/embed/ID' }
+  // },
+
+  // Serial:
+  // 'tv:1399': {
+  //   principal: { label: 'Server principal', url: 'https://domeniul-tau.example/embed/ID' }
+  // },
+
+  // Episod:
+  // 'tv:1399:s1e1': {
+  //   principal: { label: 'Server principal', url: 'https://domeniul-tau.example/embed/EPISOD' }
+  // }
 };
