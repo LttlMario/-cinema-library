@@ -1407,6 +1407,7 @@ async function openModal(item) {
 
   const tvSel = $('tv-selectors');
   const drEl  = $('modal-digital-release');
+  const savedProgress = libraryRead(LIBRARY_KEYS.progress).find(entry => libraryKey(entry) === libraryKey(currentModalItem));
   if (isMovie) {
     tvSel.style.display = 'none';
     drEl.style.display = 'inline-flex';
@@ -1414,7 +1415,7 @@ async function openModal(item) {
   } else {
     tvSel.style.display = 'block';
     drEl.style.display = 'none';
-    await loadTvSeasons(item.id);
+    await loadTvSeasons(item.id, savedProgress);
   }
 
   $('modal-backdrop').classList.add('open');
@@ -1471,7 +1472,7 @@ async function fetchDigitalReleaseBadge(movieId) {
 
 const seasonCache = {};
 
-async function loadTvSeasons(id) {
+async function loadTvSeasons(id, resume = null) {
   const seasonSel  = $('season-select');
   const episodeSel = $('episode-select');
   seasonSel.innerHTML  = '<option>Loading…</option>';
@@ -1487,8 +1488,14 @@ async function loadTvSeasons(id) {
 
     seasonSel.replaceWith(seasonSel.cloneNode(true));
     const freshSel = $('season-select');
+    if (resume?.season && [...freshSel.options].some(option => Number(option.value) === Number(resume.season))) {
+      freshSel.value = resume.season;
+    }
     freshSel.addEventListener('change', () => updateEpisodes(id));
     await updateEpisodes(id);
+    if (resume?.episode && [...$('episode-select').options].some(option => Number(option.value) === Number(resume.episode))) {
+      $('episode-select').value = resume.episode;
+    }
   } catch {
     seasonSel.innerHTML = '<option value="1">Season 1</option>';
     await updateEpisodes(id);
