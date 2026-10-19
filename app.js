@@ -109,11 +109,16 @@ function setStore(key,value){ localStorage.setItem(key, JSON.stringify(value)); 
 function toggleStore(key,value){ const list=actionStore(key); const index=list.indexOf(value); if(index >= 0) list.splice(index,1); else list.push(value); setStore(key,list); return index < 0; }
 function detailActions(type,id,item){
   const key = `${type}:${id}`;
-  document.querySelectorAll('[data-store]').forEach(button => button.addEventListener('click', () => {
-    const active = toggleStore(button.dataset.store, key);
-    button.classList.toggle('active', active);
-    button.textContent = active ? button.dataset.activeLabel : button.dataset.label;
-  }));
+  document.querySelectorAll('[data-store]').forEach(button => {
+    const applyState = active => {
+      button.classList.toggle('active', active);
+      button.textContent = active ? button.dataset.activeLabel : button.dataset.label;
+    };
+    applyState(actionStore(button.dataset.store).includes(key));
+    button.addEventListener('click', () => {
+      applyState(toggleStore(button.dataset.store, key));
+    });
+  });
   document.querySelectorAll('[data-action="party"]').forEach(button => button.addEventListener('click', () => showNotice('Vezi împreună', 'Funcția de cameră este pregătită pentru o integrare viitoare.')));
 }
 function showNotice(titleText,message){
