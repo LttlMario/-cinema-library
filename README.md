@@ -7,9 +7,7 @@
 [Cinema Library](https://lttlmario.github.io/cinema-library/) is a simple movie and TV show search website powered by the TMDB API.
 It lets users discover movies and TV shows and stream them directly within the website.
 
-🌐 Live demo: [cinemalibrary.nunesnetwork.com](https://lttlmario.github.io/cinema-library/)
-
-> **Alternative**: [TMDB-Player](https://github.com/TomasTNunes/TMDB-Player) — an open-source browser extension that lets you stream your favorite movies and TV shows directly through the TMDB website.
+🌐 Live demo: [lttlmario.github.io/cinema-library/](https://lttlmario.github.io/cinema-library/)
 
 ## Features
 
