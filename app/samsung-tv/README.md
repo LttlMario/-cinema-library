@@ -8,7 +8,7 @@ Aceasta este aplicația Tizen pentru instalare personală pe un Samsung Smart TV
 - Televizorul trebuie să ruleze Samsung Tizen și să fie conectat la internet.
 - Pentru instalarea personală se activează Developer Mode pe TV.
 - Aplicația trebuie semnată cu un certificat Tizen creat în Tizen Studio.
-- Pachetul rezultat este `Cinema Library.wgt`; acesta este formatul acceptat de Samsung TV.
+- Pachetul de instalare este `CinemaTV01.wgt`; acesta este numele compatibil folosit de Samsung TV.
 
 ## Pregătire pe PC
 
