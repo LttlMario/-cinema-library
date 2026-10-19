@@ -970,7 +970,7 @@ function writeTmdbCache(cache) {
     sessionStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(Object.fromEntries(entries)));
   } catch {}
 }
-const tmdb = async path => {
+const tmdb = async (path, options = {}) => {
   const localizedPath = `${path}${path.includes('?') ? '&' : '?'}language=ro-RO`;
   const cache = readTmdbCache();
   const cached = cache[localizedPath];
@@ -980,6 +980,11 @@ const tmdb = async path => {
 
   const request = (async () => {
     const controller = new AbortController();
+    const abortExternal = () => controller.abort();
+    if (options.signal) {
+      if (options.signal.aborted) controller.abort();
+      else options.signal.addEventListener('abort', abortExternal, { once: true });
+    }
     const timeout = setTimeout(() => controller.abort(), 10000);
     try {
       const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
@@ -990,10 +995,14 @@ const tmdb = async path => {
       return data;
     } catch (error) {
       if (cached) return cached.data;
+      if (error.name === 'AbortError' && options.signal?.aborted) throw error;
       const message = error.name === 'AbortError' ? 'TMDB nu a răspuns la timp.' : 'Catalogul TMDB nu este disponibil momentan.';
       toast(message);
       throw new Error(message);
-    } finally { clearTimeout(timeout); }
+    } finally {
+      clearTimeout(timeout);
+      options.signal?.removeEventListener('abort', abortExternal);
+    }
   })();
   tmdbInFlight.set(localizedPath, request);
   try { return await request; } finally { tmdbInFlight.delete(localizedPath); }
@@ -1909,6 +1918,7 @@ window.addEventListener('popstate', () => {
 
 /* ─── SEARCH ─── */
 let searchTimer;
+let searchController = null;
 const searchWrap  = $('search-wrap');
 const searchInput = $('search');
 const clearBtn    = $('search-clear');
@@ -1961,6 +1971,9 @@ function resetSearch() {
 
 async function doSearch(q) {
   const requestId = ++searchRequestId;
+  searchController?.abort();
+  searchController = new AbortController();
+  const searchSignal = searchController.signal;
   $('search-results-section').classList.add('visible');
   $('main').style.display = 'none';
   $('hero').style.display = 'none';
@@ -1976,7 +1989,7 @@ async function doSearch(q) {
 
   try {
     const pages = await Promise.all(Array.from({ length: 5 }, (_, i) =>
-      tmdb(`/search/multi?query=${encodeURIComponent(q)}&include_adult=false&page=${i + 1}`)
+      tmdb(`/search/multi?query=${encodeURIComponent(q)}&include_adult=false&page=${i + 1}`, { signal: searchSignal })
     ));
     if (requestId !== searchRequestId) return;
     const all = pages.flatMap(page => page.results || []);
@@ -1991,12 +2004,14 @@ async function doSearch(q) {
     $('search-spinner').style.display = 'none';
     $('search-results-section').setAttribute('aria-busy', 'false');
     renderSearchResults();
-  } catch {
-    if (requestId !== searchRequestId) return;
+  } catch (error) {
+    if (error.name === 'AbortError' || requestId !== searchRequestId) return;
     $('search-spinner').style.display = 'none';
     $('search-results-section').setAttribute('aria-busy', 'false');
     $('search-empty').style.display = 'block';
     $('search-empty').querySelector('p').textContent = 'Căutarea nu este disponibilă momentan. Încearcă din nou.';
+  } finally {
+    if (searchController?.signal === searchSignal) searchController = null;
   }
 }
 
