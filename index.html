@@ -96,6 +96,23 @@
       border-bottom-color: var(--line);
     }
 
+    /* Samsung TV wrapper: give the remote-friendly header more presence and
+       make its controls easier to read from the sofa. Desktop/mobile keep the
+       original dimensions. */
+    html.tv-mode header {
+      height: 86px;
+      gap: clamp(1.25rem, 2.8vw, 2.6rem);
+    }
+    html.tv-mode .logo { font-size: 1.95rem; }
+    html.tv-mode .nav-links { gap: 1.7rem; }
+    html.tv-mode .nav-link { font-size: 1rem; padding: 7px 0; }
+    html.tv-mode .library-nav-btn { font-size: 1rem; }
+    html.tv-mode .genre-btn { font-size: .95rem; padding: .62rem 1rem; }
+    html.tv-mode .search-toggle,
+    html.tv-mode #theme-toggle,
+    html.tv-mode #server-btn,
+    html.tv-mode #contribute-btn { min-width: 46px; min-height: 46px; }
+
     .logo {
       font-family: 'Bricolage Grotesque', sans-serif;
       font-size: 1.65rem; font-weight: 800;
@@ -752,6 +769,13 @@
       .modal-selectors { grid-template-columns: 1fr; }
     }
   </style>
+<script>
+  // The Samsung wrapper appends ?tv=1 so TV-only sizing never affects the
+  // normal desktop and mobile website.
+  if (new URLSearchParams(window.location.search).get('tv') === '1') {
+    document.documentElement.classList.add('tv-mode');
+  }
+</script>
 </head>
 <body>
 
