@@ -142,7 +142,7 @@ function playerButtons(type,id,season,episode){
 }
 function manualPlayerPanel(type,id){
   const tv = type === "tv";
-  return `<section class="provider-doc-panel"><div class="section-title"><div><h2>Player configurabil</h2><p>Lipește un URL HTTPS pentru un player pe care ai dreptul să îl încorporezi. Redarea apare direct în această pagină.</p></div><span>${tv ? "Serial" : "Film"}</span></div><div class="provider-doc-form"><label>ID TMDB<input id="tmdbIdValue" inputmode="numeric" value="${esc(id)}" readonly></label><button id="copyTmdbId" class="outline-button" type="button">Copiază ID-ul</button><label class="manual-season-field">Sezon<input id="manualSeason" inputmode="numeric" min="1" value="1"></label><label class="manual-season-field">Episod<input id="manualEpisode" inputmode="numeric" min="1" value="1"></label></div><div class="manual-player-form"><label>URL player principal<input id="manualPlayerUrl" type="url" placeholder="Lipește aici URL-ul iframe"></label><button id="activateManualPlayer" class="button" type="button">Afișează playerul aici</button><small>Folosește numai URL-uri HTTPS pe care ai dreptul să le încorporezi.</small></div><div id="manualPlayerPreview" class="manual-player-preview hidden"><div id="manualPlayerState" class="manual-player-state">Se încarcă playerul…</div><iframe id="manualPlayerFrame" title="Player principal configurat" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div></section>`;
+  return `<section class="provider-doc-panel"><div class="section-title"><div><h2>Player configurabil</h2><p>Lipește un URL HTTPS pentru un player pe care ai dreptul să îl încorporezi. Redarea apare direct în această pagină.</p></div><span>${tv ? "Serial" : "Film"}</span></div><div class="provider-doc-form"><label>ID TMDB<input id="tmdbIdValue" inputmode="numeric" value="${esc(id)}" readonly></label><button id="copyTmdbId" class="outline-button" type="button">Copiază ID-ul</button><label class="manual-season-field">Sezon<input id="manualSeason" inputmode="numeric" min="1" value="1"></label><label class="manual-season-field">Episod<input id="manualEpisode" inputmode="numeric" min="1" value="1"></label></div><div class="manual-player-form"><label>URL player principal<input id="manualPlayerUrl" type="url" placeholder="Lipește aici URL-ul iframe"></label><button id="activateManualPlayer" class="button" type="button">Afișează playerul aici</button><small>Folosește numai URL-uri HTTPS pe care ai dreptul să le încorporezi.</small></div><div id="manualPlayerPreview" class="manual-player-preview hidden"><div id="manualPlayerState" class="manual-player-state">Se încarcă playerul…</div><iframe id="manualPlayerFrame" title="Player principal configurat" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div><section class="tflix-generator"><div class="section-title"><div><h3>Generator TFLIX</h3><p>Construiește linkul intern de test pentru TMDB ID, sezon, episod și player.</p></div><span>Test intern</span></div><div class="provider-doc-form"><label>Player<select id="tflixServerSelect">${defaultPlayers.map(player=>`<option value="${esc(player.id)}">${esc(player.label)}</option>`).join('')}</select></label><button id="generateTflixLink" class="button" type="button">Generează linkul</button></div><div class="generated-link-row"><code id="tflixGeneratedLink"></code><button id="copyTflixLink" class="outline-button" type="button">Copiază</button></div></section></section>`;
 }
 function setupManualPlayerPanel(type,id){
   document.querySelector("#copyTmdbId")?.addEventListener("click",async()=>{
@@ -183,6 +183,24 @@ function setupManualPlayerPanel(type,id){
   const saved=localSources()[sourceKey(type,id,initialSeason,initialEpisode)]?.principal;
   if(saved?.url){ const field=document.querySelector("#manualPlayerUrl"); if(field) field.value=saved.url; renderManualPlayer(saved.url); }
   if(type !== "tv") document.querySelectorAll(".manual-season-field").forEach(field=>field.style.display="none");
+  const serverSelect=document.querySelector("#tflixServerSelect");
+  const generated=document.querySelector("#tflixGeneratedLink");
+  const generateTflixLink=()=>{
+    if(!generated) return;
+    const server=serverSelect?.value || defaultPlayers[0].id;
+    const s=season?.value.trim() || "1";
+    const e=episode?.value.trim() || "1";
+    const params=new URLSearchParams({id:String(id),type});
+    if(type === "tv"){ params.set("season",s); params.set("episode",e); }
+    generated.textContent=`watch.html?${params.toString()}#${encodeURIComponent(server)}`;
+  };
+  document.querySelector("#generateTflixLink")?.addEventListener("click",generateTflixLink);
+  document.querySelector("#copyTflixLink")?.addEventListener("click",async()=>{
+    const value=generated?.textContent || "";
+    try{ await navigator.clipboard.writeText(value); showNotice("Link TFLIX copiat",value); }
+    catch(_){ showNotice("Link TFLIX",value); }
+  });
+  generateTflixLink();
 }
 
 async function detail(){
