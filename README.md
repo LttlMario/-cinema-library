@@ -62,10 +62,4 @@ and sideload it (on TV: install via a file-manager app or `adb install`).
 
 👉 See the [Android app guide](app/android/README.md) for more info. -->
 
-## Tech Stack
 
-- HTML, CSS, JavaScript
-- [Electron](https://www.electronjs.org/) (Windows desktop app)
-- [Kotlin](https://kotlinlang.org/) (Android phone + TV app)
-- [TMDB API](https://developers.themoviedb.org/)
-- [GitHub Pages](https://pages.github.com/)
