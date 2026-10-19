@@ -257,6 +257,10 @@
       margin-bottom: -8vh; isolation: isolate;
     }
     #hero.empty { display: none; }
+    .hero-fallback { height:100%; display:grid; place-items:center; align-content:center; gap:.8rem; padding:2rem var(--gutter); background:linear-gradient(135deg,#1a0d14,#08080b 75%); color:var(--text); text-align:center; }
+    .hero-fallback p { max-width:32rem; color:var(--muted); line-height:1.5; }
+    .hero-fallback button { padding:.65rem 1rem; border:1px solid var(--accent); border-radius:8px; background:var(--accent-soft); color:var(--text); font:700 .82rem inherit; cursor:pointer; }
+    .hero-fallback button:hover { background:var(--accent); color:#fff; }
     .hero-slide {
       position: absolute; inset: 0; opacity: 0; pointer-events: none;
       transition: opacity 1.1s var(--ease);
@@ -1676,7 +1680,12 @@ async function loadHero() {
     hero.appendChild(dots);
 
     startHeroTimer();
-  } catch (e) { console.warn('Hero load failed', e); }
+  } catch (e) {
+    const hero = $('hero');
+    hero.classList.remove('empty');
+    hero.innerHTML = '<div class="hero-fallback"><strong>Recomandările nu sunt disponibile momentan.</strong><p>Poți continua cu biblioteca și catalogul sau poți încerca din nou.</p><button id="hero-retry" type="button">Încearcă din nou</button></div>';
+    $('hero-retry').addEventListener('click', () => { hero.classList.add('empty'); loadHero(); });
+  }
 }
 
 function goToHero(i) {
