@@ -432,6 +432,10 @@
     .card-action:hover { background: var(--accent); }
     .card-action.active-fav { color: #ffd166; }
     .card-action.active-later { color: #8ec5ff; }
+    .library-tools { display: flex; justify-content: flex-end; gap: .6rem; padding: 1rem var(--gutter) 0; }
+    .library-tool { padding: .45rem .75rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--muted); font: inherit; font-size: .75rem; cursor: pointer; }
+    .library-tool:hover { color: var(--text); border-color: var(--accent); }
+    .library-tool input { display: none; }
 
     .library-remove {
       position: absolute; top: 7px; right: 7px; z-index: 8;
@@ -765,6 +769,10 @@
 <!-- ─────────────── ROWS ─────────────── -->
 <main id="main">
   <div id="rows-container"></div>
+  <div class="library-tools" aria-label="Gestionarea bibliotecii locale">
+    <button class="library-tool" id="export-library" type="button">Exportă biblioteca</button>
+    <label class="library-tool">Importă biblioteca<input id="import-library" type="file" accept="application/json"></label>
+  </div>
 </main>
 
 <!-- ─────────────── SEARCH RESULTS ─────────────── -->
@@ -1116,7 +1124,7 @@ function makeCard(item, { drDate = null, removeKey = null } = {}) {
     <span class="card-badge ${isMovie ? 'movie' : 'tv'}">${isMovie ? 'Film' : 'Series'}</span>
     ${showDrBadge ? `<span class="card-dr-badge"><span class="card-dr-dot"></span>Digital</span>` : ''}
     ${imgSrc
-      ? `<img class="card-poster" src="${imgSrc}" alt="${esc(title)}" loading="lazy" onerror="this.parentNode.replaceChild(makePlaceholder('${esc(title).replace(/'/g,"")}'),this)">`
+      ? `<img class="card-poster" src="${imgSrc}" alt="${esc(title)}" loading="lazy" decoding="async" onerror="this.parentNode.replaceChild(makePlaceholder('${esc(title).replace(/'/g,"")}'),this)">`
       : `<div class="card-poster-placeholder"><span style="font-size:2rem">🎬</span><span>${esc(title)}</span></div>`}
     <div class="card-info">
       <div class="card-info-top">
@@ -1215,6 +1223,39 @@ const LIBRARY_KEYS = {
   history: 'cinemalibrary_history',
   progress: 'cinemalibrary_progress',
 };
+
+function exportLibrary() {
+  const data = { version: 1, exportedAt: new Date().toISOString(), library: {} };
+  Object.entries(LIBRARY_KEYS).forEach(([name, key]) => { data.library[name] = libraryRead(key); });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = 'cinema-library-backup.json'; link.click();
+  URL.revokeObjectURL(url);
+  toast('Biblioteca a fost exportată.');
+}
+
+function importLibrary(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(reader.result);
+      if (!payload?.library || typeof payload.library !== 'object') throw new Error('invalid');
+      Object.entries(LIBRARY_KEYS).forEach(([name, key]) => {
+        if (Array.isArray(payload.library[name])) libraryWrite(key, payload.library[name]);
+      });
+      renderLibraryRows();
+      toast('Biblioteca a fost importată.');
+    } catch { toast('Fișierul de bibliotecă nu este valid.'); }
+  };
+  reader.readAsText(file);
+}
+
+$('export-library').addEventListener('click', exportLibrary);
+$('import-library').addEventListener('change', event => {
+  if (event.target.files[0]) importLibrary(event.target.files[0]);
+  event.target.value = '';
+});
 
 function libraryRead(key) {
   try { return JSON.parse(localStorage.getItem(key) || '[]'); }
