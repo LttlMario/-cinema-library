@@ -8,7 +8,23 @@
   "theme_color": "#0a0a0d",
   "description": "Descoperă filme și seriale în Cinema Library.",
   "icons": [
-    { "src": "./assets/icons/icon_256.png", "sizes": "256x256", "type": "image/png" },
-    { "src": "./assets/icons/icon_1024.png", "sizes": "1024x1024", "type": "image/png" }
-  ]
+    {
+      "src": "./assets/icons/icon_256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "./assets/icons/icon_1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ],
+  "lang": "ro",
+  "dir": "ltr",
+  "id": "./",
+  "categories": [
+    "entertainment",
+    "video"
+  ],
+  "prefer_related_applications": false
 }
