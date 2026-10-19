@@ -1,30 +1,11 @@
 // Player-ele apar pentru fiecare titlu, chiar dacă nu au încă un URL.
 // Adaugă aici numai iframe-uri pentru conținut pe care ai dreptul să îl folosești.
 window.CINEMA_PLAYERS = [
-  { id: 'principal', label: 'Player principal', icon: '▶' },
-  { id: 'alternativ', label: 'Player alternativ', icon: '◉' },
-  { id: 'server3', label: 'Server 3', icon: '◆' },
-  { id: 'server4', label: 'Server 4', icon: '◇' }
+  { id: 'principal', label: 'YouTube Embed', icon: '▶' },
+  { id: 'alternativ', label: 'Vimeo Embed', icon: '◉' },
+  { id: 'server3', label: 'Internet Archive', icon: '◆' },
+  { id: 'server4', label: 'HTML5 autorizat', icon: '◇' }
 ];
-
-
-
-// Șabloane de documentare pentru integrarea unui provider extern.
-// Nu sunt activate automat în CINEMA_SOURCES; adaugă manual doar URL-uri pe care ai dreptul să le folosești.
-window.CINEMA_PROVIDER_DOCS = {
-  voidverse: {
-    name: 'VoidVerse (documentație)',
-    docsUrl: 'https://player.voidverse.me/#docs',
-    movieTemplate: 'https://player.voidverse.me/embed/movie/{tmdbId}',
-    tvTemplate: 'https://player.voidverse.me/embed/tv/{tmdbId}?s={season}&e={episode}',
-    note: 'Șablon TMDB pentru documentare; nu este activat automat ca sursă de redare.'
-  }
-};
-
-window.CINEMA_PROVIDER_BUILDERS = {
-  voidverseMovie: tmdbId => `https://player.voidverse.me/embed/movie/${encodeURIComponent(tmdbId)}`,
-  voidverseEpisode: (tmdbId, season, episode) => `https://player.voidverse.me/embed/tv/${encodeURIComponent(tmdbId)}?s=${encodeURIComponent(season)}&e=${encodeURIComponent(episode)}`
-};
 
 window.CINEMA_SOURCES = {
   'movie:550': {
