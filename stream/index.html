@@ -1240,7 +1240,10 @@ $('back-btn').addEventListener('click', () => {
   var cursor = document.createElement('div');
   cursor.className = 'tv-pointer-cursor';
   cursor.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(cursor);
+  // Keep the cursor inside the fullscreen container so it remains visible
+  // when #player-wrap becomes the document's fullscreen element.
+  var cursorHost = document.getElementById('player-wrap') || document.body;
+  cursorHost.appendChild(cursor);
   var x = Math.round(window.innerWidth / 2), y = Math.round(window.innerHeight / 2), target = null, speed = 26;
   function updateTarget() {
     if (target) target.classList.remove('tv-pointer-hover');
