@@ -445,7 +445,7 @@ function subtitleParam(p, key) {
   // VidSrc accepts up to three language codes and uses the first available
   // track. Prefer the standard Romanian codes and skip generic `ro`, which
   // can resolve to tracks with broken character encoding.
-  const languagePriority = p.subtitle === 'ro' && key === 'ds_lang' ? 'rum' : p.subtitle;
+  const languagePriority = p.subtitle === 'ro' && key === 'ds_lang' ? 'rum,ron' : p.subtitle;
   return `&${key}=${encodeURIComponent(languagePriority)}`;
 }
 function resumeParam(p) {
