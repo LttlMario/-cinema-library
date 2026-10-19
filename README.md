@@ -17,7 +17,22 @@ It lets users discover movies and TV shows and stream them directly within the w
 - 📄 View details such as title, release date, and poster
 - ▶️ Stream directly within Cinema Library
 - 📡 Choose from multiple predefined streaming servers
+- 🇷🇴 Romanian subtitle preference remembered on the device
+- ▶️ Continue Watching, favorites, history, and playback resume where supported
+- 🎛️ Advanced search filters, dark/light theme, and TV keyboard navigation
+- 📱 Installable PWA with a small offline shell cache
+- 🔗 Links to official viewing options through TMDB
 - 🖥️ Use it as a native **Windows desktop app** with no ads
+
+## GitHub Pages deployment
+
+The Pages workflow reads the TMDB Read Access Token from a repository secret named
+`TMDB_TOKEN`. Add it under **Settings → Secrets and variables → Actions → New repository secret**.
+The workflow refuses to publish if the secret is missing, so the token is not committed to the
+public source files.
+
+After adding or rotating the secret, run the **Deploy Website** workflow again from the
+repository's **Actions** tab.
 
 ## Desktop App (Windows)
 
