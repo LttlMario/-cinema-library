@@ -466,6 +466,13 @@
     .sr-title b { color: var(--accent-h); }
     .sr-count { font-size: 0.85rem; color: var(--muted); }
     .filter-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.6rem; flex-wrap: wrap; }
+    .advanced-filters { display: flex; gap: 0.6rem; align-items: center; margin: -0.7rem 0 1.6rem; flex-wrap: wrap; }
+    .advanced-filters select, .clear-filters {
+      padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--card); color: var(--text); font: inherit; font-size: 0.78rem; cursor: pointer;
+    }
+    .advanced-filters select:focus, .clear-filters:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .clear-filters { color: var(--muted); }
     .filter-tab {
       padding: 0.4rem 1.1rem; border-radius: 99px; border: 1px solid var(--line);
       background: transparent; color: var(--muted); font-size: 0.84rem; font-weight: 600;
@@ -717,6 +724,11 @@
     <button class="filter-tab active" data-filter="all">All</button>
     <button class="filter-tab" data-filter="movie">Movies</button>
     <button class="filter-tab" data-filter="tv">TV Shows</button>
+  </div>
+  <div class="advanced-filters" aria-label="Filtre avansate">
+    <select id="genre-filter" aria-label="Filtrează după gen"><option value="">Toate genurile</option></select>
+    <select id="year-filter" aria-label="Filtrează după an"><option value="">Orice an</option></select>
+    <button class="clear-filters" id="clear-filters" type="button">Resetează filtrele</button>
   </div>
   <div class="grid" id="search-grid"></div>
   <div id="search-spinner" class="spinner-wrap" style="display:none"><div class="spinner"></div></div>
@@ -1569,6 +1581,8 @@ function resetSearch() {
   searchResults = [];
   currentFilter = 'all';
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === 'all'));
+  $('genre-filter').value = '';
+  $('year-filter').value = '';
 }
 
 async function doSearch(q) {
@@ -1609,9 +1623,14 @@ async function doSearch(q) {
 function renderSearchResults() {
   const grid = $('search-grid');
   grid.innerHTML = '';
-  const filtered = currentFilter === 'all'
-    ? searchResults
-    : searchResults.filter(r => r.media_type === currentFilter);
+  const genre = $('genre-filter').value;
+  const yearValue = $('year-filter').value;
+  const filtered = searchResults.filter(r => {
+    if (currentFilter !== 'all' && r.media_type !== currentFilter) return false;
+    if (genre && !(r.genre_ids || []).includes(Number(genre))) return false;
+    const releaseYear = (r.release_date || r.first_air_date || '').slice(0, 4);
+    return !yearValue || releaseYear === yearValue;
+  });
 
   $('search-count').textContent = `${filtered.length} title${filtered.length !== 1 ? 's' : ''}`;
   if (!filtered.length) { $('search-empty').style.display = 'block'; return; }
@@ -1628,10 +1647,30 @@ document.querySelectorAll('.filter-tab').forEach(tab => {
   });
 });
 
+function populateAdvancedFilters() {
+  const genreSelect = $('genre-filter');
+  genreSelect.innerHTML = '<option value="">Toate genurile</option>' + Object.entries(genreMap)
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .map(([id, name]) => `<option value="${id}">${esc(name)}</option>`).join('');
+  const currentYear = new Date().getFullYear();
+  $('year-filter').innerHTML = '<option value="">Orice an</option>' + Array.from({ length: 80 }, (_, i) => currentYear - i)
+    .map(y => `<option value="${y}">${y}</option>`).join('');
+}
+
+['genre-filter', 'year-filter'].forEach(id => $(id).addEventListener('change', renderSearchResults));
+$('clear-filters').addEventListener('click', () => {
+  $('genre-filter').value = '';
+  $('year-filter').value = '';
+  currentFilter = 'all';
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === 'all'));
+  renderSearchResults();
+});
+
 /* ─── INIT ─── */
 (async function init() {
   renderLibraryRows();
-  loadGenres();
+  await loadGenres();
+  populateAdvancedFilters();
   await loadHero();
   loadTop10();
   for (const cfg of CATEGORY_ROWS) loadRow(cfg);
@@ -1695,7 +1734,7 @@ document.querySelectorAll('.filter-tab').forEach(tab => {
     if (header.length) secs.push({ key: 'header', items: header });
 
     if ($('search-results-section').classList.contains('visible')) {
-      const tabs = [...document.querySelectorAll('.filter-tab')].filter(vis);
+      const tabs = [...document.querySelectorAll('.filter-tab'), $('genre-filter'), $('year-filter'), $('clear-filters')].filter(vis);
       if (tabs.length) secs.push({ key: 'tabs', items: tabs });
       const grid = $('search-grid');
       const cards = [...grid.querySelectorAll('.card')];

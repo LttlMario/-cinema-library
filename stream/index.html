@@ -194,6 +194,8 @@
     }
     .sel:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
     .sel option { background: #16161c; color: var(--text); }
+    .subtitle-panel { margin-bottom: 0.9rem; }
+    .subtitle-help { margin-top: 0.45rem; font-size: 0.7rem; line-height: 1.35; color: var(--muted); }
 
     .nextep-btn {
       width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -221,6 +223,11 @@
     .server-card .s-name { font-size: 0.92rem; font-weight: 700; }
     .server-card .s-note { font-size: 0.72rem; color: var(--muted); line-height: 1.25; }
     .server-card.selected .s-name { color: #fff; }
+    .server-card[data-status="online"] .s-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .server-card[data-status="failed"] .s-dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .server-status { margin-left: auto; font-size: 0.66rem; color: var(--muted); white-space: nowrap; }
+    .server-card[data-status="online"] .server-status { color: var(--green); }
+    .server-card[data-status="failed"] .server-status { color: var(--accent-h); }
 
     /* Toast */
     #toast {
@@ -310,6 +317,15 @@
     </div>
 
     <div class="panel" id="servers-panel">
+      <div class="subtitle-panel">
+        <div class="field-label">Subtitrare</div>
+        <select id="subtitle-select" class="sel" aria-label="Limba subtitrării">
+          <option value="ro">Română</option>
+          <option value="auto">Automat</option>
+          <option value="en">English</option>
+        </select>
+        <p class="subtitle-help">Preferința este memorată pe acest dispozitiv. Unele surse aplică limba direct, iar altele permit alegerea din player.</p>
+      </div>
       <div class="panel-title">Streaming Servers</div>
       <div class="server-grid" id="server-grid"></div>
     </div>
@@ -346,6 +362,7 @@ const HEADERS = {
 };
 
 const STORAGE_KEY = 'cinemalibrary_server_v2';
+const SUBTITLE_KEY = 'cinemalibrary_subtitle_v1';
 
 const SERVERS = [
   { id: 1, name: 'Rakan',   note: 'Generally better quality.' },
@@ -361,11 +378,14 @@ const serverUrlResolvers = {
   //1: (p) => p.type === 'movie' ? `https://vidsrc.cc/v2/embed/movie/${p.id}?autoPlay=false` : `https://vidsrc.cc/v2/embed/tv/${p.id}/${p.season}/${p.episode}?autoPlay=false`, // Rakan (vidsrc.cc)
   1: (p) => p.type === 'movie' ? `https://vixsrc.to/movie/${p.id}?autoPlay=true&lang=en` : `https://vixsrc.to/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true&lang=en`,                                   // Rakan
   2: (p) => p.type === 'movie' ? `https://moviesapi.to/movie/${p.id}` : `https://moviesapi.to/tv/${p.id}-${p.season}-${p.episode}`,                                                                            // Bard
-  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1&ds_lang=ro` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1&ds_lang=ro`, // Xayah — Romanian subtitles
+  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1${subtitleParam(p, 'ds_lang')}` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1${subtitleParam(p, 'ds_lang')}`, // Xayah
   4: (p) => p.type === 'movie' ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave` : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&autonext=true&prioritize=true&lastserver=wave`, // Ekko
-  5: (p) => p.type === 'movie' ? `https://vidfast.vc/movie/${p.id}?autoPlay=true&sub=ro` : `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true&sub=ro`,                         // Naafiri — Romanian subtitles
+  5: (p) => p.type === 'movie' ? `https://vidfast.vc/movie/${p.id}?autoPlay=true${subtitleParam(p, 'sub')}` : `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true${subtitleParam(p, 'sub')}`,                         // Naafiri
   6: (p) => p.type === 'movie' ? `https://vidlink.pro/movie/${p.id}?title=true&poster=true&autoplay=true` : `https://vidlink.pro/tv/${p.id}/${p.season}/${p.episode}?title=true&poster=true&autoplay=true&nextbutton=true` // Ryze
 };
+function subtitleParam(p, key) {
+  return p.subtitle && p.subtitle !== 'auto' ? `&${key}=${encodeURIComponent(p.subtitle)}` : '';
+}
 
 /* ─── STATE ─── */
 const $ = id => document.getElementById(id);
@@ -375,9 +395,10 @@ const tmdb = async path => {
   return r.json();
 };
 
-let state = null;          // { type, id, season, episode, server, title }
+let state = null;          // { type, id, season, episode, server, subtitle, title }
 let tvData = null;         // /tv/{id} details
 const seasonCache = {};    // cached season episode lists
+const attemptedServers = new Set();
 
 /* ─── PARAMS ─── */
 function readParams() {
@@ -393,6 +414,9 @@ function readParams() {
   }
 
   const out = { type, id, server };
+  out.subtitle = ['ro', 'en', 'auto'].includes(p.get('sub'))
+    ? p.get('sub')
+    : (localStorage.getItem(SUBTITLE_KEY) || 'ro');
   if (type === 'tv') {
     out.season  = parseInt(p.get('s'), 10) || 1;
     out.episode = parseInt(p.get('e'), 10) || 1;
@@ -406,11 +430,13 @@ function syncUrl() {
   p.set('id', state.id);
   if (state.type === 'tv') { p.set('s', state.season); p.set('e', state.episode); }
   p.set('server', state.server);
+  p.set('sub', state.subtitle);
   history.replaceState(null, '', `${location.pathname}?${p.toString()}`);
 }
 
 /* ─── PLAYER ─── */
 function loadPlayer() {
+  attemptedServers.add(state.server);
   const src = serverUrlResolvers[state.server](state);
   const loader = $('player-loading');
   loader.classList.remove('hide');
@@ -428,7 +454,8 @@ function loadPlayer() {
   // iframes (Xayah / Ekko load the real player inside a second iframe).
   frame.setAttribute('allow', 'autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *');
   frame.referrerPolicy = 'origin';
-  frame.onload = () => loader.classList.add('hide');
+  frame.onload = () => { loader.classList.add('hide'); updateServerStatus(state.server, 'online'); };
+  frame.onerror = () => handlePlayerFailure(state.server);
   // Use replace so iframe loads don't pollute the browser history stack
   frame.src = src;
   old.replaceWith(frame);
@@ -436,6 +463,20 @@ function loadPlayer() {
   setTimeout(() => loader.classList.add('hide'), 4000); // fail-safe
   syncUrl();
   if (state.title) updateTitleBar();
+}
+
+function handlePlayerFailure(serverId) {
+  updateServerStatus(serverId, 'failed');
+  const next = SERVERS.find(s => !attemptedServers.has(s.id) && serverUrlResolvers[s.id]);
+  if (!next) {
+    toast('Nicio sursă nu a putut încărca acest titlu. Încearcă din nou mai târziu.');
+    attemptedServers.clear();
+    return;
+  }
+  state.server = next.id;
+  buildServers();
+  toast(`Sursa ${SERVERS.find(s => s.id === serverId)?.name || ''} nu a răspuns. Încerc ${next.name}…`);
+  loadPlayer();
 }
 
 function updateTitleBar() {
@@ -454,21 +495,31 @@ function buildServers() {
     const el = document.createElement('button');
     el.className = 'server-card' + (s.id === state.server ? ' selected' : '');
     el.dataset.id = s.id;
+    el.dataset.status = s.id === state.server ? 'loading' : '';
     el.innerHTML = `
       <span class="s-dot"></span>
       <span class="s-meta">
         <span class="s-name">${esc(s.name)}</span>
         <span class="s-note">${esc(s.note)}</span>
-      </span>`;
+      </span><span class="server-status">${s.id === state.server ? 'Se încarcă…' : 'Pregătit'}</span>`;
     el.addEventListener('click', () => {
       if (s.id === state.server) return;
       state.server = s.id;
+      attemptedServers.clear();
       document.querySelectorAll('.server-card').forEach(c => c.classList.toggle('selected', c === el));
       loadPlayer();
       toast(`Now streaming from ${s.name}`);
     });
     grid.appendChild(el);
   });
+}
+
+function updateServerStatus(id, status) {
+  const card = document.querySelector(`.server-card[data-id="${id}"]`);
+  if (!card) return;
+  card.dataset.status = status;
+  const label = card.querySelector('.server-status');
+  if (label) label.textContent = status === 'online' ? 'Disponibil' : status === 'failed' ? 'Indisponibil' : 'Se încarcă…';
 }
 
 /* ─── TV SEASON / EPISODE ─── */
@@ -636,6 +687,14 @@ $('back-btn').addEventListener('click', () => {
     return;
   }
 
+  $('subtitle-select').value = state.subtitle;
+  $('subtitle-select').addEventListener('change', () => {
+    state.subtitle = $('subtitle-select').value;
+    localStorage.setItem(SUBTITLE_KEY, state.subtitle);
+    attemptedServers.clear();
+    loadPlayer();
+    toast(state.subtitle === 'ro' ? 'Subtitrarea română este activă' : 'Preferința de subtitrare a fost salvată');
+  });
   buildServers();
   loadPlayer();              // start streaming immediately
 
@@ -666,7 +725,7 @@ $('back-btn').addEventListener('click', () => {
 
   function getSections() {
     const secs = [];
-    const header = [$('back-btn'), $('support-btn')].filter(vis);
+    const header = [$('back-btn'), $('support-btn'), $('theme-toggle')].filter(vis);
     if (header.length) secs.push({ items: header });
     const tv = $('tv-panel');
     if (tv && !tv.hidden) {
@@ -675,6 +734,8 @@ $('back-btn').addEventListener('click', () => {
       const next = $('nextep-btn');
       if (vis(next)) secs.push({ items: [next] });
     }
+    const subtitle = $('subtitle-select');
+    if (vis(subtitle)) secs.push({ items: [subtitle] });
     // The player itself is a focus stop: selecting it just scrolls the video
     // to the middle of the screen (handy on a TV). It's a cross-origin iframe,
     // so we never send real focus into it — setFocus only adds the highlight
