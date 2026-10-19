@@ -109,6 +109,22 @@
     .logo:hover { transform: scale(1.04); }
 
     .nav-links { display: flex; align-items: center; gap: 1.4rem; flex-shrink: 0; }
+    .genre-wrap { position: relative; flex-shrink: 0; }
+    .genre-btn {
+      padding: 0.45rem 0.85rem; border: 1px solid var(--line); border-radius: 99px;
+      background: rgba(255,255,255,0.06); color: var(--text); font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
+    .genre-btn:hover, .genre-btn[aria-expanded="true"] { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.2); }
+    .genre-menu {
+      position: absolute; top: calc(100% + 10px); left: 0; width: 300px; max-height: min(70vh, 500px);
+      overflow-y: auto; padding: 0.8rem; background: var(--bg-elev); border: 1px solid var(--line);
+      border-radius: 12px; box-shadow: var(--shadow); display: none; z-index: 400;
+    }
+    .genre-menu.open { display: block; animation: pop .18s var(--ease); }
+    .genre-group + .genre-group { margin-top: 0.8rem; }
+    .genre-group-title { display: block; padding: 0.25rem 0.35rem 0.45rem; color: var(--muted); font-size: 0.66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .genre-option { display: block; width: 100%; padding: 0.48rem 0.55rem; border: 0; border-radius: 6px; background: transparent; color: var(--text); text-align: left; font: inherit; font-size: .82rem; cursor: pointer; }
+    .genre-option:hover, .genre-option:focus-visible { background: var(--card-h); color: var(--text); }
     .nav-link {
       font-size: 0.86rem; font-weight: 500; color: var(--muted);
       cursor: pointer; transition: color .2s; position: relative; padding: 4px 0;
@@ -678,6 +694,10 @@
     <span class="nav-link" data-nav="movies">Movies</span>
     <span class="nav-link" data-nav="tv">TV Shows</span>
   </nav>
+  <div class="genre-wrap">
+    <button class="genre-btn" id="genre-btn" type="button" aria-expanded="false" aria-controls="genre-menu">Genuri⌄</button>
+    <div class="genre-menu" id="genre-menu" role="menu" aria-label="Selectează un gen"></div>
+  </div>
 
   <div class="nav-right">
     <div class="search-wrap open" id="search-wrap">
@@ -847,6 +867,7 @@ let searchResults = [];
 let currentModalItem = null;
 let tvDetails = {};
 let genreMap = {};
+const genreCatalog = { movie: [], tv: [] };
 
 /* hero state */
 let heroSlides = [];
@@ -968,6 +989,21 @@ const serverMenu  = $('server-menu');
 const serverBtn   = $('server-btn');
 const serverLabel = $('server-label');
 
+const genreMenu = $('genre-menu');
+const genreBtn = $('genre-btn');
+genreBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const open = genreMenu.classList.toggle('open');
+  genreBtn.setAttribute('aria-expanded', String(open));
+});
+genreMenu.addEventListener('click', e => {
+  const option = e.target.closest('.genre-option');
+  if (!option) return;
+  genreMenu.classList.remove('open');
+  genreBtn.setAttribute('aria-expanded', 'false');
+  showGenreResults(option.dataset.type, option.dataset.id, option.textContent);
+});
+
 SERVERS.forEach(s => {
   const el = document.createElement('div');
   el.className = 'server-item' + (s.id === currentServer ? ' active' : '');
@@ -989,7 +1025,11 @@ const savedServer = SERVERS.find(s => s.id === currentServer) || SERVERS[0];
 serverLabel.textContent = savedServer.name;
 
 serverBtn.addEventListener('click', e => { e.stopPropagation(); serverMenu.classList.toggle('open'); });
-document.addEventListener('click', () => serverMenu.classList.remove('open'));
+document.addEventListener('click', () => {
+  serverMenu.classList.remove('open');
+  genreMenu.classList.remove('open');
+  genreBtn.setAttribute('aria-expanded', 'false');
+});
 
 /* ─── PLAYER URL ─── */
 function playerUrl(item, season = 1, episode = 1) {
@@ -1367,8 +1407,20 @@ function startHeroTimer() {
 async function loadGenres() {
   try {
     const [m, t] = await Promise.all([tmdb('/genre/movie/list'), tmdb('/genre/tv/list')]);
+    genreCatalog.movie = m.genres || [];
+    genreCatalog.tv = t.genres || [];
     [...(m.genres || []), ...(t.genres || [])].forEach(g => { genreMap[g.id] = g.name; });
+    buildGenreMenu();
   } catch {}
+}
+
+function buildGenreMenu() {
+  genreMenu.innerHTML = ['movie', 'tv'].map(type => {
+    const title = type === 'movie' ? 'Filme' : 'Seriale';
+    const options = genreCatalog[type].slice().sort((a, b) => a.name.localeCompare(b.name))
+      .map(g => `<button class="genre-option" type="button" role="menuitem" data-type="${type}" data-id="${g.id}">${esc(g.name)}</button>`).join('');
+    return `<div class="genre-group"><span class="genre-group-title">${title}</span>${options}</div>`;
+  }).join('');
 }
 
 /* ─── MODAL ─── */
@@ -1672,6 +1724,35 @@ function renderSearchResults() {
   filtered.forEach(item => grid.appendChild(makeCard(item)));
 }
 
+async function showGenreResults(type, genreId, genreName) {
+  $('search-results-section').classList.add('visible');
+  $('main').style.display = 'none';
+  $('hero').style.display = 'none';
+  $('search-term').textContent = `Gen: ${genreName}`;
+  $('search-spinner').style.display = 'flex';
+  $('search-grid').innerHTML = '';
+  $('search-empty').style.display = 'none';
+  $('search-count').textContent = '';
+  currentFilter = 'all';
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === 'all'));
+  $('genre-filter').value = String(genreId);
+  $('year-filter').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  try {
+    const endpoint = `/discover/${type}?with_genres=${encodeURIComponent(genreId)}&sort_by=popularity.desc&include_adult=false&page=1`;
+    const data = await tmdb(endpoint);
+    searchResults = (data.results || [])
+      .filter(item => item.poster_path)
+      .map(item => ({ ...item, media_type: type }));
+    $('search-spinner').style.display = 'none';
+    renderSearchResults();
+  } catch {
+    $('search-spinner').style.display = 'none';
+    $('search-empty').style.display = 'block';
+    $('search-count').textContent = 'Nu s-au putut încărca titlurile.';
+  }
+}
+
 document.querySelectorAll('.filter-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     currentFilter = tab.dataset.filter;
@@ -1762,9 +1843,11 @@ $('clear-filters').addEventListener('click', () => {
     // so Up/Down walks the vertical list)
     if (serverMenu.classList.contains('open'))
       return [...serverMenu.querySelectorAll('.server-item')].map(i => ({ key: null, items: [i] }));
+    if (genreMenu.classList.contains('open'))
+      return [...genreMenu.querySelectorAll('.genre-option')].map(i => ({ key: null, items: [i] }));
 
     const secs = [];
-    const header = [...document.querySelectorAll('.nav-link'), searchInput, $('contribute-btn'), serverBtn].filter(vis);
+    const header = [...document.querySelectorAll('.nav-link'), genreBtn, searchInput, $('contribute-btn'), $('theme-toggle'), serverBtn].filter(vis);
     if (header.length) secs.push({ key: 'header', items: header });
 
     if ($('search-results-section').classList.contains('visible')) {
