@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -21,6 +21,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Skip stale commits
+        run: |
+          latest_sha=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$GITHUB_SHA" = "$latest_sha" || {
+            echo "Skipping stale commit $GITHUB_SHA; current main is $latest_sha"
+            exit 1
+          }
 
       - name: Inject TMDB token
         run: |
