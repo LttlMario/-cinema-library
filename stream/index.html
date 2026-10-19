@@ -358,7 +358,7 @@
         <div class="player-loading" id="player-loading" role="status" aria-live="polite" aria-label="Se încarcă playerul"><div class="spinner" aria-hidden="true"></div></div>
         <iframe id="player" title="Player video Cinema Library" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
         <button class="player-retry" id="player-retry" type="button" hidden>Reîncearcă redarea</button>
-        <button class="player-fullscreen-action" id="player-fullscreen" type="button" title="Full screen pentru player" aria-label="Full screen pentru player">⛶</button>
+        <button class="player-fullscreen-action" id="player-fullscreen" type="button" title="Full screen pentru player" aria-label="Full screen pentru player" aria-pressed="false">⛶</button>
         <div class="resume-prompt" id="resume-prompt" hidden>
           <div class="resume-card">
             <h2>Vrei să continui vizionarea?</h2>
@@ -748,6 +748,16 @@ function toggleLibrary(key, button) {
   button.setAttribute('aria-pressed', String(active));
 }
 
+function syncFullscreenButton() {
+  const button = $('player-fullscreen');
+  const wrap = $('player-wrap');
+  if (!button || !wrap) return;
+  const active = document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap;
+  button.setAttribute('aria-pressed', String(active));
+  button.setAttribute('aria-label', active ? 'Ieși din full screen' : 'Full screen pentru player');
+  button.title = active ? 'Ieși din full screen' : 'Full screen pentru player';
+}
+
 function togglePlayerFullscreen() {
   const wrap = $('player-wrap');
   if (!wrap) return;
@@ -1105,6 +1115,9 @@ $('back-btn').addEventListener('click', () => {
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
   $('player-fullscreen').addEventListener('click', togglePlayerFullscreen);
+  document.addEventListener('fullscreenchange', syncFullscreenButton);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
+  syncFullscreenButton();
   setupPlayerActions();
 })();
 
