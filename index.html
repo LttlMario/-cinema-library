@@ -752,7 +752,9 @@
 /* ─── CONFIG ─── */
 const API_BASE = "https://api.themoviedb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p/";
-const PLAYER   = "/stream";
+// Keep the player route relative so project Pages deployments work under
+// /<repository-name>/ instead of assuming a user-site root deployment.
+const PLAYER   = "stream/";
 const HEADERS = {
   'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYTUxYjUwMjI5NWEyNWE5ZTQ3MjRmNDdjNDBmYjM4MiIsIm5iZiI6MTc5MjM2NzM4MS4zNCwic3ViIjoiNmFkNTViMTUxMmQ1N2QxZDQzM2RiZWYxIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.tRZpDtzZM3ZwdLPCU43QJ3AU8tl2w0eqUcxz8aDWvyw',
   'accept': 'application/json'
