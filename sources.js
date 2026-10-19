@@ -7,6 +7,20 @@ window.CINEMA_PLAYERS = [
   { id: 'server4', label: 'Server 4', icon: '◇' }
 ];
 
+
+
+// Șabloane de documentare pentru integrarea unui provider extern.
+// Nu sunt activate automat în CINEMA_SOURCES; adaugă manual doar URL-uri pe care ai dreptul să le folosești.
+window.CINEMA_PROVIDER_DOCS = {
+  voidverse: {
+    name: 'VoidVerse (documentație)',
+    docsUrl: 'https://player.voidverse.me/#docs',
+    movieTemplate: 'https://player.voidverse.me/embed/movie/{tmdbId}',
+    tvTemplate: 'https://player.voidverse.me/embed/tv/{tmdbId}?s={season}&e={episode}',
+    note: 'Șablon TMDB pentru documentare; nu este activat automat ca sursă de redare.'
+  }
+};
+
 window.CINEMA_SOURCES = {
   'movie:27205': {
     principal: { label: 'Trailer oficial Warner Bros.', url: 'https://www.youtube.com/embed/Qwe6qXFTdgc' }
