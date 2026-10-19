@@ -9,6 +9,20 @@
   var BACK_KEY = 10009;
   var loaded = false;
 
+  function inspectBrowserHandlers() {
+    try {
+      if (!window.tizen || !tizen.application || typeof tizen.application.findAppControl !== 'function' || typeof tizen.ApplicationControl !== 'function') return;
+      var probe = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/view', 'https://lttlmario.github.io/cinema-library/', null, null);
+      tizen.application.findAppControl(probe, function (apps) {
+        console.log('[CinemaLibrary] browser handlers: ' + (apps || []).map(function (app) { return app.id + ' / ' + app.name; }).join(' | '));
+      }, function (error) {
+        console.log('[CinemaLibrary] findAppControl failed: ' + (error && error.message ? error.message : 'unknown'));
+      });
+    } catch (error) {
+      console.log('[CinemaLibrary] browser probe exception: ' + (error && error.message ? error.message : 'unknown'));
+    }
+  }
+
   function openInTvBrowser(url) {
     if (!url || url.indexOf('https://lttlmario.github.io/cinema-library/') !== 0) return;
     try {
@@ -23,9 +37,14 @@
             }, function () { try { window.open(url, '_blank'); } catch (_) {} }, null);
           } catch (_) { try { window.open(url, '_blank'); } catch (_) {} }
         };
+        console.log('[CinemaLibrary] requesting browser for ' + url);
         tizen.application.launchAppControl(control, 'org.tizen.browser', function () {
+          console.log('[CinemaLibrary] explicit browser launch succeeded');
           window.setTimeout(exitApplication, 350);
-        }, fallback, null);
+        }, function (error) {
+          console.log('[CinemaLibrary] explicit browser launch failed: ' + (error && error.message ? error.message : 'unknown'));
+          fallback();
+        }, null);
         return;
       }
     } catch (_) {}
@@ -113,7 +132,7 @@
     loaded = false;
     loading.hidden = false;
     error.hidden = true;
-    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-5';
+    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-6';
     window.setTimeout(showError, 12000);
   }
 
@@ -126,4 +145,5 @@
 
   retry.addEventListener('click', retryLoad);
   window.setTimeout(showError, 12000);
+  window.setTimeout(inspectBrowserHandlers, 1000);
 })();
