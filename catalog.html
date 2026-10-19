@@ -74,13 +74,13 @@
     }
     async function load(){
       const current=++requestId;if(controller) controller.abort();controller=new AbortController();
-      $('status').textContent=page===1?'Se încarcă titlurile…':'Se încarcă mai multe titluri…';$('grid').setAttribute('aria-busy','true');$('more').disabled=true;
+      $('status').textContent=page===1?'Se încarcă titlurile…':'Se încarcă mai multe titluri…';$('grid').setAttribute('aria-busy','true');$('more').disabled=true;$('more').textContent='Se încarcă…';
       try{
         const cacheKey=`cinema_catalog_${type}_${mode||'all'}_${genre}_${$('sort').value}_${page}`;let data=null;
         try{const cached=JSON.parse(sessionStorage.getItem(cacheKey)||'null');if(cached&&Date.now()-cached.time<300000)data=cached.data}catch{}
         if(!data){const response=await fetch('https://api.themoviedb.org/3'+endpoint()+'&page='+page+'&language=ro-RO',{headers:{Authorization:`Bearer ${token}`,accept:'application/json'},signal:controller.signal});if(!response.ok)throw new Error('catalog');data=await response.json();writeCatalogCache(cacheKey,data)}
-        if(current!==requestId)return;items=page===1?(data.results||[]).filter(x=>x.poster_path):[...items,...(data.results||[]).filter(x=>x.poster_path)];render(data.total_pages);$('status').textContent=`${items.length} titluri afișate`;
-      }catch(error){if(error.name==='AbortError')return;$('status').textContent='Catalogul nu este disponibil momentan. Încearcă din nou.';$('more').style.display='none'}finally{if(current===requestId){$('grid').setAttribute('aria-busy','false');$('more').disabled=false}}
+        if(current!==requestId)return;items=page===1?(data.results||[]).filter(x=>x.poster_path):[...items,...(data.results||[]).filter(x=>x.poster_path)];render(data.total_pages);$('status').textContent=`${items.length} titluri afișate`;$('more').textContent='Vezi mai multe';$('more').onclick=()=>{page++;load()};
+      }catch(error){if(error.name==='AbortError')return;$('status').textContent='Catalogul nu este disponibil momentan. Încearcă din nou.';$('more').textContent='Încearcă din nou';$('more').style.display='block';$('more').onclick=()=>load()}finally{if(current===requestId){$('grid').setAttribute('aria-busy','false');$('more').disabled=false}}
     }
     $('sort').onchange=()=>{page=1;items=[];load()};$('more').onclick=()=>{page++;load()};load();
   </script>
