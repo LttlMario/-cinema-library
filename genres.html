@@ -32,12 +32,21 @@
   <footer class="site-footer"><div class="footer-main"><div class="footer-links"><div><h3>Linkuri</h3><a href="catalog.html?type=movie">Filme</a><a href="catalog.html?type=tv">Seriale</a><a href="watch-together.html">Vezi împreună</a><a href="catalog.html?mode=top">Top IMDB</a></div><div><h3>Genuri</h3><a href="genres.html">Toate genurile</a><a href="catalog.html?type=movie&genre=28">Filme de acțiune</a><a href="catalog.html?type=movie&genre=27">Filme horror</a><a href="catalog.html?type=movie&genre=878">Filme SF</a></div><div><h3>Informații</h3><a href="contact.html">Contact</a><a href="terms.html">Termeni și condiții</a><a href="sitemap.html">Hartă site</a><a href="privacy.html">Confidențialitate</a></div></div><div class="footer-about"><h3>Despre noi</h3><p>Cinema Library este un catalog pentru filme și seriale, cu linkuri către servicii media terțe.</p><p>Nu stocăm fișiere video pe serverele noastre. Disponibilitatea și subtitrările pot varia în funcție de sursă.</p><div class="footer-features"><span>♛ Calitate înaltă</span><span>▶ Gratuit, mereu</span><span>ϟ Încărcare rapidă</span><span>▣ Subtitrări multiple</span></div></div></div><div class="footer-bottom"><a href="sitemap.html">Hartă site</a><a href="contact.html">Contact</a><a href="terms.html">Termeni și condiții</a><a href="privacy.html">Confidențialitate</a></div></footer>
   <script>
     const token='__TMDB_TOKEN__', $=id=>document.getElementById(id), grid=$('genre-grid'), status=$('status'); let catalogs={movie:[],tv:[]}, current='movie';
+    const GENRE_CACHE_KEY='cinemalibrary_genres_ro_v1', GENRE_CACHE_TTL=30*60*1000;
     const savedTheme=localStorage.getItem('cinemalibrary_theme');if(savedTheme==='light')document.documentElement.dataset.theme='light';$('theme-toggle').addEventListener('click',()=>{const light=document.documentElement.dataset.theme==='light';document.documentElement.dataset.theme=light?'':'light';localStorage.setItem('cinemalibrary_theme',light?'dark':'light')});$('favorites-nav').addEventListener('click',()=>location.href='index.html#favorites');
+    function readGenreCache(){try{const value=JSON.parse(sessionStorage.getItem(GENRE_CACHE_KEY)||'null');return value&&Date.now()-value.time<GENRE_CACHE_TTL?value.data:null}catch{return null}}
+    function writeGenreCache(data){try{sessionStorage.setItem(GENRE_CACHE_KEY,JSON.stringify({time:Date.now(),data}))}catch{}}
     async function load(){
+      const cached=readGenreCache();
+      if(cached?.movie?.length || cached?.tv?.length){catalogs=cached;render();return}
       try{
-        const [movies,shows]=await Promise.all(['movie','tv'].map(type=>fetch(`https://api.themoviedb.org/3/genre/${type}/list?language=ro-RO`,{headers:{Authorization:`Bearer ${token}`,accept:'application/json'}}).then(r=>r.json())));
-        catalogs.movie=movies.genres||[]; catalogs.tv=shows.genres||[]; render();
-      }catch{status.textContent='Genurile nu sunt disponibile momentan.'}
+        const [movies,shows]=await Promise.all(['movie','tv'].map(async type=>{const response=await fetch(`https://api.themoviedb.org/3/genre/${type}/list?language=ro-RO`,{headers:{Authorization:`Bearer ${token}`,accept:'application/json'}});if(!response.ok)throw new Error('genres');return response.json()}));
+        catalogs={movie:movies.genres||[],tv:shows.genres||[]}; writeGenreCache(catalogs); render();
+      }catch{
+        const stale=(()=>{try{return JSON.parse(sessionStorage.getItem(GENRE_CACHE_KEY)||'null')?.data}catch{return null}})();
+        if(stale?.movie?.length || stale?.tv?.length){catalogs=stale;render();status.textContent='Genuri încărcate din cache.'}
+        else status.textContent='Genurile nu sunt disponibile momentan.'
+      }
     }
     function render(){const query=$('search').value.trim().toLocaleLowerCase('ro-RO');const list=catalogs[current].filter(g=>g.name.toLocaleLowerCase('ro-RO').includes(query));status.textContent=`${list.length} genuri disponibile pentru ${current==='movie'?'filme':'seriale'}`;grid.innerHTML=list.map(g=>`<a class="genre-card" href="catalog.html?type=${current}&genre=${g.id}"><strong>${g.name}</strong><span aria-hidden="true">›</span></a>`).join('')||'<p class="empty">Nu am găsit niciun gen pentru căutarea ta.</p>'}
     document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{current=tab.dataset.type;document.querySelectorAll('.tab').forEach(x=>{const active=x===tab;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});render()}));$('search').addEventListener('input',render);load();
