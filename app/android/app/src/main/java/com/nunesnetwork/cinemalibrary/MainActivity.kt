@@ -47,7 +47,7 @@ class MainActivity : Activity() {
         // through, handed to the system browser (same as the desktop app).
         private const val SUPPORT_URL = "https://github.com/LttlMario/cinema-library"
 
-        private const val OFFLINE_PAGE = """
+        private val OFFLINE_PAGE = """
             <!doctype html><html lang="ro"><meta name="viewport" content="width=device-width,initial-scale=1">
             <style>body{margin:0;background:#0a0a0d;color:#f4f4f7;font:16px system-ui;text-align:center;padding:18vh 24px}h1{color:#e50914}p{color:#aaa;line-height:1.5}button{padding:12px 18px;border:0;border-radius:8px;background:#e50914;color:#fff;font-weight:700;font-size:16px}</style>
             <h1>Cinema Library</h1><p>Conexiunea nu este disponibilă momentan.</p><button onclick="location.href='""" + SITE_URL + """'">Reîncearcă</button></html>
