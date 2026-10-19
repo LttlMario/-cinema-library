@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Cinema Library — Vizionare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +73,7 @@
     /* ─── HEADER ─── */
     header {
       display: flex; align-items: center; gap: clamp(.8rem, 2vw, 1.6rem);
-      padding: 0 var(--gutter); height: 64px;
+      padding: 0 max(var(--gutter), env(safe-area-inset-left)) 0 max(var(--gutter), env(safe-area-inset-right)); height: 64px;
       border-bottom: 1px solid var(--line);
       background: rgba(9,9,12,0.86);
       backdrop-filter: blur(16px) saturate(140%);
@@ -166,7 +166,7 @@
     .player-wrap:fullscreen { width:100vw; height:100vh; aspect-ratio:auto; border:0; border-radius:0; }
     .player-wrap:-webkit-full-screen { width:100vw; height:100vh; aspect-ratio:auto; border:0; border-radius:0; }
     .player-wrap:-moz-full-screen { width:100vw; height:100vh; aspect-ratio:auto; border:0; border-radius:0; }
-    .player-actions { display:flex; flex-wrap:wrap; gap:.55rem; padding:1rem 0 0; }
+    .player-actions { display:flex; flex-wrap:wrap; gap:.55rem; padding:1rem max(0px, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(0px, env(safe-area-inset-left)); }
     .player-action { border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:10px; padding:.65rem .85rem; font:600 .78rem inherit; cursor:pointer; }
     .player-action:hover,.player-action.active { border-color:var(--accent); background:var(--accent-soft); }
     .enhancer-panel { margin-top:.75rem; padding:1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); }
