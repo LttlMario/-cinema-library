@@ -2122,6 +2122,13 @@ $('clear-filters').addEventListener('click', () => {
   renderLibraryRows();
   await Promise.all([loadGenres(), loadHero(), loadTop10()]);
   populateAdvancedFilters();
+  const requestedSearch = new URLSearchParams(location.search).get('search')?.trim();
+  if (requestedSearch) {
+    searchInput.value = requestedSearch;
+    clearBtn.classList.add('visible');
+    await doSearch(requestedSearch);
+    return;
+  }
   for (const cfg of CATEGORY_ROWS) loadRow(cfg);
 })();
 </script>
