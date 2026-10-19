@@ -1477,6 +1477,11 @@ $('favorites-nav').addEventListener('click', () => {
   row.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
+window.addEventListener('storage', event => {
+  if (event.storageArea !== localStorage || !Object.values(LIBRARY_KEYS).includes(event.key)) return;
+  renderLibraryRows();
+});
+
 async function loadRow(cfg) {
   if (cfg.isDigitalRow) { await loadDigitalRow(cfg); return; }
 
