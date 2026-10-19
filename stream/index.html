@@ -378,14 +378,18 @@
           <button class="enhancer-preset active" type="button" data-preset="normal">Normal</button>
           <button class="enhancer-preset" type="button" data-preset="cinema">Cinema</button>
           <button class="enhancer-preset" type="button" data-preset="bright">Mai luminos</button>
-          <button class="enhancer-preset" type="button" data-preset="clear">Contrast ridicat</button>
+          <button class="enhancer-preset" type="button" data-preset="clear">Claritate</button>
+          <button class="enhancer-preset" type="button" data-preset="night">Mod noapte</button>
+          <button class="enhancer-preset" type="button" data-preset="natural">Natural</button>
         </div>
         <div class="enhancer-controls">
           <div class="enhancer-control"><label for="enhancer-brightness">Luminozitate <output id="enhancer-brightness-value">100%</output></label><input id="enhancer-brightness" type="range" min="80" max="135" value="100"></div>
           <div class="enhancer-control"><label for="enhancer-contrast">Contrast <output id="enhancer-contrast-value">100%</output></label><input id="enhancer-contrast" type="range" min="85" max="135" value="100"></div>
           <div class="enhancer-control"><label for="enhancer-saturation">Culoare <output id="enhancer-saturation-value">100%</output></label><input id="enhancer-saturation" type="range" min="80" max="125" value="100"></div>
+          <div class="enhancer-control"><label for="enhancer-warmth">Temperatură <output id="enhancer-warmth-value">0°</output></label><input id="enhancer-warmth" type="range" min="-20" max="20" value="0"></div>
+          <div class="enhancer-control"><label for="enhancer-clarity">Claritate <output id="enhancer-clarity-value">0</output></label><input id="enhancer-clarity" type="range" min="0" max="18" value="0"></div>
         </div>
-        <p class="enhancer-note">Reglajul schimbă aspectul imaginii pe acest dispozitiv. Nu modifică rezoluția sau bitrate-ul sursei Xayah.</p>
+        <p class="enhancer-note">Claritatea folosește contrast local simulat, iar temperatura ajustează tonurile reci/calde. Reglajele schimbă aspectul pe acest dispozitiv, nu rezoluția sau bitrate-ul sursei Xayah.</p>
       </section>
       <section class="player-details" id="player-details" hidden></section>
     </div>
@@ -459,10 +463,12 @@ const STORAGE_KEY = 'cinemalibrary_server_v2';
 const SUBTITLE_KEY = 'cinemalibrary_subtitle_v1';
 const ENHANCER_KEY = 'cinemalibrary_image_enhancer_v1';
 const ENHANCER_PRESETS = {
-  normal: { brightness: 100, contrast: 100, saturation: 100 },
-  cinema: { brightness: 105, contrast: 112, saturation: 105 },
-  bright: { brightness: 118, contrast: 104, saturation: 100 },
-  clear: { brightness: 100, contrast: 124, saturation: 108 }
+  normal: { brightness: 100, contrast: 100, saturation: 100, warmth: 0, clarity: 0 },
+  cinema: { brightness: 105, contrast: 110, saturation: 104, warmth: 5, clarity: 4 },
+  bright: { brightness: 118, contrast: 104, saturation: 100, warmth: 0, clarity: 2 },
+  clear: { brightness: 101, contrast: 115, saturation: 106, warmth: 0, clarity: 14 },
+  night: { brightness: 112, contrast: 108, saturation: 98, warmth: -4, clarity: 5 },
+  natural: { brightness: 103, contrast: 103, saturation: 98, warmth: -2, clarity: 2 }
 };
 
 const SERVERS = [
@@ -734,15 +740,19 @@ function togglePlayerFullscreen() {
 }
 
 function applyEnhancer() {
-  const values = ['brightness', 'contrast', 'saturation'].reduce((out, key) => {
+  const values = ['brightness', 'contrast', 'saturation', 'warmth', 'clarity'].reduce((out, key) => {
     const input = $(`enhancer-${key}`);
-    out[key] = Number(input?.value) || 100;
+    const fallback = key === 'warmth' || key === 'clarity' ? 0 : 100;
+    out[key] = Number(input?.value ?? fallback);
     const output = $(`enhancer-${key}-value`);
-    if (output) output.textContent = `${out[key]}%`;
+    if (output) output.textContent = key === 'warmth' ? `${out[key]}°` : key === 'clarity' ? String(out[key]) : `${out[key]}%`;
     return out;
   }, {});
   const player = $('player');
-  if (player) player.style.filter = `brightness(${values.brightness}%) contrast(${values.contrast}%) saturate(${values.saturation}%)`;
+  const contrast = values.contrast + values.clarity;
+  const saturation = values.saturation + Math.round(values.clarity * .15);
+  const sepia = Math.max(0, values.warmth) * .45;
+  if (player) player.style.filter = `brightness(${values.brightness}%) contrast(${contrast}%) saturate(${saturation}%) sepia(${sepia}%) hue-rotate(${values.warmth * .6}deg)`;
   try { localStorage.setItem(ENHANCER_KEY, JSON.stringify(values)); } catch {}
   document.querySelectorAll('.enhancer-preset').forEach(button => button.classList.toggle('active', button.dataset.preset === 'custom'));
 }
@@ -759,8 +769,9 @@ function setEnhancer(values, preset = 'custom') {
 function setupEnhancer() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(ENHANCER_KEY) || 'null'); } catch {}
-  setEnhancer(saved && typeof saved === 'object' ? saved : ENHANCER_PRESETS.normal, saved ? 'custom' : 'normal');
-  ['brightness', 'contrast', 'saturation'].forEach(key => $(`enhancer-${key}`)?.addEventListener('input', () => applyEnhancer()));
+  const savedValues = saved && typeof saved === 'object' ? { ...ENHANCER_PRESETS.normal, ...saved } : ENHANCER_PRESETS.normal;
+  setEnhancer(savedValues, saved ? 'custom' : 'normal');
+  ['brightness', 'contrast', 'saturation', 'warmth', 'clarity'].forEach(key => $(`enhancer-${key}`)?.addEventListener('input', () => applyEnhancer()));
   document.querySelectorAll('.enhancer-preset').forEach(button => button.addEventListener('click', () => setEnhancer(ENHANCER_PRESETS[button.dataset.preset], button.dataset.preset)));
   $('enhancer-reset').addEventListener('click', () => setEnhancer(ENHANCER_PRESETS.normal, 'normal'));
 }
