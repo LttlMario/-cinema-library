@@ -1639,12 +1639,13 @@ async function loadHero() {
       const date  = item.release_date || item.first_air_date;
       const m     = matchPct(item.vote_average);
       const isMovie = mediaOf(item) === 'movie';
+      const bgUrl = backdrop(item.backdrop_path, 'w1280');
 
       const slide = document.createElement('div');
       slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
       slide.setAttribute('aria-hidden', String(i !== 0));
       slide.innerHTML = `
-       <div class="hero-bg" style="background-image:url('${backdrop(item.backdrop_path, 'w1280')}')"></div>
+       <div class="hero-bg" data-bg="${esc(bgUrl)}"></div>
         <div class="hero-content">
           <div class="hero-badge"><span class="bolt">●</span> #${i + 1} În tendințe azi</div>
           <h1 class="hero-title">${esc(title)}</h1>
@@ -1663,6 +1664,7 @@ async function loadHero() {
         </div>`;
 
       slide.querySelector('.hero-play').addEventListener('click', () => openModal(item));
+      if (i === 0) slide.querySelector('.hero-bg').style.backgroundImage = `url('${bgUrl}')`;
       hero.appendChild(slide);
     });
 
@@ -1703,6 +1705,7 @@ function goToHero(i) {
   dots[heroIndex]?.setAttribute('aria-current', 'true');
   const bg = slides[heroIndex]?.querySelector('.hero-bg');
   if (bg) {
+    if (!bg.style.backgroundImage && bg.dataset.bg) bg.style.backgroundImage = `url('${bg.dataset.bg}')`;
     bg.style.animation = 'none';
     requestAnimationFrame(() => requestAnimationFrame(() => { bg.style.animation = ''; }));
   }
