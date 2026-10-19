@@ -674,7 +674,12 @@ function setupPlayerActions() {
     if (action === 'together') location.href = `../watch-together.html?type=${state.type}&id=${state.id}&s=${state.season || 1}&e=${state.episode || 1}`;
     if (action === 'report') window.open('https://github.com/LttlMario/cinema-library/issues/new?title=Problemă player&body=' + encodeURIComponent(`${state.title} (${state.id})`), '_blank', 'noopener');
     if (action === 'trailer') window.open(`https://www.themoviedb.org/${state.type}/${state.id}/videos`, '_blank', 'noopener');
-    if (action === 'next-episode') { button.hidden = true; goNextEpisode(); }
+    if (action === 'next-episode') {
+      button.hidden = true;
+      const existingNext = $('nextep-btn');
+      if (existingNext && !existingNext.disabled) existingNext.click();
+      else goNextEpisode();
+    }
   }));
 }
 
