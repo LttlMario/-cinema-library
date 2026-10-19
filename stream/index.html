@@ -510,12 +510,18 @@ function resumeParam(p) {
 const $ = id => document.getElementById(id);
 const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v1';
 const TMDB_CACHE_TTL = 5 * 60 * 1000;
+const TMDB_CACHE_LIMIT = 80;
 const tmdbInFlight = new Map();
 function readTmdbCache() {
   try { return JSON.parse(sessionStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
 }
 function writeTmdbCache(cache) {
-  try { sessionStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(cache)); } catch {}
+  try {
+    const entries = Object.entries(cache)
+      .sort(([, a], [, b]) => (b?.time || 0) - (a?.time || 0))
+      .slice(0, TMDB_CACHE_LIMIT);
+    sessionStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(Object.fromEntries(entries)));
+  } catch {}
 }
 const tmdb = async path => {
   const localizedPath = `${path}${path.includes('?') ? '&' : '?'}language=ro-RO`;
