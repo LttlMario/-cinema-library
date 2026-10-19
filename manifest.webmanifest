@@ -26,5 +26,43 @@
     "entertainment",
     "video"
   ],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Filme",
+      "short_name": "Filme",
+      "url": "./catalog.html?type=movie",
+      "icons": [
+        {
+          "src": "./assets/icons/icon_128.png",
+          "sizes": "128x128",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Seriale",
+      "short_name": "Seriale",
+      "url": "./catalog.html?type=tv",
+      "icons": [
+        {
+          "src": "./assets/icons/icon_128.png",
+          "sizes": "128x128",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Căutare",
+      "short_name": "Căutare",
+      "url": "./index.html?search=",
+      "icons": [
+        {
+          "src": "./assets/icons/icon_128.png",
+          "sizes": "128x128",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }
