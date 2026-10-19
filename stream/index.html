@@ -931,6 +931,7 @@ $('back-btn').addEventListener('click', () => {
 
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
+  setupPlayerActions();
   startPlayback();
 })();
 
