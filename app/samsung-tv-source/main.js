@@ -12,9 +12,18 @@
   function openInTvBrowser(url) {
     if (!url || url.indexOf('https://lttlmario.github.io/cinema-library/') !== 0) return;
     try {
-      if (window.tizen && tizen.application && typeof tizen.application.launchAppControl === 'function' && typeof tizen.ApplicationControl === 'function') {
+      if (window.tizen && tizen.application && typeof tizen.application.findAppControl === 'function' && typeof tizen.application.launchAppControl === 'function' && typeof tizen.ApplicationControl === 'function') {
         var control = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/view', url, 'text/html', null);
-        tizen.application.launchAppControl(control, function () {}, function () {
+        tizen.application.findAppControl(control, function (apps, resolvedControl) {
+          var browser = (apps || []).find(function (app) {
+            return app && (app.id === 'org.tizen.browser' || app.id === 'com.samsung.browser');
+          });
+          tizen.application.launchAppControl(resolvedControl || control, browser ? browser.id : null, function () {
+            window.setTimeout(exitApplication, 350);
+          }, function () {
+            try { window.open(url, '_blank'); } catch (_) {}
+          });
+        }, function () {
           try { window.open(url, '_blank'); } catch (_) {}
         });
         return;
