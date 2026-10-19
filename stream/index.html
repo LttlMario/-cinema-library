@@ -64,6 +64,10 @@
 
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; }
+    :focus-visible { outline: 3px solid var(--accent-h); outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
 
     /* ─── HEADER ─── */
     header {
@@ -331,7 +335,7 @@
     </div>
   </main>
 
-  <div id="toast"></div>
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 /* ─── THEME + PWA ─── */
@@ -426,6 +430,7 @@ let tvData = null;         // /tv/{id} details
 const seasonCache = {};    // cached season episode lists
 const attemptedServers = new Set();
 const PROGRESS_KEY = 'cinemalibrary_progress';
+let playerLoadToken = 0;
 
 /* ─── PARAMS ─── */
 function readParams() {
@@ -470,6 +475,8 @@ function syncUrl() {
 /* ─── PLAYER ─── */
 function loadPlayer() {
   attemptedServers.add(state.server);
+  const serverId = state.server;
+  const loadToken = ++playerLoadToken;
   const src = serverUrlResolvers[state.server](state);
   const loader = $('player-loading');
   loader.classList.remove('hide');
@@ -487,13 +494,28 @@ function loadPlayer() {
   // iframes (Xayah / Ekko load the real player inside a second iframe).
   frame.setAttribute('allow', 'autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *');
   frame.referrerPolicy = 'origin';
-  frame.onload = () => { loader.classList.add('hide'); updateServerStatus(state.server, 'online'); };
-  frame.onerror = () => handlePlayerFailure(state.server);
+  let settled = false;
+  const fail = () => {
+    if (settled || loadToken !== playerLoadToken) return;
+    settled = true;
+    handlePlayerFailure(serverId);
+  };
+  frame.onload = () => {
+    if (loadToken !== playerLoadToken) return;
+    settled = true;
+    loader.classList.add('hide');
+    updateServerStatus(serverId, 'online');
+  };
+  frame.onerror = fail;
   // Use replace so iframe loads don't pollute the browser history stack
   frame.src = src;
   old.replaceWith(frame);
 
-  setTimeout(() => loader.classList.add('hide'), 4000); // fail-safe
+  setTimeout(() => {
+    if (loadToken !== playerLoadToken || settled) return;
+    loader.classList.add('hide');
+    fail();
+  }, 12000);
   syncUrl();
   savePlaybackProgress();
   if (state.title) updateTitleBar();
