@@ -216,9 +216,11 @@ class MainActivity : Activity() {
     }
 
     /* ─── Back: exit fullscreen video → page history → leave app ─── */
+    @Deprecated("Legacy fallback for Android versions below 13")
     @Suppress("DEPRECATION")
     override fun onBackPressed() = handleBack()
 
+    @Suppress("DEPRECATION")
     private fun handleBack() {
         when {
             customView != null -> exitFullscreenVideo()
