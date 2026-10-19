@@ -823,7 +823,7 @@
 
 <!-- ─────────────── MODAL ─────────────── -->
 <div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal" id="modal">
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-overview">
     <button class="modal-close" id="modal-close" aria-label="Închide detaliile">✕</button>
     <div class="modal-scroll">
       <div class="modal-hero">
@@ -836,7 +836,7 @@
       <div class="modal-body">
         <div id="modal-meta" class="modal-meta"></div>
         <div id="modal-genres" class="modal-genres"></div>
-        <div id="modal-digital-release" class="dr-loading"></div>
+        <div id="modal-digital-release" class="dr-loading" aria-live="polite"></div>
         <div id="modal-overview" class="modal-overview"></div>
       </div>
     </div>
