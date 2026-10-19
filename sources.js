@@ -22,6 +22,9 @@ window.CINEMA_PROVIDER_DOCS = {
 };
 
 window.CINEMA_SOURCES = {
+  'movie:550': {
+    principal: { label: 'Player de test legal — Big Buck Bunny', url: 'https://www.youtube.com/embed/aqz-KE-bpKQ' }
+  },
   'movie:27205': {
     principal: { label: 'Trailer oficial Warner Bros.', url: 'https://www.youtube.com/embed/Qwe6qXFTdgc' }
   },
