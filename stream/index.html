@@ -341,7 +341,7 @@
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
     <div class="logo" id="logo">Cinema Library</div>
-    <div class="now-title" id="now-title">Se încarcă playerul…</div>
+    <div class="now-title" id="now-title" aria-live="polite">Se încarcă playerul…</div>
     <a class="contribute-btn" id="contribute-btn" href="../contribute.html" title="Contribuie la Cinema Library" aria-label="Contribuie la Cinema Library">
       <span aria-hidden="true">♥</span><span class="s-name">Contribuie</span>
     </a>
@@ -351,8 +351,8 @@
   <main id="main">
     <div class="player-col">
       <div class="player-wrap" id="player-wrap">
-        <div class="player-loading" id="player-loading"><div class="spinner"></div></div>
-        <iframe id="player" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
+        <div class="player-loading" id="player-loading" role="status" aria-live="polite" aria-label="Se încarcă playerul"><div class="spinner" aria-hidden="true"></div></div>
+        <iframe id="player" title="Player video Cinema Library" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
         <button class="player-fullscreen-action" id="player-fullscreen" type="button" title="Full screen pentru player" aria-label="Full screen pentru player">⛶</button>
         <div class="resume-prompt" id="resume-prompt" hidden>
           <div class="resume-card">
@@ -599,6 +599,7 @@ function loadPlayer() {
   const src = serverUrlResolvers[state.server](state);
   const loader = $('player-loading');
   loader.classList.remove('hide');
+  loader.removeAttribute('aria-hidden');
 
   // Recreate the iframe on every load so the Permissions Policy
   // (allow="fullscreen; ...") is re-applied for the new origin.
@@ -623,6 +624,7 @@ function loadPlayer() {
     if (loadToken !== playerLoadToken) return;
     settled = true;
     loader.classList.add('hide');
+    loader.setAttribute('aria-hidden', 'true');
     updateServerStatus(serverId, 'online');
   };
   frame.onerror = fail;
@@ -634,6 +636,7 @@ function loadPlayer() {
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
     loader.classList.add('hide');
+    loader.setAttribute('aria-hidden', 'true');
     fail();
   }, 12000);
   syncUrl();
