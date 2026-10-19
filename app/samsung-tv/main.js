@@ -9,6 +9,20 @@
   var BACK_KEY = 10009;
   var loaded = false;
 
+  function openInTvBrowser(url) {
+    if (!url || url.indexOf('https://lttlmario.github.io/cinema-library/') !== 0) return;
+    try {
+      if (window.tizen && tizen.application && typeof tizen.application.launchAppControl === 'function' && typeof tizen.ApplicationControl === 'function') {
+        var control = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/view', url, 'text/html', null);
+        tizen.application.launchAppControl(control, function () {}, function () {
+          try { window.open(url, '_blank'); } catch (_) {}
+        });
+        return;
+      }
+    } catch (_) {}
+    try { window.open(url, '_blank'); } catch (_) {}
+  }
+
   function currentApplication() {
     try {
       if (window.tizen && tizen.application && typeof tizen.application.getCurrentApplication === 'function') {
@@ -72,6 +86,11 @@
   document.addEventListener('tizenhwkey', handleHardwareKey, false);
   document.addEventListener('keydown', handleKeydown, true);
   window.addEventListener('keydown', handleKeydown, true);
+  window.addEventListener('message', function (event) {
+    if (event.origin !== 'https://lttlmario.github.io') return;
+    var data = event.data || {};
+    if (data.type === 'open-in-tv-browser') openInTvBrowser(String(data.url || ''));
+  }, false);
 
   frame.addEventListener('load', function () {
     loaded = true;
@@ -85,7 +104,7 @@
     loaded = false;
     loading.hidden = false;
     error.hidden = true;
-    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-4';
+    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-5';
     window.setTimeout(showError, 12000);
   }
 
