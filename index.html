@@ -393,6 +393,7 @@
       box-shadow: 0 22px 48px rgba(0,0,0,0.7);
       z-index: 6;
     }
+    .card:focus-visible { outline: 3px solid var(--accent-h); outline-offset: 4px; z-index: 7; }
     .card-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: var(--bg-elev); }
     .card-poster-placeholder {
       width: 100%; aspect-ratio: 2/3; display: flex; flex-direction: column;
@@ -408,6 +409,7 @@
       transition: opacity .25s, transform .25s var(--ease);
     }
     .card:hover .card-info { opacity: 1; transform: translate3d(0, 0, 0); }
+    .card:focus-visible .card-info { opacity: 1; transform: translate3d(0, 0, 0); }
     .card-info-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
     .mini-play {
       width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #0a0a0d;
@@ -1153,6 +1155,9 @@ function makeCard(item, { drDate = null, removeKey = null } = {}) {
 
   const card = document.createElement('div');
   card.className = 'card';
+  card.tabIndex = 0;
+  card.setAttribute('role', 'article');
+  card.setAttribute('aria-label', title);
   card.innerHTML = `
     <span class="card-badge ${isMovie ? 'movie' : 'tv'}">${isMovie ? 'Film' : 'Serial'}</span>
     ${showDrBadge ? `<span class="card-dr-badge"><span class="card-dr-dot"></span>Digital</span>` : ''}
@@ -1206,6 +1211,12 @@ function makeCard(item, { drDate = null, removeKey = null } = {}) {
   }
 
   card.addEventListener('click', () => openModal(item));
+  card.addEventListener('keydown', event => {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target === card) {
+      event.preventDefault();
+      openModal(item);
+    }
+  });
   return card;
 }
 
@@ -1381,6 +1392,7 @@ function renderLibraryRows() {
       clear.textContent = 'Șterge tot';
       clear.setAttribute('aria-label', `Șterge tot din ${section.title}`);
       clear.addEventListener('click', () => {
+        if (!window.confirm(`Ștergi toate titlurile din „${section.title}”?`)) return;
         localStorage.removeItem(section.key);
         renderLibraryRows();
       });
