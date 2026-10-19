@@ -37,7 +37,16 @@
     exitApplication();
   }
 
-  document.addEventListener('keydown', (event) => {
+  function focusFrame() {
+    try {
+      frame.setAttribute('tabindex', '0');
+      frame.focus();
+    } catch (_) {
+      // Some older TV WebViews do not expose focus on iframe elements.
+    }
+  }
+
+  function handleKeydown(event) {
     const keyCode = Number(event.keyCode || event.which);
     if (keyCode === BACK_KEY) {
       event.preventDefault();
@@ -46,12 +55,30 @@
       event.preventDefault();
       exitApplication();
     }
-  }, true);
+  }
+
+  function handleHardwareKey(event) {
+    var keyName = String((event && event.keyName) || '').toLowerCase();
+    if (keyName === 'back') {
+      event.preventDefault();
+      goBack();
+    } else if (keyName === 'exit') {
+      event.preventDefault();
+      exitApplication();
+    }
+  }
+
+  // Samsung Smart Remote sends Back/Exit through this Tizen-specific event.
+  document.addEventListener('tizenhwkey', handleHardwareKey, false);
+  document.addEventListener('keydown', handleKeydown, true);
+  window.addEventListener('keydown', handleKeydown, true);
 
   frame.addEventListener('load', function () {
     loaded = true;
     loading.hidden = true;
     error.hidden = true;
+    focusFrame();
+    window.setTimeout(focusFrame, 150);
   });
 
   function retryLoad() {
