@@ -1913,7 +1913,9 @@ $('modal-watch-btn').addEventListener('click', () => {
   const tvMode = new URLSearchParams(window.location.search).get('tv') === '1'
     || sessionStorage.getItem('cinemalibrary_tv_mode') === '1';
   if (tvMode && window.parent !== window) {
-    window.parent.postMessage({ type: 'open-in-tv-browser', url: destination.href }, 'https://lttlmario.github.io');
+    // The Samsung wrapper is a local file:// document, so its origin is not
+    // the GitHub Pages origin. The wrapper validates event.origin itself.
+    window.parent.postMessage({ type: 'open-in-tv-browser', url: destination.href }, '*');
     toast('Se deschide playerul în Internet…');
     return;
   }
