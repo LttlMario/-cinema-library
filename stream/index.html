@@ -542,8 +542,8 @@ let state = null;          // { type, id, season, episode, server, subtitle, tit
 let tvData = null;         // /tv/{id} details
 const seasonCache = {};    // cached season episode lists
 const LIBRARY_KEYS = { favorites: 'cinemalibrary_favorites', watchLater: 'cinemalibrary_watch_later', history: 'cinemalibrary_history', progress: 'cinemalibrary_progress' };
-const readLibrary = key => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } };
-const writeLibrary = (key, value) => localStorage.setItem(key, JSON.stringify(value.slice(0, 30)));
+const readLibrary = key => { try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; } };
+const writeLibrary = (key, value) => { try { localStorage.setItem(key, JSON.stringify((Array.isArray(value) ? value : []).slice(0, 30))); return true; } catch { toast('Biblioteca locală nu poate fi salvată în acest browser.'); return false; } };
 const libraryId = item => `${item.media_type || (item.title ? 'movie' : 'tv')}-${item.id}`;
 const attemptedServers = new Set();
 const PROGRESS_KEY = 'cinemalibrary_progress';
@@ -727,7 +727,8 @@ function libraryItemFromState() {
 
 function toggleLibrary(key, button) {
   const item = libraryItemFromState(), id = libraryId(item), saved = readLibrary(key);
-  writeLibrary(key, saved.some(x => libraryId(x) === id) ? saved.filter(x => libraryId(x) !== id) : [item, ...saved]);
+  const next = saved.some(x => libraryId(x) === id) ? saved.filter(x => libraryId(x) !== id) : [item, ...saved];
+  if (!writeLibrary(key, next)) return;
   button.classList.toggle('active', readLibrary(key).some(x => libraryId(x) === id));
 }
 
