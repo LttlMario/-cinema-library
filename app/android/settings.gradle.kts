@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "tflix-android"
+rootProject.name = "cinemalibrary-android"
 include(":app")

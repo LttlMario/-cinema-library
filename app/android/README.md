@@ -1,10 +1,10 @@
-# TFLIX Android (Phone + Android TV)
+# Cinema Library Android (Phone + Android TV)
 
-A native Android app that wraps the live TFLIX website in a WebView — the Android
+A native Android app that wraps the live Cinema Library website in a WebView — the Android
 counterpart of the Windows desktop app. One APK works on **phones, tablets, and
 Android TV** (it registers both the regular and the Leanback TV launcher).
 
-The app loads the deployed site (<https://tflix.nunesnetwork.com>) directly, so it's
+The app loads the deployed site (<https://lttlmario.github.io/-cinema-library>) directly, so it's
 **always up to date** — new stream servers, fixed embeds, and any other site change
 appear instantly, with no app update needed.
 
@@ -12,7 +12,7 @@ Its job is to **block all pop-ups and ad redirects** that the third-party stream
 try to open:
 
 - every `window.open` / `target="_blank"` is denied → no popunder ad ever opens
-- the top frame is pinned to the TFLIX origin → ad scripts can't hijack the page
+- the top frame is pinned to the Cinema Library origin → ad scripts can't hijack the page
 - the stream `<iframe>`s still navigate freely (blocking them breaks the embeds)
 
 It also presents a plain-Chrome User-Agent (the WebView default carries `; wv` /
@@ -20,11 +20,11 @@ It also presents a plain-Chrome User-Agent (the WebView default carries `; wv` /
 
 ## Install (sideload)
 
-1. Download `tflix-android.<version>.apk` from the
-   [latest release](https://github.com/TomasTNunes/tflix/releases/latest).
+1. Download `cinemalibrary-android.<version>.apk` from the
+   [latest release](https://github.com/LttlMario/-cinema-library/releases/latest).
 2. **Phone/tablet**: open the APK and allow "install unknown apps" when prompted.
 3. **Android TV**: install via a file manager app (e.g. *Send files to TV*, *X-plore*)
-   or with adb: `adb install tflix-android.<version>.apk`.
+   or with adb: `adb install cinemalibrary-android.<version>.apk`.
 
 ## Build
 
@@ -35,8 +35,8 @@ at your SDK with `local.properties` (`sdk.dir=...`) or the `ANDROID_HOME` env va
 
 ```powershell
 cd app/android
-.\gradlew.bat assembleRelease   # → tflix-android.<version>.apk (debug-signed — see note)
-.\gradlew.bat assembleDebug     # → tflix-android.debug.<version>.apk
+.\gradlew.bat assembleRelease   # → cinemalibrary-android.<version>.apk (debug-signed — see note)
+.\gradlew.bat assembleDebug     # → cinemalibrary-android.debug.<version>.apk
 ```
 
 **Linux / macOS:**
@@ -44,8 +44,8 @@ cd app/android
 ```bash
 cd app/android
 chmod +x gradlew                # first time only
-./gradlew assembleRelease       # → tflix-android.<version>.apk (debug-signed — see note)
-./gradlew assembleDebug         # → tflix-android.debug.<version>.apk
+./gradlew assembleRelease       # → cinemalibrary-android.<version>.apk (debug-signed — see note)
+./gradlew assembleDebug         # → cinemalibrary-android.debug.<version>.apk
 ```
 
 The APK lands in `app/build/outputs/apk/<variant>/`.

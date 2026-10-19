@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TFLIX — Watch</title>
+  <title>Cinema Library — Watch</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -257,9 +257,9 @@
     <button class="back-btn" id="back-btn" title="Back" aria-label="Back">
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <div class="logo" id="logo">TFLIX</div>
+    <div class="logo" id="logo">Cinema Library</div>
     <div class="now-title" id="now-title">Loading…</div>
-    <a class="support-btn" id="support-btn" href="https://github.com/TomasTNunes/tflix/issues" target="_blank" rel="noopener noreferrer" title="Report an issue or get support on GitHub">
+    <a class="support-btn" id="support-btn" href="https://github.com/LttlMario/-cinema-library/issues" target="_blank" rel="noopener noreferrer" title="Report an issue or get support on GitHub">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
       <span class="s-name">Support</span>
     </a>
@@ -302,14 +302,14 @@
 /* ─── CONFIG ─── */
 const API_BASE = "https://api.themoviedb.org/3";
 const HEADERS = {
-  // Same TMDB token placeholder as the main TFLIX index.html.
+  // Same TMDB token placeholder as the main Cinema Library index.html.
   // Make sure your deploy step injects __TMDB_TOKEN__ into this file too,
   // or paste your read token here directly.
   'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYTUxYjUwMjI5NWEyNWE5ZTQ3MjRmNDdjNDBmYjM4MiIsIm5iZiI6MTc5MjM2NzM4MS4zNCwic3ViIjoiNmFkNTViMTUxMmQ1N2QxZDQzM2RiZWYxIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.tRZpDtzZM3ZwdLPCU43QJ3AU8tl2w0eqUcxz8aDWvyw',
   'accept': 'application/json'
 };
 
-const STORAGE_KEY = 'tflix_server';
+const STORAGE_KEY = 'cinemalibrary_server';
 
 const SERVERS = [
   { id: 1, name: 'Rakan',   note: 'Generally better quality.' },
@@ -407,7 +407,7 @@ function updateTitleBar() {
   $('now-title').innerHTML = state.type === 'tv'
     ? `${esc(base)} <span class="ep-tag">· S${state.season} E${state.episode}</span>`
     : esc(base);
-  document.title = `${base} — TFLIX`;
+  document.title = `${base} — Cinema Library`;
 }
 
 /* ─── SERVERS ─── */
@@ -557,9 +557,9 @@ function showFatal() {
     <div class="fatal">
       <h2>Title not found</h2>
       <p>This title does not exist or could not be loaded.</p>
-      <a href="/">Back to TFLIX</a>
+      <a href="/">Back to Cinema Library</a>
     </div>`;
-  document.title = 'TFLIX';
+  document.title = 'Cinema Library';
 }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtDate(d){
@@ -591,9 +591,9 @@ $('back-btn').addEventListener('click', () => {
       <div class="fatal">
         <h2>Nothing to play</h2>
         <p>This link is missing the title information.</p>
-        <a href="/">Back to TFLIX</a>
+        <a href="/">Back to Cinema Library</a>
       </div>`;
-    document.title = 'TFLIX';
+    document.title = 'Cinema Library';
     return;
   }
 

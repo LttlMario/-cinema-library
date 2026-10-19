@@ -18,7 +18,7 @@
         android:banner="@drawable/tv_banner"
         android:allowBackup="true"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TFLIX">
+        android:theme="@style/Theme.CinemaLibrary">
 
         <!-- configChanges keeps the WebView alive across rotation / TV display
              changes instead of recreating the Activity (which would reload the

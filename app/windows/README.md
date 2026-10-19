@@ -1,9 +1,9 @@
-# TFLIX Desktop (Windows)
+# Cinema Library Desktop (Windows)
 
-A native Windows app that wraps the live TFLIX website using
+A native Windows app that wraps the live Cinema Library website using
 [Electron](https://www.electronjs.org/).
 
-The window loads the deployed site (<https://tflix.nunesnetwork.com>) directly, so it's
+The window loads the deployed site (<https://lttlmario.github.io/-cinema-library>) directly, so it's
 **always up to date** — new stream servers, fixed embeds, and any other site change appear
 instantly, with no app update needed.
 
@@ -12,19 +12,19 @@ to open, so browsing and playback stay inside the app window — no stray browse
 
 ## Install
 
-📥 Download the latest installer (`TFLIX Setup <version>.exe`) from the
-[latest release](https://github.com/TomasTNunes/tflix/releases/latest), then run it.
+📥 Download the latest installer (`Cinema Library Setup <version>.exe`) from the
+[latest release](https://github.com/LttlMario/-cinema-library/releases/latest), then run it.
 
 ## Update
 
-TFLIX doesn't auto-update — you update it by downloading the newest installer and
-running it. Grab the latest `TFLIX Setup <version>.exe` from the
-[latest release](https://github.com/TomasTNunes/tflix/releases/latest) and run it;
+Cinema Library doesn't auto-update — you update it by downloading the newest installer and
+running it. Grab the latest `Cinema Library Setup <version>.exe` from the
+[latest release](https://github.com/LttlMario/-cinema-library/releases/latest) and run it;
 there's **no need to uninstall the old version first**.
 
 The installer detects your existing install and upgrades it in place: it replaces the
 old version, keeps your desktop/Start-menu shortcuts, and **preserves your saved settings**
-(such as your chosen stream server, in `%APPDATA%\tflix-app`). Just click through the wizard
+(such as your chosen stream server, in `%APPDATA%\cinemalibrary-app`). Just click through the wizard
 (**Next → Install**).
 
 > The app loads the live website, so there's nothing to configure — no API token, no setup.
@@ -62,7 +62,7 @@ npm install
 npm run build
 ```
 
-The NSIS installer (`TFLIX Setup <version>.exe`) is written to `app/windows/dist/`. The app
+The NSIS installer (`Cinema Library Setup <version>.exe`) is written to `app/windows/dist/`. The app
 ships as a thin shell — it loads the site over the network, so no site files are bundled.
 
 ## Project layout

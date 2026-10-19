@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.nunesnetwork.tflix"
+    namespace = "com.nunesnetwork.cinemalibrary"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.nunesnetwork.tflix"
+        applicationId = "com.nunesnetwork.cinemalibrary"
         minSdk = 21
         targetSdk = 35
         // App version: bump BOTH on every release — versionName is what users
@@ -36,13 +36,13 @@ android {
     }
 
     // Name the APKs like the Windows installer artifacts:
-    //   release → tflix-android.<version>.apk
-    //   debug   → tflix-android.debug.<version>.apk
+    //   release → cinemalibrary-android.<version>.apk
+    //   debug   → cinemalibrary-android.debug.<version>.apk
     applicationVariants.all {
         outputs.all {
             val suffix = if (buildType.name == "debug") "debug.$versionName" else versionName
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "tflix-android.$suffix.apk"
+                "cinemalibrary-android.$suffix.apk"
         }
     }
 }

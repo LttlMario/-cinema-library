@@ -1,7 +1,7 @@
 {
-  "name": "tflix-app",
+  "name": "cinemalibrary-app",
   "version": "1.1.1",
-  "description": "TFLIX — Watch Movies & TV, as a Windows desktop app.",
+  "description": "Cinema Library — Watch Movies & TV, as a Windows desktop app.",
   "author": "Tomas Nunes",
   "license": "MIT",
   "main": "main.js",
@@ -16,8 +16,8 @@
     "png-to-ico": "^2.1.8"
   },
   "build": {
-    "appId": "com.nunesnetwork.tflix",
-    "productName": "TFLIX",
+    "appId": "com.nunesnetwork.cinemalibrary",
+    "productName": "Cinema Library",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -32,13 +32,13 @@
       "icon": "build/icon.ico"
     },
     "nsis": {
-      "artifactName": "tflix-windows.setup.${version}.${ext}",
+      "artifactName": "cinemalibrary-windows.setup.${version}.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "TFLIX"
+      "shortcutName": "Cinema Library"
     }
   }
 }

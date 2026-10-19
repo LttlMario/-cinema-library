@@ -1,13 +1,13 @@
 /* ───────────────────────────────────────────────────────────────
-   TFLIX Desktop — Electron main process
+   Cinema Library Desktop — Electron main process
 
-   A thin native shell around the live TFLIX website
-   (https://tflix.nunesnetwork.com). The window loads the deployed
+   A thin native shell around the live Cinema Library website
+   (https://lttlmario.github.io/-cinema-library). The window loads the deployed
    site directly, so any change to the site — new stream servers,
    fixed embeds — appears instantly, with no app rebuild or re-release.
 
    The app's only job is ad-blocking: it denies every pop-up / new
-   window and keeps the top frame pinned to the TFLIX origin, so the
+   window and keeps the top frame pinned to the Cinema Library origin, so the
    popunder ads the third-party stream embeds fire never open.
    ─────────────────────────────────────────────────────────────── */
 
@@ -16,12 +16,12 @@ const path = require('path');
 const fs = require('fs');
 
 /* ─── The live site this shell wraps ─── */
-const SITE_URL = 'https://tflix.nunesnetwork.com/';
-const SITE_ORIGIN = new URL(SITE_URL).origin;   // https://tflix.nunesnetwork.com
+const SITE_URL = 'https://lttlmario.github.io/-cinema-library/';
+const SITE_ORIGIN = new URL(SITE_URL).origin;   // https://lttlmario.github.io/-cinema-library
 
 /* The site's Support button links here — the one pop-up we let through,
    handed to the system browser instead of opening an app window. */
-const SUPPORT_URL = 'https://github.com/TomasTNunes/tflix';
+const SUPPORT_URL = 'https://github.com/LttlMario/-cinema-library';
 
 let mainWindow = null;
 
@@ -40,7 +40,7 @@ function createMainWindow() {
     minHeight: 600,
     backgroundColor: '#0a0a0d',
     autoHideMenuBar: true,
-    title: 'TFLIX',
+    title: 'Cinema Library',
     icon: windowIcon(),
     webPreferences: {
       preload: path.join(__dirname, 'preload-main.js'),
@@ -58,7 +58,7 @@ function createMainWindow() {
     return { action: 'deny' };
   });
 
-  // Keep the top frame pinned to the TFLIX site: ad scripts sometimes try to
+  // Keep the top frame pinned to the Cinema Library site: ad scripts sometimes try to
   // hijack the whole page via top.location = adURL. Allow only same-site nav.
   //
   // IMPORTANT: only guard the MAIN frame. These events also fire for the
@@ -80,7 +80,7 @@ function createMainWindow() {
 function buildMenu() {
   const template = [
     {
-      label: 'TFLIX',
+      label: 'Cinema Library',
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
@@ -106,17 +106,17 @@ function buildMenu() {
 /* ─── Bootstrap ─── */
 app.whenReady().then(() => {
   // Present a plain-Chrome User-Agent to every request. Electron's default UA
-  // carries "tflix-app/1.0.0 … Electron/42.x" tokens, and some embed hosts
+  // carries "cinemalibrary-app/1.0.0 … Electron/42.x" tokens, and some embed hosts
   // reject non-browser clients on that basis (vidfast.pro / "Naafiri" returned
   // HTTP 500 from a same-origin POST until these tokens were stripped).
   app.userAgentFallback = app.userAgentFallback
-    .replace(/\s*tflix-app\/[\d.]+/i, '')
+    .replace(/\s*cinemalibrary-app\/[\d.]+/i, '')
     .replace(/\s*Electron\/[\d.]+/i, '');
 
   buildMenu();
 
   // Version label (preload-main.js) asks for the app version synchronously.
-  ipcMain.on('tflix:get-version', (e) => { e.returnValue = app.getVersion(); });
+  ipcMain.on('cinemalibrary:get-version', (e) => { e.returnValue = app.getVersion(); });
 
   createMainWindow();
 

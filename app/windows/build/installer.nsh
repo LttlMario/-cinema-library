@@ -1,5 +1,5 @@
 ; ───────────────────────────────────────────────────────────────
-;  TFLIX — custom NSIS hooks for electron-builder
+;  Cinema Library — custom NSIS hooks for electron-builder
 ;
 ;  Adds an opt-in checkbox to the uninstaller that, when ticked, also
 ;  removes all per-user app data: the Electron user-data folder (cache,
@@ -7,8 +7,8 @@
 ;  electron-updater download cache.
 ;
 ;  The user-data folder is named after Electron's app name, which is the
-;  "name" field in package.json ("tflix-app"). On Windows that resolves to
-;  %APPDATA%\tflix-app  (NSIS: $APPDATA\tflix-app).
+;  "name" field in package.json ("cinemalibrary-app"). On Windows that resolves to
+;  %APPDATA%\cinemalibrary-app  (NSIS: $APPDATA\cinemalibrary-app).
 ;
 ;  Two electron-builder/NSIS realities shape this script:
 ;
@@ -31,10 +31,10 @@
 !include LogicLib.nsh
 
 ; Electron user-data folder name (== package.json "name").
-!define TFLIX_USERDATA_DIR "tflix-app"
+!define CINEMA_LIBRARY_USERDATA_DIR "cinemalibrary-app"
 ; Registry bridge between the UI instance and the (possibly elevated) section.
-!define TFLIX_REG_KEY "Software\tflix-app"
-!define TFLIX_REG_VALUE "DeleteAppDataOnUninstall"
+!define CINEMA_LIBRARY_REG_KEY "Software\cinemalibrary-app"
+!define CINEMA_LIBRARY_REG_VALUE "DeleteAppDataOnUninstall"
 
 !ifdef BUILD_UNINSTALLER
   Var DeleteDataCheckbox
@@ -43,9 +43,9 @@
 
 ; Custom uninstaller welcome page carrying the "delete app data" checkbox.
 !macro customUnWelcomePage
-  UninstPage custom un.tflixWelcome un.tflixWelcomeLeave
+  UninstPage custom un.cinemalibraryWelcome un.cinemalibraryWelcomeLeave
 
-  Function un.tflixWelcome
+  Function un.cinemalibraryWelcome
     !insertmacro MUI_HEADER_TEXT "Uninstall $(^Name)" "Remove $(^Name) from your computer."
 
     nsDialogs::Create 1018
@@ -63,14 +63,14 @@
     nsDialogs::Show
   FunctionEnd
 
-  Function un.tflixWelcomeLeave
+  Function un.cinemalibraryWelcomeLeave
     ${NSD_GetState} $DeleteDataCheckbox $DeleteDataState
     ; Persist the choice for the uninstall Section, which may run in a
     ; separate elevated instance where $DeleteDataState would be reset.
     ${If} $DeleteDataState == ${BST_CHECKED}
-      WriteRegStr HKCU "${TFLIX_REG_KEY}" "${TFLIX_REG_VALUE}" "1"
+      WriteRegStr HKCU "${CINEMA_LIBRARY_REG_KEY}" "${CINEMA_LIBRARY_REG_VALUE}" "1"
     ${Else}
-      DeleteRegValue HKCU "${TFLIX_REG_KEY}" "${TFLIX_REG_VALUE}"
+      DeleteRegValue HKCU "${CINEMA_LIBRARY_REG_KEY}" "${CINEMA_LIBRARY_REG_VALUE}"
     ${EndIf}
   FunctionEnd
 !macroend
@@ -78,18 +78,18 @@
 ; Runs at the start of the uninstall Section. If the checkbox was ticked,
 ; wipe the per-user data folder.
 !macro customUnInstall
-  ReadRegStr $0 HKCU "${TFLIX_REG_KEY}" "${TFLIX_REG_VALUE}"
+  ReadRegStr $0 HKCU "${CINEMA_LIBRARY_REG_KEY}" "${CINEMA_LIBRARY_REG_VALUE}"
   ${If} $0 == "1"
     ; Electron always stores app data per-user. Force the user shell context
     ; so $APPDATA is %APPDATA% (roaming) even when uninstalling an all-users
     ; install (where the context would otherwise be "all" → C:\ProgramData).
     SetShellVarContext current
-    RMDir /r "$APPDATA\${TFLIX_USERDATA_DIR}"
+    RMDir /r "$APPDATA\${CINEMA_LIBRARY_USERDATA_DIR}"
     ; Also remove the electron-updater download cache, which lives in
     ; %LOCALAPPDATA%\<appName>-updater (NSIS: $LOCALAPPDATA). $LOCALAPPDATA is
     ; already user-scoped, so the "current" shell context set above applies.
-    RMDir /r "$LOCALAPPDATA\${TFLIX_USERDATA_DIR}-updater"
-    DeleteRegKey HKCU "${TFLIX_REG_KEY}"
+    RMDir /r "$LOCALAPPDATA\${CINEMA_LIBRARY_USERDATA_DIR}-updater"
+    DeleteRegKey HKCU "${CINEMA_LIBRARY_REG_KEY}"
     ${If} $installMode == "all"
       SetShellVarContext all
     ${EndIf}

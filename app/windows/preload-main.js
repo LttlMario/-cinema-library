@@ -1,7 +1,7 @@
 /* ───────────────────────────────────────────────────────────────
-   TFLIX Desktop — main-window preload
+   Cinema Library Desktop — main-window preload
 
-   Adds two desktop-only touches to the TFLIX site:
+   Adds two desktop-only touches to the Cinema Library site:
      • a small version label in the lower-left corner of browse pages
      • back-navigation state restore (Electron ships with bfcache off,
        so this rebuilds the open poster + scroll position on Back)
@@ -17,11 +17,11 @@ const { ipcRenderer } = require('electron');
 // App version. The preload is sandboxed (can't require package.json directly),
 // so ask the main process for it synchronously.
 let APP_VERSION = '';
-try { APP_VERSION = ipcRenderer.sendSync('tflix:get-version') || ''; } catch {}
+try { APP_VERSION = ipcRenderer.sendSync('cinemalibrary:get-version') || ''; } catch {}
 
 // Don't inject inside iframes (stream embeds, ad frames, etc.)
 if (window.top === window.self) {
-  const VER_ID = 'tflix-version-label';
+  const VER_ID = 'cinemalibrary-version-label';
 
   // The stream/player route has its own (often fullscreen) UI — keep the
   // version label out of the way there. It only belongs on the browse pages.
@@ -115,7 +115,7 @@ if (window.top === window.self) {
      its native bfcache behaviour is unchanged. */
   const HISTORY_INJECT = `
 (function () {
-  var KEY = 'tflix_return';
+  var KEY = 'cinemalibrary_return';
   var onStream = /^\\/stream(\\/|$)/.test(location.pathname);
 
   if (onStream) {
@@ -243,11 +243,11 @@ if (window.top === window.self) {
 `;
 
   function injectHistoryRestore() {
-    if (document.getElementById('tflix-history-inject')) return;
+    if (document.getElementById('cinemalibrary-history-inject')) return;
     const root = document.documentElement;
     if (!root) return;
     const s = document.createElement('script');
-    s.id = 'tflix-history-inject';
+    s.id = 'cinemalibrary-history-inject';
     s.textContent = HISTORY_INJECT;
     root.appendChild(s);   // classic script → runs in the page's main world
     s.remove();
