@@ -801,6 +801,19 @@ function setupEnhancer() {
   ['brightness', 'contrast', 'saturation', 'warmth', 'clarity'].forEach(key => $(`enhancer-${key}`)?.addEventListener('input', () => applyEnhancer()));
   document.querySelectorAll('.enhancer-preset').forEach(button => button.addEventListener('click', () => setEnhancer(ENHANCER_PRESETS[button.dataset.preset], button.dataset.preset)));
   $('enhancer-reset').addEventListener('click', () => setEnhancer(ENHANCER_PRESETS.normal, 'normal'));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeEnhancer();
+  });
+}
+
+function closeEnhancer() {
+  const panel = $('enhancer-panel');
+  const button = document.querySelector('[data-action="enhancer"]');
+  if (!panel || panel.hidden) return;
+  panel.hidden = true;
+  button?.classList.remove('active');
+  button?.setAttribute('aria-expanded', 'false');
+  button?.focus({ preventScroll: true });
 }
 
 function setupPlayerActions() {
