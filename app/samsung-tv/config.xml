@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets"
         xmlns:tizen="http://tizen.org/ns/widgets"
-        id="http://nunesnetwork.com/cinema-library-tv"
+        id="http://samsung.com/CinemaLibrary"
         version="1.0.0"
         viewmodes="maximized">
-  <tizen:application id="com.nunesnetwork.cinemalibrarytv"
-                     package="com.nunesnetwork.cinemalibrarytv"
-                     required_version="5.5" />
+  <tizen:application id="CinemaTV01.CinemaLibrary"
+                     package="CinemaTV01"
+                     required_version="2.3" />
   <content src="index.html" />
   <feature name="http://tizen.org/feature/screen.size.all" />
   <icon src="icon.png" />
