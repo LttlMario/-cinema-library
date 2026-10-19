@@ -540,7 +540,7 @@ function syncUrl() {
 }
 
 /* ─── PLAYER ─── */
-function loadPlayer() {
+function loadPlayer(reuseIframe = false) {
   attemptedServers.add(state.server);
   const inlineNext = $('next-episode-action');
   if (inlineNext) inlineNext.hidden = true;
@@ -550,19 +550,16 @@ function loadPlayer() {
   const loader = $('player-loading');
   loader.classList.remove('hide');
 
-  // Recreate the iframe on every load so the Permissions Policy
-  // (allow="fullscreen; ...") is re-applied for the new origin.
-  // Navigating an existing iframe via contentWindow.location drops the
-  // fullscreen delegation for cross-origin servers, which is why fullscreen
-  // only worked for the first/Rakan server before.
   const old = $('player');
-  const frame = document.createElement('iframe');
-  frame.id = 'player';
-  frame.allowFullscreen = true;
-  // Use "*" so the fullscreen permission cascades to nested cross-origin
-  // iframes (Xayah / Ekko load the real player inside a second iframe).
-  frame.setAttribute('allow', 'autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *');
-  frame.referrerPolicy = 'origin';
+  const frame = reuseIframe && old ? old : document.createElement('iframe');
+  if (!reuseIframe) {
+    frame.id = 'player';
+    frame.allowFullscreen = true;
+    // Use "*" so the fullscreen permission cascades to nested cross-origin
+    // iframes (Xayah / Ekko load the real player inside a second iframe).
+    frame.setAttribute('allow', 'autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *');
+    frame.referrerPolicy = 'origin';
+  }
   let settled = false;
   const fail = () => {
     if (settled || loadToken !== playerLoadToken) return;
@@ -576,9 +573,11 @@ function loadPlayer() {
     updateServerStatus(serverId, 'online');
   };
   frame.onerror = fail;
-  // Use replace so iframe loads don't pollute the browser history stack
   frame.src = src;
-  old.replaceWith(frame);
+  if (!reuseIframe) old.replaceWith(frame);
+  if (reuseIframe) [300, 900, 1800].forEach(delay => setTimeout(() => {
+    if (loadToken === playerLoadToken && state.server === 3) sendPlayerCommand('play');
+  }, delay));
 
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
@@ -809,13 +808,13 @@ async function setupTv() {
     state.resumeAt = 0;
     await populateEpisodes(true);
     savePlaybackProgress();
-    loadPlayer();
+    loadPlayer(true);
   });
   episodeSel.addEventListener('change', () => {
     state.episode = parseInt(episodeSel.value) || 1;
     state.resumeAt = 0;
     savePlaybackProgress();
-    loadPlayer();
+    loadPlayer(true);
   });
 
   $('nextep-btn').addEventListener('click', goNextEpisode);
@@ -885,16 +884,16 @@ async function goNextEpisode() {
     $('season-select').value = state.season;
     updateNextBtn();
     savePlaybackProgress();
-    // Load immediately while the click is still an active user gesture;
-    // waiting for the new season list first can make browser autoplay fail.
-    loadPlayer();
+    // Keep the existing iframe so the player can receive the play fallback
+    // after the episode URL changes, including when moving to a new season.
+    loadPlayer(true);
     await populateEpisodes(false);
     toast(`Se încarcă S${state.season} E${state.episode}…`);
     return;
   } else $('episode-select').value = state.episode;
   updateNextBtn();
   savePlaybackProgress();
-  loadPlayer();
+  loadPlayer(true);
   toast(`Se încarcă S${state.season} E${state.episode}…`);
 }
 
