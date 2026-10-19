@@ -2176,7 +2176,7 @@ $('clear-filters').addEventListener('click', () => {
     // Real focus only where native behaviour needs it (selects open their
     // picker, buttons stay accessible). Inputs get focused on Enter so the
     // TV keyboard doesn't pop up just from navigating past the search box.
-    if (el.tagName === 'SELECT' || el.tagName === 'BUTTON') el.focus({ preventScroll: true });
+    if (el.tagName === 'SELECT' || el.tagName === 'BUTTON' || el.tagName === 'INPUT') el.focus({ preventScroll: true });
     else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
     if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     requestAnimationFrame(() => placeTvCursor(el));
@@ -2188,7 +2188,7 @@ $('clear-filters').addEventListener('click', () => {
       const s = [{ key: null, items: [$('modal-close')] }];
       if ($('tv-selectors').style.display !== 'none')
         s.push({ key: null, items: [$('season-select'), $('episode-select')] });
-      s.push({ key: null, items: [$('modal-watch-btn')] });
+      s.push({ key: null, items: [$('modal-watch-btn'), $('modal-favorite-btn'), $('modal-later-btn'), $('official-link')].filter(vis) });
       return s;
     }
     // Server dropdown open → trap focus on its items (one per "section",
@@ -2199,7 +2199,11 @@ $('clear-filters').addEventListener('click', () => {
       return [...genreMenu.querySelectorAll('.genre-option')].map(i => ({ key: null, items: [i] }));
 
     const secs = [];
-    const header = [...document.querySelectorAll('.nav-link'), genreBtn, searchInput, $('contribute-btn'), $('theme-toggle'), serverBtn].filter(vis);
+    const header = [
+      $('home-mobile-menu'), $('logo'), ...document.querySelectorAll('.nav-link'),
+      $('favorites-nav'), genreBtn, $('search-toggle'), searchInput, $('search-clear'),
+      $('contribute-btn'), $('theme-toggle'), serverBtn
+    ].filter(vis);
     if (header.length) secs.push({ key: 'header', items: header });
 
     if ($('search-results-section').classList.contains('visible')) {
