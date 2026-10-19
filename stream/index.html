@@ -158,9 +158,14 @@
     #player:-webkit-full-screen { position: fixed; inset: 0; width: 100vw; height: 100vh; }
     #player:-moz-full-screen    { position: fixed; inset: 0; width: 100vw; height: 100vh; }
     #player:fullscreen          { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    .player-wrap:fullscreen { width:100vw; height:100vh; aspect-ratio:auto; border:0; border-radius:0; }
+    .player-wrap:-webkit-full-screen { width:100vw; height:100vh; aspect-ratio:auto; border:0; border-radius:0; }
+    .player-wrap:-moz-full-screen { width:100vw; height:100vh; aspect-ratio:auto; border:0; border-radius:0; }
     .player-actions { display:flex; flex-wrap:wrap; gap:.55rem; padding:1rem 0 0; }
     .player-action { border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:10px; padding:.65rem .85rem; font:600 .78rem inherit; cursor:pointer; }
     .player-action:hover,.player-action.active { border-color:var(--accent); background:var(--accent-soft); }
+    .next-episode-action { position:absolute; left:50%; bottom:1.25rem; transform:translateX(-50%); z-index:6; border-color:var(--accent); background:rgba(20,20,26,.94); color:var(--accent-h); box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; }
+    .next-episode-action:hover { background:var(--accent); color:#fff; }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
     .player-details img { width:130px; aspect-ratio:2/3; object-fit:cover; border-radius:8px; }
     .player-details h1 { margin:0 0 .5rem; font-size:1.35rem; color:var(--accent-h); }
@@ -327,6 +332,7 @@
             </div>
           </div>
         </div>
+        <button class="player-action next-episode-action" id="next-episode-action" data-action="next-episode" type="button" hidden>▶ Următorul episod</button>
       </div>
       <div class="player-actions" id="player-actions" aria-label="Acțiuni pentru titlu">
         <button class="player-action" data-action="trailer">▣ Trailer</button>
@@ -418,8 +424,8 @@ const serverUrlResolvers = {
   //1: (p) => p.type === 'movie' ? `https://vidsrc.cc/v2/embed/movie/${p.id}?autoPlay=false` : `https://vidsrc.cc/v2/embed/tv/${p.id}/${p.season}/${p.episode}?autoPlay=false`, // Rakan (vidsrc.cc)
   1: (p) => p.type === 'movie' ? `https://vixsrc.to/movie/${p.id}?autoPlay=true&lang=en` : `https://vixsrc.to/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true&lang=en`,                                   // Rakan
   2: (p) => p.type === 'movie' ? `https://moviesapi.to/movie/${p.id}` : `https://moviesapi.to/tv/${p.id}-${p.season}-${p.episode}`,                                                                            // Bard
-  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}`, // Xayah
-  4: (p) => p.type === 'movie' ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave` : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&autonext=true&prioritize=true&lastserver=wave`, // Ekko
+  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}`, // Xayah
+  4: (p) => p.type === 'movie' ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave` : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&prioritize=true&lastserver=wave`, // Ekko
   5: (p) => p.type === 'movie' ? `https://vidfast.vc/movie/${p.id}?autoPlay=true${subtitleParam(p, 'sub')}` : `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true${subtitleParam(p, 'sub')}`,                         // Naafiri
   6: (p) => p.type === 'movie' ? `https://vidlink.pro/movie/${p.id}?title=true&poster=true&autoplay=true` : `https://vidlink.pro/tv/${p.id}/${p.season}/${p.episode}?title=true&poster=true&autoplay=true&nextbutton=true` // Ryze
 };
@@ -522,6 +528,8 @@ function syncUrl() {
 /* ─── PLAYER ─── */
 function loadPlayer() {
   attemptedServers.add(state.server);
+  const inlineNext = $('next-episode-action');
+  if (inlineNext) inlineNext.hidden = true;
   const serverId = state.server;
   const loadToken = ++playerLoadToken;
   const src = serverUrlResolvers[state.server](state);
@@ -601,10 +609,13 @@ function clearPlaybackProgress() {
 window.addEventListener('message', event => {
   if (event.origin !== 'https://vidsrc.sh' || event.data?.type !== 'PLAYER_EVENT') return;
   const payload = event.data.data || {};
+  const status = String(payload.player_status || payload.status || '').toLowerCase();
+  const completed = ['completed', 'ended', 'finished', 'finish'].includes(status);
+  if (completed && state?.server === 3) revealInlineNextEpisode();
   const progress = Number(payload.player_progress);
   if (!Number.isFinite(progress) || !state || state.server !== 3) return;
   state.resumeAt = progress;
-  if (payload.player_status === 'completed') clearPlaybackProgress();
+  if (completed) clearPlaybackProgress();
   else savePlaybackProgress();
 });
 
@@ -661,7 +672,16 @@ function setupPlayerActions() {
     if (action === 'together') location.href = `../watch-together.html?type=${state.type}&id=${state.id}&s=${state.season || 1}&e=${state.episode || 1}`;
     if (action === 'report') window.open('https://github.com/LttlMario/cinema-library/issues/new?title=Problemă player&body=' + encodeURIComponent(`${state.title} (${state.id})`), '_blank', 'noopener');
     if (action === 'trailer') window.open(`https://www.themoviedb.org/${state.type}/${state.id}/videos`, '_blank', 'noopener');
+    if (action === 'next-episode') { button.hidden = true; goNextEpisode(); }
   }));
+}
+
+function revealInlineNextEpisode() {
+  const btn = $('next-episode-action');
+  const next = state?.type === 'tv' ? computeNext() : null;
+  if (!btn || !next) return;
+  btn.hidden = false;
+  btn.textContent = `▶ Următorul episod · S${next.season} E${next.episode}`;
 }
 
 /* ─── SERVERS ─── */
@@ -800,6 +820,7 @@ function updateNextBtn() {
 async function goNextEpisode() {
   const next = computeNext();
   if (!next) return;
+  $('next-episode-action').hidden = true;
   const seasonChanged = next.season !== state.season;
   state.season = next.season;
   state.episode = next.episode;
