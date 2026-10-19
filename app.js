@@ -23,10 +23,13 @@ const defaultPlayers = window.CINEMA_PLAYERS || [
 ];
 const sources = window.CINEMA_SOURCES || {};
 function sourceKey(type,id,season,episode){ return season && episode ? `${type}:${id}:s${season}e${episode}` : `${type}:${id}`; }
+function localSources(){ try { return JSON.parse(localStorage.getItem('cinema_custom_sources') || '{}'); } catch(_) { return {}; } }
 function sourceMap(type,id,season,episode){
+  const custom = localSources();
   const current = sources[sourceKey(type,id,season,episode)] || sources[`${type}:${id}`] || sources[String(id)] || {};
-  if (Array.isArray(current)) return Object.fromEntries(current.map((item,index)=>[(defaultPlayers[index]||{}).id || `server${index+1}`, item]));
-  return current;
+  const local = custom[sourceKey(type,id,season,episode)] || custom[`${type}:${id}`] || {};
+  const normalized = Array.isArray(current) ? Object.fromEntries(current.map((item,index)=>[(defaultPlayers[index]||{}).id || `server${index+1}`, item])) : current;
+  return {...normalized, ...local};
 }
 function playerStatus(type,id,player,season,episode){ const value = sourceMap(type,id,season,episode)[player.id]; return value && typeof value.url === 'string' && value.url.trim() ? 'ready' : 'empty'; }
 function safeUrl(value){ try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch (_) { return ''; } }
@@ -139,7 +142,7 @@ function playerButtons(type,id,season,episode){
 }
 function providerDocPanel(type,id){
   const tv = type === "tv";
-  return `<section class="provider-doc-panel"><div class="section-title"><div><h2>Test documentațional VoidVerse</h2><p>Introdu ID-ul TMDB pentru a genera șabloanele film/episod. Acestea sunt afișate doar ca documentație.</p></div><span>${tv ? "Serial" : "Film"}</span></div><div class="provider-doc-form"><label>TMDB ID<input id="voidverseTmdbId" inputmode="numeric" value="${esc(id)}"></label><label class="voidverse-season-field">Sezon<input id="voidverseSeason" inputmode="numeric" min="1" value="1"></label><label class="voidverse-season-field">Episod<input id="voidverseEpisode" inputmode="numeric" min="1" value="1"></label><button id="generateVoidverseUrls" class="button" type="button">Generează URL-uri</button></div><div id="voidverseOutput" class="provider-doc-output"><div><small>Film</small><code id="voidverseMovieUrl"></code><button class="outline-button copy-voidverse" data-copy-target="voidverseMovieUrl" type="button">Copiază</button></div><div><small>Episod serial</small><code id="voidverseTvUrl"></code><button class="outline-button copy-voidverse" data-copy-target="voidverseTvUrl" type="button">Copiază</button></div></div></section>`;
+  return `<section class="provider-doc-panel"><div class="section-title"><div><h2>Test documentațional VoidVerse</h2><p>Introdu ID-ul TMDB pentru a genera șabloanele film/episod. Acestea sunt afișate doar ca documentație.</p></div><span>${tv ? "Serial" : "Film"}</span></div><div class="provider-doc-form"><label>TMDB ID<input id="voidverseTmdbId" inputmode="numeric" value="${esc(id)}"></label><label class="voidverse-season-field">Sezon<input id="voidverseSeason" inputmode="numeric" min="1" value="1"></label><label class="voidverse-season-field">Episod<input id="voidverseEpisode" inputmode="numeric" min="1" value="1"></label><button id="generateVoidverseUrls" class="button" type="button">Generează URL-uri</button></div><div class="manual-player-form"><label>URL player principal<input id="manualPlayerUrl" type="url" placeholder="Lipește aici URL-ul iframe"></label><button id="activateManualPlayer" class="button" type="button">Activează Player principal</button><small>Folosește numai URL-uri HTTPS pe care ai dreptul să le încorporezi.</small></div><div id="voidverseOutput" class="provider-doc-output"><div><small>Film</small><code id="voidverseMovieUrl"></code><button class="outline-button copy-voidverse" data-copy-target="voidverseMovieUrl" type="button">Copiază</button></div><div><small>Episod serial</small><code id="voidverseTvUrl"></code><button class="outline-button copy-voidverse" data-copy-target="voidverseTvUrl" type="button">Copiază</button></div></div></section>`;
 }
 function setupProviderDocPanel(type,id){
   const input=document.querySelector("#voidverseTmdbId");
@@ -157,6 +160,16 @@ function setupProviderDocPanel(type,id){
     tvOut.textContent=builders.voidverseEpisode ? builders.voidverseEpisode(tmdbId,s,e) : "https://player.voidverse.me/embed/tv/"+encodeURIComponent(tmdbId)+"?s="+encodeURIComponent(s)+"&e="+encodeURIComponent(e);
   };
   document.querySelector("#generateVoidverseUrls")?.addEventListener("click",generate);
+  document.querySelector("#activateManualPlayer")?.addEventListener("click",()=>{
+    const raw=document.querySelector("#manualPlayerUrl")?.value.trim() || "";
+    const url=safeUrl(raw);
+    if(!url){ showNotice("Link invalid","Introdu un URL HTTPS valid pentru un iframe."); return; }
+    const key=sourceKey(type,id);
+    const stored=localSources();
+    stored[key]={label:"Player principal configurat local",url};
+    localStorage.setItem("cinema_custom_sources",JSON.stringify(stored));
+    location.href=`watch.html?id=${encodeURIComponent(id)}&type=${type}#principal`;
+  });
   document.querySelectorAll(".copy-voidverse").forEach(button=>button.addEventListener("click",async()=>{
     const value=document.querySelector("#"+button.dataset.copyTarget)?.textContent || "";
     try{ await navigator.clipboard.writeText(value); button.textContent="Copiat"; setTimeout(()=>button.textContent="Copiază",1200); }
