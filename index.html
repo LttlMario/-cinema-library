@@ -1682,9 +1682,15 @@ function goToHero(i) {
 
 function startHeroTimer() {
   clearInterval(heroTimer);
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-  heroTimer = setInterval(() => goToHero(heroIndex + 1), 8000);
+  heroTimer = null;
+  const motion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  if (document.hidden || motion?.matches) return;
+  heroTimer = setInterval(() => {
+    if (!document.hidden && !motion?.matches) goToHero(heroIndex + 1);
+  }, 8000);
 }
+document.addEventListener('visibilitychange', startHeroTimer);
+window.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change', startHeroTimer);
 
 /* ─── GENRES ─── */
 async function loadGenres() {
