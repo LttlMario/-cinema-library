@@ -788,13 +788,13 @@
 <!-- ─────────────── SEARCH RESULTS ─────────────── -->
 <section id="search-results-section">
   <div class="sr-head">
-    <div class="sr-title">Results for <b id="search-term"></b></div>
+    <div class="sr-title">Rezultate pentru <b id="search-term"></b></div>
     <div class="sr-count" id="search-count"></div>
   </div>
   <div class="filter-tabs" id="filter-tabs">
-    <button class="filter-tab active" data-filter="all">All</button>
-    <button class="filter-tab" data-filter="movie">Movies</button>
-    <button class="filter-tab" data-filter="tv">TV Shows</button>
+    <button class="filter-tab active" data-filter="all">Toate</button>
+    <button class="filter-tab" data-filter="movie">Filme</button>
+    <button class="filter-tab" data-filter="tv">Seriale</button>
   </div>
   <div class="advanced-filters" aria-label="Filtre avansate">
     <select id="genre-filter" aria-label="Filtrează după gen"><option value="">Toate genurile</option></select>
@@ -805,8 +805,8 @@
   <div id="search-spinner" class="spinner-wrap" style="display:none"><div class="spinner"></div></div>
   <div id="search-empty" class="empty" style="display:none">
     <div class="empty-icon">🎬</div>
-    <h3>No titles found</h3>
-    <p>Try a different search term or check your spelling.</p>
+    <h3>Nu am găsit titluri</h3>
+    <p>Încearcă un alt termen sau verifică scrierea.</p>
   </div>
 </section>
 
@@ -927,6 +927,7 @@ let currentServer = (() => {
 })();
 let currentFilter = 'all';
 let searchResults = [];
+let searchRequestId = 0;
 let currentModalItem = null;
 let tvDetails = {};
 let genreMap = {};
@@ -1295,7 +1296,12 @@ function libraryRead(key) {
 }
 
 function libraryWrite(key, items) {
-  localStorage.setItem(key, JSON.stringify(items.slice(0, 30)));
+  const clean = (Array.isArray(items) ? items : []).filter(item => {
+    if (!item) return false;
+    const type = mediaOf(item);
+    return item && Number.isFinite(Number(item.id)) && (type === 'movie' || type === 'tv');
+  });
+  try { localStorage.setItem(key, JSON.stringify(clean.slice(0, 30))); } catch { toast('Biblioteca locală nu a putut fi salvată.'); }
 }
 
 function libraryItem(item) {
@@ -1864,16 +1870,21 @@ function resetSearch() {
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === 'all'));
   $('genre-filter').value = '';
   $('year-filter').value = '';
+  $('search-results-section').setAttribute('aria-busy', 'false');
+  $('search-empty').querySelector('p').textContent = 'Încearcă un alt termen sau verifică scrierea.';
 }
 
 async function doSearch(q) {
+  const requestId = ++searchRequestId;
   $('search-results-section').classList.add('visible');
   $('main').style.display = 'none';
   $('hero').style.display = 'none';
   $('search-term').textContent = `"${q}"`;
   $('search-spinner').style.display = 'flex';
+  $('search-results-section').setAttribute('aria-busy', 'true');
   $('search-grid').innerHTML = '';
   $('search-empty').style.display = 'none';
+  $('search-empty').querySelector('p').textContent = 'Încearcă un alt termen sau verifică scrierea.';
   $('search-count').textContent = '';
   window.scrollTo({ top: 0 });
   document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.nav === 'home'));
@@ -1882,6 +1893,7 @@ async function doSearch(q) {
     const pages = await Promise.all(Array.from({ length: 5 }, (_, i) =>
       tmdb(`/search/multi?query=${encodeURIComponent(q)}&include_adult=false&page=${i + 1}`)
     ));
+    if (requestId !== searchRequestId) return;
     const all = pages.flatMap(page => page.results || []);
     const seen = new Set();
     searchResults = all.filter(r => {
@@ -1892,10 +1904,14 @@ async function doSearch(q) {
       return true;
     });
     $('search-spinner').style.display = 'none';
+    $('search-results-section').setAttribute('aria-busy', 'false');
     renderSearchResults();
   } catch {
+    if (requestId !== searchRequestId) return;
     $('search-spinner').style.display = 'none';
+    $('search-results-section').setAttribute('aria-busy', 'false');
     $('search-empty').style.display = 'block';
+    $('search-empty').querySelector('p').textContent = 'Căutarea nu este disponibilă momentan. Încearcă din nou.';
   }
 }
 
@@ -1911,7 +1927,7 @@ function renderSearchResults() {
     return !yearValue || releaseYear === yearValue;
   });
 
-  $('search-count').textContent = `${filtered.length} title${filtered.length !== 1 ? 's' : ''}`;
+  $('search-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'titlu' : 'titluri'}`;
   if (!filtered.length) { $('search-empty').style.display = 'block'; return; }
   $('search-empty').style.display = 'none';
   filtered.forEach(item => grid.appendChild(makeCard(item)));
@@ -2206,3 +2222,4 @@ $('clear-filters').addEventListener('click', () => {
 <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
+
