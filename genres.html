@@ -48,7 +48,8 @@
         else status.textContent='Genurile nu sunt disponibile momentan.'
       }
     }
-    function render(){const query=$('search').value.trim().toLocaleLowerCase('ro-RO');const list=catalogs[current].filter(g=>g.name.toLocaleLowerCase('ro-RO').includes(query));status.textContent=`${list.length} genuri disponibile pentru ${current==='movie'?'filme':'seriale'}`;grid.innerHTML=list.map(g=>`<a class="genre-card" href="catalog.html?type=${current}&genre=${g.id}"><strong>${g.name}</strong><span aria-hidden="true">›</span></a>`).join('')||'<p class="empty">Nu am găsit niciun gen pentru căutarea ta.</p>'}
+    function esc(value){return String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+    function render(){const query=$('search').value.trim().toLocaleLowerCase('ro-RO');const list=catalogs[current].filter(g=>g.name.toLocaleLowerCase('ro-RO').includes(query));status.textContent=`${list.length} genuri disponibile pentru ${current==='movie'?'filme':'seriale'}`;grid.innerHTML=list.map(g=>`<a class="genre-card" href="catalog.html?type=${current}&genre=${encodeURIComponent(g.id)}"><strong>${esc(g.name)}</strong><span aria-hidden="true">›</span></a>`).join('')||'<p class="empty">Nu am găsit niciun gen pentru căutarea ta.</p>'}
     document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{current=tab.dataset.type;document.querySelectorAll('.tab').forEach(x=>{const active=x===tab;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});render()}));$('search').addEventListener('input',render);load();
   </script>
 <script src="assets/site-shell.js"></script>
