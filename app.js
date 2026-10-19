@@ -190,8 +190,22 @@ function accountPage(){
     $('#accountPage').innerHTML=`<div class="page-heading"><span class="eyebrow">Profil local</span><h1>Lista mea</h1><p>Listele sunt salvate doar în browserul tău.</p></div><div class="account-stats"><div><b>${list.length}</b><span>De urmărit</span></div><div><b>${fav.length}</b><span>Favorite</span></div><div><b>${watched.length}</b><span>Vizionate</span></div></div><div class="account-empty"><h2>Gestionează titlurile direct din pagina lor</h2><p>Apasă „Lista de urmărit”, „Favorite” sau „Marchează ca vizionat” pe orice titlu.</p><a href="movies.html" class="button">Descoperă filme</a></div>`;
   }; render();
 }
+function setupVoidverseProgress(){
+  window.addEventListener('message', event => {
+    const data = event.data;
+    if(!data || data.source !== 'voidverse' || data.type !== 'progress') return;
+    const params = new URLSearchParams(location.search);
+    const type = params.get('type') || 'movie';
+    const id = params.get('id');
+    if(!id || !Number.isFinite(Number(data.currentTime))) return;
+    const key = `cinema_progress_${sourceKey(type,id,params.get('season'),params.get('episode'))}`;
+    localStorage.setItem(key, JSON.stringify({ title:data.title || '', currentTime:Number(data.currentTime), duration:Number(data.duration)||0, updatedAt:Date.now() }));
+  });
+}
+
 function boot(){
   injectShell();
+  setupVoidverseProgress();
   home(); catalog(document.body.dataset.catalogType); detail(); watch(); genresPage(); countriesPage();
 }
 boot();
