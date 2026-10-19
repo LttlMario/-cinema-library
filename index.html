@@ -1682,6 +1682,7 @@ function goToHero(i) {
 
 function startHeroTimer() {
   clearInterval(heroTimer);
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
   heroTimer = setInterval(() => goToHero(heroIndex + 1), 8000);
 }
 
