@@ -1,7 +1,18 @@
-// Adaugă aici numai playere/fluxuri pentru care ai drept de utilizare și embed.
-// Cheia trebuie să fie id-ul TMDB al filmului sau serialului.
+// Configurează aici doar playere iframe pentru conținut pe care ai dreptul să îl distribui.
+// Cheia este "<tip>:<id TMDB>", de exemplu "movie:27205" sau "tv:1399".
+// Poți adăuga mai multe servere; ele apar ca butoane pe pagina de vizionare.
+// URL-ul trebuie să fie HTTPS și să permită încărcarea în iframe.
 window.CINEMA_SOURCES = {
-  // Trailere oficiale YouTube folosite pentru testarea playerului.
-  '27205': { type: 'iframe', url: 'https://www.youtube.com/embed/Qwe6qXFTdgc', label: 'Trailer oficial Warner Bros.' },
-  '157336': { type: 'iframe', url: 'https://www.youtube.com/embed/4T4wxDnTYLg', label: 'Trailer oficial Paramount Movies' }
+  "movie:27205": [
+    { label: "Trailer oficial Warner Bros.", url: "https://www.youtube.com/embed/Qwe6qXFTdgc" }
+  ],
+  "movie:157336": [
+    { label: "Trailer oficial Paramount Movies", url: "https://www.youtube.com/embed/4T4wxDnTYLg" }
+  ],
+
+  // Exemplu de structură pentru un titlu nou:
+  // "tv:12345": [
+  //   { label: "Server principal", url: "https://domeniul-tau.example/embed/ID" },
+  //   { label: "Server alternativ", url: "https://alt-domeniu.example/embed/ID" }
+  // ]
 };
