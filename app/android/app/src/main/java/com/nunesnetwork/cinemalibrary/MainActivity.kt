@@ -46,9 +46,16 @@ class MainActivity : Activity() {
         // The site's Support button links here — the one pop-up we let
         // through, handed to the system browser (same as the desktop app).
         private const val SUPPORT_URL = "https://github.com/LttlMario/cinema-library"
+
+        private const val OFFLINE_PAGE = """
+            <!doctype html><html lang="ro"><meta name="viewport" content="width=device-width,initial-scale=1">
+            <style>body{margin:0;background:#0a0a0d;color:#f4f4f7;font:16px system-ui;text-align:center;padding:18vh 24px}h1{color:#e50914}p{color:#aaa;line-height:1.5}button{padding:12px 18px;border:0;border-radius:8px;background:#e50914;color:#fff;font-weight:700;font-size:16px}</style>
+            <h1>Cinema Library</h1><p>Conexiunea nu este disponibilă momentan.</p><button onclick="location.href='""" + SITE_URL + """'">Reîncearcă</button></html>
+        """.trimIndent()
     }
 
     private lateinit var webView: WebView
+    private var showingOfflinePage = false
 
     /* Fullscreen video state (onShowCustomView) */
     private var customView: View? = null
@@ -89,6 +96,21 @@ class MainActivity : Activity() {
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
 
         webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView, url: String) {
+                if (url.startsWith(SITE_ORIGIN)) showingOfflinePage = false
+            }
+
+            override fun onReceivedError(
+                view: WebView,
+                request: WebResourceRequest,
+                error: android.webkit.WebResourceError,
+            ) {
+                if (request.isForMainFrame && !showingOfflinePage) {
+                    showingOfflinePage = true
+                    view.loadDataWithBaseURL(SITE_URL, OFFLINE_PAGE, "text/html", "UTF-8", SITE_URL)
+                }
+            }
+
             // Keep the top frame pinned to the Cinema Library site: ad scripts sometimes
             // try to hijack the whole page via top.location = adURL.
             //
