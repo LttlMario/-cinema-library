@@ -28,9 +28,10 @@ jobs:
           sed -i "s|__TMDB_TOKEN__|${{ secrets.TMDB_TOKEN }}|g" index.html
           sed -i "s|__TMDB_TOKEN__|${{ secrets.TMDB_TOKEN }}|g" stream/index.html
           sed -i "s|__TMDB_TOKEN__|${{ secrets.TMDB_TOKEN }}|g" catalog.html
+          sed -i "s|__TMDB_TOKEN__|${{ secrets.TMDB_TOKEN }}|g" genres.html
 
       - name: Prepare Pages artifact
-        run: mkdir -p public && mv index.html 404.html contribute.html catalog.html about.html contact.html terms.html privacy.html sitemap.html watch-together.html manifest.webmanifest sw.js assets stream public/
+          run: mkdir -p public && mv index.html 404.html contribute.html catalog.html genres.html about.html contact.html terms.html privacy.html sitemap.html watch-together.html manifest.webmanifest sw.js assets stream public/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
