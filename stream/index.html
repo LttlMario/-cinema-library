@@ -782,7 +782,10 @@ function setupEnhancer() {
 }
 
 function setupPlayerActions() {
-  document.querySelectorAll('.player-action').forEach(button => button.addEventListener('click', () => {
+  document.querySelectorAll('.player-action').forEach(button => {
+    if (button.dataset.actionsBound === 'true') return;
+    button.dataset.actionsBound = 'true';
+    button.addEventListener('click', () => {
     const action = button.dataset.action;
     if (action === 'enhancer') {
       const panel = $('enhancer-panel');
@@ -803,7 +806,8 @@ function setupPlayerActions() {
       if (existingNext && !existingNext.disabled) existingNext.click();
       else goNextEpisode();
     }
-  }));
+    });
+  });
 }
 
 function revealInlineNextEpisode() {
