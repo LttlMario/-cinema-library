@@ -703,7 +703,7 @@ function handlePlayerFailure(serverId) {
   const next = SERVERS.find(s => !attemptedServers.has(s.id) && serverUrlResolvers[s.id]);
   if (!next) {
     const retry = $('player-retry');
-    if (retry) retry.hidden = false;
+    if (retry) { retry.hidden = false; retry.focus({ preventScroll: true }); }
     toast('Nicio sursă nu a putut încărca acest titlu. Încearcă din nou.');
     attemptedServers.clear();
     return;
