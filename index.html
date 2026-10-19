@@ -756,6 +756,15 @@
       -webkit-text-stroke-color: var(--accent);
       text-shadow: 0 0 40px rgba(229,9,20,0.35);
     }
+    .tv-pointer-cursor {
+      position: fixed; left: 0; top: 0; width: 34px; height: 34px;
+      display: none; place-items: center; pointer-events: none; z-index: 10001;
+      color: #fff; font: 900 27px/1 Arial, sans-serif;
+      text-shadow: 0 2px 5px #000, 0 0 4px #000;
+      filter: drop-shadow(0 0 5px rgba(229,9,20,.95));
+    }
+    .tv-pointer-cursor::before { content: '➤'; transform: rotate(-18deg); }
+    html.tv-mode.keynav .tv-pointer-cursor { display: grid; }
 
     /* ─────────────── RESPONSIVE ─────────────── */
     @media (max-width: 860px) {
@@ -2138,8 +2147,19 @@ $('clear-filters').addEventListener('click', () => {
   let cur = null;        // element the engine currently points at
   let lastCard = null;   // card that opened the modal (refocused on close)
   const mem = new Map(); // section key -> last item index
+  const tvCursor = document.createElement('div');
+  tvCursor.className = 'tv-pointer-cursor';
+  tvCursor.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(tvCursor);
 
   const vis = el => !!(el && el.getClientRects().length);
+
+  function placeTvCursor(el) {
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    tvCursor.style.left = `${Math.max(6, Math.min(window.innerWidth - 40, rect.left - 20))}px`;
+    tvCursor.style.top = `${Math.max(6, Math.min(window.innerHeight - 40, rect.top - 20))}px`;
+  }
 
   function setFocus(el, scroll = true) {
     if (!el) return;
@@ -2150,6 +2170,7 @@ $('clear-filters').addEventListener('click', () => {
     }
     cur = el;
     el.classList.add('kf');
+    placeTvCursor(el);
     const rp = el.closest('.rank-card');
     if (rp) rp.classList.add('kf-parent');
     // Real focus only where native behaviour needs it (selects open their
@@ -2158,6 +2179,7 @@ $('clear-filters').addEventListener('click', () => {
     if (el.tagName === 'SELECT' || el.tagName === 'BUTTON') el.focus({ preventScroll: true });
     else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
     if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    requestAnimationFrame(() => placeTvCursor(el));
   }
 
   function getSections() {
@@ -2325,6 +2347,9 @@ $('clear-filters').addEventListener('click', () => {
       active = false;
       document.documentElement.classList.remove('keynav');
     }, { passive: true }));
+  window.addEventListener('scroll', () => {
+    if (active && cur) placeTvCursor(cur);
+  }, { passive: true });
 })();
 </script>
 
