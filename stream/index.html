@@ -564,8 +564,8 @@ const SERVERS = [
 /* Single source used by Rioma. */
 const serverUrlResolvers = {
   3: (p) => p.type === 'movie'
-    ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave${subtitleParam(p, 'sub')}${resumeParam(p)}`
-    : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&prioritize=true&lastserver=wave${subtitleParam(p, 'sub')}${resumeParam(p)}`
+    ? `https://cinesrc.st/embed/movie/${p.id}?controls=false&autoplay=true&prioritize=true&lastserver=wave${subtitleParam(p, 'sub')}${resumeParam(p)}`
+    : `https://cinesrc.st/embed/tv/${p.id}?controls=false&s=${p.season}&e=${p.episode}&autoplay=true&prioritize=true&lastserver=wave${subtitleParam(p, 'sub')}${resumeParam(p)}`
 };
 function subtitleParam(p, key) {
   if (!p.subtitle || p.subtitle === 'auto') return '';
