@@ -28,21 +28,21 @@
     try {
       if (window.tizen && tizen.application && typeof tizen.application.launchAppControl === 'function' && typeof tizen.ApplicationControl === 'function') {
         var operation = 'http://tizen.org/appcontrol/operation/view';
-        var control = new tizen.ApplicationControl(operation, url, null, null);
+        var control = new tizen.ApplicationControl(operation, url, null, null, null, 'SINGLE');
         var fallback = function () {
           try {
-            var implicitControl = new tizen.ApplicationControl(operation, url, null, null);
+            var implicitControl = new tizen.ApplicationControl(operation, url, null, null, null, 'SINGLE');
             tizen.application.launchAppControl(implicitControl, null, function () {
-              window.setTimeout(exitApplication, 350);
+              window.setTimeout(hideApplication, 350);
             }, function () { try { window.open(url, '_blank'); } catch (_) {} }, null);
           } catch (_) { try { window.open(url, '_blank'); } catch (_) {} }
         };
         console.log('[CinemaLibrary] requesting browser for ' + url);
-        tizen.application.launchAppControl(control, 'org.tizen.browser', function () {
-          console.log('[CinemaLibrary] explicit browser launch succeeded');
-          window.setTimeout(exitApplication, 350);
+        tizen.application.launchAppControl(control, null, function () {
+          console.log('[CinemaLibrary] implicit browser launch succeeded');
+          window.setTimeout(hideApplication, 350);
         }, function (error) {
-          console.log('[CinemaLibrary] explicit browser launch failed: ' + (error && error.message ? error.message : 'unknown'));
+          console.log('[CinemaLibrary] implicit browser launch failed: ' + (error && error.message ? error.message : 'unknown'));
           fallback();
         }, null);
         return;
@@ -65,6 +65,14 @@
   function exitApplication() {
     var app = currentApplication();
     if (app && typeof app.exit === 'function') app.exit();
+  }
+
+  function hideApplication() {
+    try {
+      var app = currentApplication();
+      if (app && typeof app.hide === 'function') { app.hide(); return; }
+    } catch (_) {}
+    exitApplication();
   }
 
   function goBack() {
