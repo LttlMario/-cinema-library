@@ -206,7 +206,6 @@
     .custom-controls button:disabled,.custom-controls select:disabled { opacity:.5; cursor:default; }
     #own-play { width:32px; min-width:32px; padding-inline:0; font-size:13px; }
     #own-restart,#own-back10,#own-forward10,#own-captions,#own-fullscreen { min-width:32px; padding-inline:5px; }
-    .custom-controls .control-action { min-width:32px; padding-inline:6px; font-size:11px; }
     #own-timeline,#own-volume { appearance:none; -webkit-appearance:none; height:4px; border:0; border-radius:999px; background:#555861; cursor:pointer; }
     #own-timeline { order:-2; flex:0 0 100%; width:100%; }
     #own-time { color:#eee; font-size:10px; white-space:nowrap; }
@@ -425,10 +424,6 @@
           <button id="own-restart" type="button" aria-label="Pornește de la început">↺</button>
           <button id="own-back10" type="button" aria-label="Înapoi 10 secunde">↶10</button>
           <button id="own-forward10" type="button" aria-label="Înainte 10 secunde">10↷</button>
-          <button class="player-action control-action" id="own-watched" data-action="watched" type="button" aria-label="Marchează văzut" title="Marchează văzut">✓</button>
-          <button class="player-action control-action" id="own-later" data-action="later" type="button" aria-label="Mai târziu" title="Mai târziu">＋</button>
-          <button class="player-action control-action" id="own-favorite" data-action="favorite" type="button" aria-label="Favorite" title="Favorite">♡</button>
-          <button class="player-action control-action" id="own-report" data-action="report" type="button" aria-label="Raportează" title="Raportează">⚑</button>
           <input id="own-timeline" type="range" min="0" max="100" value="0" step="0.1" aria-label="Poziție redare">
           <span id="own-time">0:00 / 0:00</span>
           <select id="own-quality" aria-label="Claritate video"><option value="auto">Auto</option><option value="1080p">1080p</option><option value="720p">720p</option><option value="480p">480p</option></select>
@@ -1504,7 +1499,7 @@ $('back-btn').addEventListener('click', () => {
     }
     // Rioma controls are laid out in rows. Keep the timeline as its own
     // focus row so ArrowDown from it reaches every control underneath it.
-    const playerTop = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-watched'), $('own-later'), $('own-favorite'), $('own-report'), $('own-quality'), $('own-picture')].filter(vis);
+    const playerTop = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture')].filter(vis);
     const playerTimeline = [$('own-timeline')].filter(vis);
     const playerBottom = [$('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
     if (playerTop.length) secs.push({ items: playerTop });
