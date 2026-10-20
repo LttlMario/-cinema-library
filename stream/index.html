@@ -707,10 +707,11 @@ function updateSubtitleSettings() {
   try { localStorage.setItem('cinemalibrary_subtitle_settings', JSON.stringify({ bg, size, color })); } catch {}
   updateSubtitleDisplay();
 }
-function updateSubtitleDisplay() {
+function updateSubtitleDisplay(currentTime = ownCurrentTime) {
   const layer = $('subtitle-layer'), text = $('subtitle-text');
   if (!layer || !text) return;
-  const cue = subtitleCues.find(item => ownCurrentTime + subtitleOffset >= item.start && ownCurrentTime + subtitleOffset <= item.end);
+  const time = Number(currentTime) || 0;
+  const cue = subtitleCues.find(item => time + subtitleOffset >= item.start && time + subtitleOffset <= item.end);
   text.textContent = cue?.text || '';
   layer.hidden = !cue;
 }
@@ -949,11 +950,20 @@ function clearPlaybackProgress() {
   } catch {}
 }
 
+function normalizePlayerPayload(message) {
+  let payload = message?.data ?? message?.detail ?? message ?? {};
+  if (typeof payload === 'string') {
+    try { payload = JSON.parse(payload); } catch { return {}; }
+  }
+  if (payload && typeof payload.data === 'object') payload = payload.data;
+  return payload || {};
+}
+
 window.addEventListener('message', event => {
   const allowedOrigin = event.origin === 'https://cinesrc.st' || event.origin.endsWith('.cinesrc.st');
   if (!allowedOrigin) return;
   const message = event.data || {};
-  const payload = message.data || message.detail || message;
+  const payload = normalizePlayerPayload(message);
   const eventType = String(message.type || message.event || payload.event || '').toLowerCase();
   if (eventType === 'cinesrc:ready' || eventType === 'ready') {
     ownPaused = true;
