@@ -6,8 +6,6 @@
   <title>Cinema Library — Vizionare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://vidsrc.sh" crossorigin>
-  <link rel="dns-prefetch" href="//vidsrc.sh">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="../assets/icons/cinema-library-favicon.png" type="image/png">
   <link rel="manifest" href="../manifest.webmanifest">
@@ -196,6 +194,23 @@
     .player-wrap:-moz-full-screen .player-fullscreen-action { opacity:.92; pointer-events:auto; transform:none; }
     .player-fullscreen-action:hover { opacity:1; background:var(--accent); border-color:var(--accent-h); transform:translateY(-1px); }
     .player-fullscreen-action:focus-visible { opacity:1; outline:3px solid var(--accent-h); outline-offset:3px; }
+    .custom-controls { position:absolute; left:0; right:0; bottom:0; z-index:8; display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:12px 10px 10px; background:linear-gradient(transparent,rgba(0,0,0,.94) 46%); transition:opacity .2s,transform .2s; }
+    .custom-controls.controls-idle { opacity:0; transform:translateY(110%); pointer-events:none; }
+    .player-wrap.controls-idle .custom-controls { opacity:0; transform:translateY(110%); pointer-events:none; }
+    #player-fullscreen { display:none !important; }
+    .custom-controls button,.custom-controls select { min-height:29px; padding:5px 7px; border:1px solid rgba(255,255,255,.2); border-radius:6px; background:rgba(20,20,26,.94); color:#fff; font:600 10px system-ui,sans-serif; cursor:pointer; }
+    .custom-controls button:hover,.custom-controls select:hover { border-color:var(--accent-h); }
+    .custom-controls button:disabled,.custom-controls select:disabled { opacity:.5; cursor:default; }
+    #own-play { width:32px; min-width:32px; padding-inline:0; font-size:13px; }
+    #own-restart,#own-back10,#own-forward10,#own-captions,#own-fullscreen { min-width:32px; padding-inline:5px; }
+    #own-timeline { order:-2; flex:0 0 100%; width:100%; accent-color:var(--accent); cursor:pointer; }
+    #own-time { color:#eee; font-size:10px; white-space:nowrap; }
+    #own-volume { width:72px; accent-color:var(--accent); cursor:pointer; }
+    #own-quality { min-width:58px; }
+    #own-picture { min-width:72px; }
+    .custom-controls .control-spacer { margin-left:auto; }
+    .player-wrap:fullscreen .custom-controls { padding:16px 18px 18px; gap:8px; }
+    .player-wrap:fullscreen .custom-controls button,.player-wrap:fullscreen .custom-controls select { min-height:34px; padding:7px 10px; font-size:12px; }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
     .player-details img { width:130px; aspect-ratio:2/3; object-fit:cover; border-radius:8px; }
     .player-details h1 { margin:0 0 .5rem; font-size:1.35rem; color:var(--accent-h); }
@@ -279,6 +294,8 @@
     .server-switch-btn:hover, .server-switch-btn[aria-expanded="true"] { color: var(--text); background: var(--card-h); border-color: rgba(255,255,255,.2); }
     .server-switch-btn .switch-chevron { transition: transform .18s; }
     .server-switch-btn[aria-expanded="true"] .switch-chevron { transform: rotate(180deg); }
+    /* The site now uses one Cinema Player only. */
+    #server-switch-btn, #server-grid, #servers-panel > .panel-title { display:none !important; }
     .server-card {
       display: flex; align-items: center; gap: 0.75rem; text-align: left;
       padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: var(--radius);
@@ -329,10 +346,6 @@
     html.keynav .server-card.kf { border-color: var(--accent); background: var(--card-h); }
     html.keynav .back-btn.kf { outline-offset: 1px; border-radius: 50%; }
     html.keynav .player-wrap.kf { outline: 3px solid var(--accent); outline-offset: 3px; }
-    .tv-pointer-cursor { position: fixed; left: 0; top: 0; width: 34px; height: 34px; display: none; place-items: center; pointer-events: none; z-index: 10001; color: #fff; font: 900 27px/1 Arial, sans-serif; text-shadow: 0 2px 5px #000, 0 0 4px #000; filter: drop-shadow(0 0 5px rgba(229,9,20,.95)); transition: left .06s ease-out, top .06s ease-out; will-change: left, top; }
-    .tv-pointer-cursor::before { content: '◀'; transform: none; }
-    html.tv-mode.free-pointer .tv-pointer-cursor { display: grid; }
-    html.tv-mode.free-pointer .tv-pointer-hover { outline: 4px solid var(--accent) !important; outline-offset: 4px; box-shadow: 0 0 0 8px rgba(229,9,20,.22), 0 14px 34px rgba(0,0,0,.65) !important; }
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 1200px) {
@@ -366,6 +379,21 @@
       <div class="player-wrap" id="player-wrap">
         <div class="player-loading" id="player-loading" role="status" aria-live="polite" aria-label="Se încarcă playerul"><div class="spinner" aria-hidden="true"></div></div>
         <iframe id="player" title="Player video Cinema Library" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
+        <div class="custom-controls" id="custom-controls" aria-label="Controale Rioma">
+          <button id="own-play" type="button" aria-label="Redare">▶</button>
+          <button id="own-restart" type="button" aria-label="Pornește de la început">↺</button>
+          <button id="own-back10" type="button" aria-label="Înapoi 10 secunde">↶10</button>
+          <button id="own-forward10" type="button" aria-label="Înainte 10 secunde">10↷</button>
+          <input id="own-timeline" type="range" min="0" max="100" value="0" step="0.1" aria-label="Poziție redare">
+          <span id="own-time">0:00 / 0:00</span>
+          <select id="own-quality" aria-label="Claritate video"><option value="auto">Auto</option><option value="1080p">1080p</option><option value="720p">720p</option><option value="480p">480p</option></select>
+          <select id="own-picture" aria-label="Profil imagine"><option value="standard">Standard</option><option value="cinema">Cinema</option><option value="bright">Luminos</option><option value="contrast">Contrast</option><option value="vivid">Viu</option><option value="natural">Natural</option><option value="night">Noapte</option></select>
+          <span class="control-spacer"></span>
+          <button id="own-mute" type="button" aria-label="Dezactivează sunetul">🔊</button>
+          <input id="own-volume" type="range" min="0" max="1" value="1" step="0.05" aria-label="Volum">
+          <button id="own-captions" type="button" aria-label="Subtitrări">CC</button>
+          <button id="own-fullscreen" type="button" aria-label="Fullscreen">⛶</button>
+        </div>
         <button class="player-fullscreen-action" id="player-fullscreen" type="button" title="Full screen pentru player" aria-label="Full screen pentru player">⛶</button>
         <div class="resume-prompt" id="resume-prompt" hidden>
           <div class="resume-card">
@@ -405,7 +433,7 @@
           <div class="enhancer-control"><label for="enhancer-warmth">Temperatură <output id="enhancer-warmth-value">0°</output></label><input id="enhancer-warmth" type="range" min="-20" max="20" value="0"></div>
           <div class="enhancer-control"><label for="enhancer-clarity">Claritate <output id="enhancer-clarity-value">0</output></label><input id="enhancer-clarity" type="range" min="0" max="18" value="0"></div>
         </div>
-        <p class="enhancer-note">Claritatea folosește contrast local simulat, iar temperatura ajustează tonurile reci/calde. Reglajele schimbă aspectul pe acest dispozitiv, nu rezoluția sau bitrate-ul sursei Xayah.</p>
+        <p class="enhancer-note">Claritatea folosește contrast local simulat, iar temperatura ajustează tonurile reci/calde. Reglajele schimbă aspectul pe acest dispozitiv, nu rezoluția sau bitrate-ul sursei.</p>
       </section>
       <section class="player-details" id="player-details" hidden></section>
     </div>
@@ -437,11 +465,6 @@
         </select>
         <p class="subtitle-help">Preferința este memorată pe acest dispozitiv. Unele surse aplică limba direct, iar altele permit alegerea din player.</p>
       </div>
-      <div class="panel-title">Player</div>
-      <button class="server-switch-btn" id="server-switch-btn" type="button" aria-expanded="false" aria-controls="server-grid">
-        <span>Schimbă playerul</span><span class="switch-chevron" aria-hidden="true">⌄</span>
-      </button>
-      <div class="server-grid" id="server-grid"></div>
     </div>
   </main>
 
@@ -490,27 +513,18 @@ const ENHANCER_PRESETS = {
 };
 
 const SERVERS = [
-  { id: 1, name: 'Rakan',   note: 'Sursă alternativă.' },
-  { id: 2, name: 'Bard',    note: 'Alternativă pentru titluri recente.' },
-  { id: 3, name: 'Xayah',   note: 'Player principal recomandat.' },
-  { id: 4, name: 'Ekko',    note: 'Sursă alternativă; calitatea variază.' },
-  { id: 5, name: 'Naafiri', note: 'Sursă alternativă; calitatea variază.' },
-  { id: 6, name: 'Ryze',    note: 'Sursă alternativă.' },
+  { id: 3, name: 'Rioma', note: 'Playerul unic Cinema Library.' },
 ];
 
-/* Exact streaming source resolvers (ported from the original player) */
+/* Single source used by Rioma. */
 const serverUrlResolvers = {
-  //1: (p) => p.type === 'movie' ? `https://vidsrc.cc/v2/embed/movie/${p.id}?autoPlay=false` : `https://vidsrc.cc/v2/embed/tv/${p.id}/${p.season}/${p.episode}?autoPlay=false`, // Rakan (vidsrc.cc)
-  1: (p) => p.type === 'movie' ? `https://vixsrc.to/movie/${p.id}?autoPlay=true&lang=en` : `https://vixsrc.to/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true&lang=en`,                                   // Rakan
-  2: (p) => p.type === 'movie' ? `https://moviesapi.to/movie/${p.id}` : `https://moviesapi.to/tv/${p.id}-${p.season}-${p.episode}`,                                                                            // Bard
-  3: (p) => p.type === 'movie' ? `https://vidsrc.sh/embed/movie?tmdb=${p.id}&autoplay=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}` : `https://vidsrc.sh/embed/tv?tmdb=${p.id}&season=${p.season}&episode=${p.episode}&autoplay=1&autonext=1${subtitleParam(p, 'ds_lang')}${resumeParam(p)}`, // Xayah
-  4: (p) => p.type === 'movie' ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave` : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&prioritize=true&lastserver=wave`, // Ekko
-  5: (p) => p.type === 'movie' ? `https://vidfast.vc/movie/${p.id}?autoPlay=true${subtitleParam(p, 'sub')}` : `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}?autoPlay=true${subtitleParam(p, 'sub')}`,                         // Naafiri
-  6: (p) => p.type === 'movie' ? `https://vidlink.pro/movie/${p.id}?title=true&poster=true&autoplay=true` : `https://vidlink.pro/tv/${p.id}/${p.season}/${p.episode}?title=true&poster=true&autoplay=true&nextbutton=true` // Ryze
+  3: (p) => p.type === 'movie'
+    ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave${resumeParam(p)}`
+    : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&prioritize=true&lastserver=wave${resumeParam(p)}`
 };
 function subtitleParam(p, key) {
   if (!p.subtitle || p.subtitle === 'auto') return '';
-  // Xayah/VidSrc accepts up to three language codes and uses the first
+  // The source accepts up to three language codes and uses the first
   // available track. Romanian subtitles are published with several codes;
   // keep all of them as a priority list so a broken `ro` track does not win
   // over a valid `rum`/`ron` track.
@@ -564,6 +578,93 @@ const attemptedServers = new Set();
 const PROGRESS_KEY = 'cinemalibrary_progress';
 let playerLoadToken = 0;
 let autoNextEpisodeToken = 0;
+let ownPaused = true;
+let ownMuted = false;
+let ownCurrentTime = 0;
+let ownDuration = 0;
+const OWN_QUALITY_KEY = 'cinemalibrary_player_quality_v1';
+const OWN_PICTURE_KEY = 'cinemalibrary_player_picture_v1';
+
+function ownCommand(command, args = []) {
+  $('player')?.contentWindow?.postMessage({ type: 'cinesrc:command', command, args }, 'https://cinesrc.st');
+}
+function ownFormatTime(value) {
+  const seconds = Math.max(0, Number(value) || 0);
+  return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+}
+function updateOwnControls() {
+  const play = $('own-play');
+  const mute = $('own-mute');
+  const timeline = $('own-timeline');
+  const time = $('own-time');
+  if (!play || !mute || !timeline || !time) return;
+  play.textContent = ownPaused ? '▶' : '❚❚';
+  play.setAttribute('aria-label', ownPaused ? 'Redare' : 'Pauză');
+  mute.textContent = ownMuted ? '🔇' : '🔊';
+  timeline.value = ownDuration ? Math.min(100, (ownCurrentTime / ownDuration) * 100) : 0;
+  time.textContent = `${ownFormatTime(ownCurrentTime)} / ${ownFormatTime(ownDuration)}`;
+}
+function seekOwn(seconds) {
+  const next = Math.max(0, Math.min(ownDuration || Infinity, ownCurrentTime + seconds));
+  ownCommand('seek', [next]);
+  showOwnControls();
+}
+function toggleOwnPlayback() {
+  ownCommand(ownPaused ? 'play' : 'pause');
+  showOwnControls();
+}
+function showOwnControls() {
+  const controls = $('custom-controls');
+  const wrap = $('player-wrap');
+  controls?.classList.remove('controls-idle');
+  wrap?.classList.remove('controls-idle');
+  clearTimeout(window.__cinemaOwnControlsTimer);
+  window.__cinemaOwnControlsTimer = setTimeout(() => {
+    if (!ownPaused) controls?.classList.add('controls-idle');
+  }, 2600);
+}
+function applyOwnPicture(value) {
+  const profiles = {
+    standard: 'none', cinema: 'brightness(1.04) contrast(1.12) saturate(1.08)',
+    bright: 'brightness(1.16) contrast(1.04) saturate(1.02)', contrast: 'brightness(1.02) contrast(1.2) saturate(1.05)',
+    vivid: 'brightness(1.05) contrast(1.08) saturate(1.22)', natural: 'brightness(1.03) contrast(1.03) saturate(.96)',
+    night: 'brightness(.82) contrast(1.08) saturate(.88) sepia(.08)'
+  };
+  const profile = profiles[value] ? value : 'standard';
+  $('player').style.filter = profiles[profile];
+  $('own-picture').value = profile;
+  localStorage.setItem(OWN_PICTURE_KEY, profile);
+}
+function setupOwnControls() {
+  $('own-play').addEventListener('click', toggleOwnPlayback);
+  $('own-restart').addEventListener('click', () => ownCommand('seek', [0]));
+  $('own-back10').addEventListener('click', () => seekOwn(-10));
+  $('own-forward10').addEventListener('click', () => seekOwn(10));
+  $('own-mute').addEventListener('click', () => ownCommand('setMuted', [!ownMuted]));
+  $('own-volume').addEventListener('input', event => ownCommand('setVolume', [Number(event.target.value)]));
+  $('own-timeline').addEventListener('input', event => {
+    if (ownDuration) ownCommand('seek', [(Number(event.target.value) / 100) * ownDuration]);
+  });
+  $('own-quality').addEventListener('change', event => {
+    const quality = event.target.value;
+    localStorage.setItem(OWN_QUALITY_KEY, quality);
+    ownCommand('setQuality', [quality]);
+    toast(quality === 'auto' ? 'Claritatea este setată pe Auto.' : `S-a solicitat claritatea ${quality}, dacă este disponibilă.`);
+  });
+  $('own-picture').addEventListener('change', event => applyOwnPicture(event.target.value));
+  $('own-captions').addEventListener('click', () => {
+    $('servers-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    $('subtitle-select').focus();
+  });
+  $('own-fullscreen').addEventListener('click', togglePlayerFullscreen);
+  try {
+    const quality = localStorage.getItem(OWN_QUALITY_KEY);
+    if (quality) $('own-quality').value = quality;
+    const picture = localStorage.getItem(OWN_PICTURE_KEY);
+    applyOwnPicture(picture || 'standard');
+  } catch { applyOwnPicture('standard'); }
+  updateOwnControls();
+}
 
 /* ─── PARAMS ─── */
 function readParams() {
@@ -578,7 +679,7 @@ function readParams() {
     server = (saved && serverUrlResolvers[saved]) ? saved : 3;
   }
 
-  const out = { type, id, server };
+  const out = { type, id, server: 3 };
   out.subtitle = ['ro', 'en', 'auto'].includes(p.get('sub'))
     ? p.get('sub')
     : (localStorage.getItem(SUBTITLE_KEY) || 'ro');
@@ -622,13 +723,13 @@ function loadPlayer() {
   // (allow="fullscreen; ...") is re-applied for the new origin.
   // Navigating an existing iframe via contentWindow.location drops the
   // fullscreen delegation for cross-origin servers, which is why fullscreen
-  // only worked for the first/Rakan server before.
+  // only worked for the first source before.
   const old = $('player');
   const frame = document.createElement('iframe');
   frame.id = 'player';
   frame.allowFullscreen = true;
   // Use "*" so the fullscreen permission cascades to nested cross-origin
-  // iframes (Xayah / Ekko load the real player inside a second iframe).
+  // The Cinema Player may load the media layer inside a nested iframe.
   frame.setAttribute('allow', 'autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *');
   frame.referrerPolicy = 'origin';
   let settled = false;
@@ -648,7 +749,14 @@ function loadPlayer() {
   // Use replace so iframe loads don't pollute the browser history stack
   frame.src = src;
   old.replaceWith(frame);
+  ownPaused = true;
+  ownMuted = false;
+  ownCurrentTime = 0;
+  ownDuration = 0;
+  updateOwnControls();
   applyEnhancer();
+  applyOwnPicture(localStorage.getItem(OWN_PICTURE_KEY) || 'standard');
+  showOwnControls();
 
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
@@ -701,15 +809,40 @@ function clearPlaybackProgress() {
 }
 
 window.addEventListener('message', event => {
-  const allowedOrigin = event.origin === 'https://vidsrc.sh' || event.origin.endsWith('.vidsrc.sh');
+  const allowedOrigin = event.origin === 'https://cinesrc.st' || event.origin.endsWith('.cinesrc.st');
   if (!allowedOrigin) return;
   const message = event.data || {};
   const payload = message.data || message.detail || message;
   const eventType = String(message.type || message.event || payload.event || '').toLowerCase();
+  if (eventType === 'cinesrc:ready' || eventType === 'ready') {
+    ownPaused = true;
+    updateOwnControls();
+    showOwnControls();
+  } else if (eventType === 'cinesrc:play' || eventType === 'play') {
+    ownPaused = false;
+    updateOwnControls();
+    showOwnControls();
+  } else if (eventType === 'cinesrc:pause' || eventType === 'pause') {
+    ownPaused = true;
+    updateOwnControls();
+    showOwnControls();
+  } else if (eventType === 'cinesrc:timeupdate' || eventType === 'timeupdate') {
+    ownCurrentTime = Number(payload.currentTime ?? payload.player_progress) || 0;
+    ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
+    updateOwnControls();
+  } else if (eventType === 'cinesrc:loadedmetadata' || eventType === 'loadedmetadata') {
+    ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
+    updateOwnControls();
+  } else if (eventType === 'cinesrc:volumechange' || eventType === 'volumechange') {
+    ownMuted = Boolean(payload.muted);
+    const volume = Number(payload.volume);
+    if (Number.isFinite(volume)) $('own-volume').value = volume;
+    updateOwnControls();
+  }
   const status = String(payload.player_status || payload.status || eventType).toLowerCase();
-  const completed = ['completed', 'ended', 'finished', 'finish'].includes(status);
-  const progress = Number(payload.player_progress);
-  const duration = Number(payload.player_duration ?? payload.duration ?? payload.duration_seconds);
+  const completed = ['completed', 'ended', 'finished', 'finish', 'cinesrc:ended', 'cinesrc:completed'].includes(status) || eventType === 'cinesrc:ended' || eventType === 'cinesrc:completed';
+  const progress = Number(payload.player_progress ?? payload.currentTime);
+  const duration = Number(payload.player_duration ?? payload.duration ?? payload.duration_seconds ?? ownDuration);
   const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
   const nearEnd = remaining !== null && remaining <= 60 && remaining >= 0;
   const percentageEnd = !Number.isFinite(duration) && progress >= 99;
@@ -743,7 +876,7 @@ function handlePlayerFailure(serverId) {
 
 function updateTitleBar() {
   const base = state.title || (state.type === 'movie' ? 'Film' : 'Serial');
-  const playerName = SERVERS.find(server => server.id === state.server)?.name || 'Xayah';
+  const playerName = 'Rioma';
   $('now-title').innerHTML = state.type === 'tv'
     ? `${esc(base)} <span class="ep-tag">· S${state.season} E${state.episode}</span><span class="player-tag">· ${esc(playerName)}</span>`
     : `${esc(base)} <span class="player-tag">· ${esc(playerName)}</span>`;
@@ -791,12 +924,11 @@ function setupPlayerFullscreenAutoHide() {
   let timer = 0;
   const show = () => {
     wrap.classList.remove('controls-idle');
+    showOwnControls();
     clearTimeout(timer);
     timer = window.setTimeout(() => wrap.classList.add('controls-idle'), 2600);
   };
-  // The Samsung TV virtual pointer moves with remote key events. Those
-  // events do not always produce pointer/mouse events while the player is
-  // fullscreen, so expose the same show routine to the pointer layer.
+  // Keep the controls visible while the normal D-pad selection is active.
   window.__cinemaShowPlayerControls = show;
   ['pointermove', 'mousemove', 'mousedown', 'touchstart', 'keydown'].forEach(eventName => {
     document.addEventListener(eventName, show, { passive: eventName !== 'keydown' });
@@ -807,18 +939,6 @@ function setupPlayerFullscreenAutoHide() {
     document.addEventListener(eventName, show, { passive: true });
   });
   show();
-}
-
-function openPlayerInTvBrowser() {
-  const next = new URL(window.location.href);
-  next.searchParams.set('external', '1');
-  const url = next.href;
-  if (window.parent !== window) {
-      window.parent.postMessage({ type: 'open-in-tv-browser', url }, '*');
-    toast('Se deschide playerul în Internet…');
-    return;
-  }
-  window.open(url, '_blank', 'noopener');
 }
 
 function applyEnhancer() {
@@ -901,39 +1021,11 @@ function revealInlineNextEpisode() {
 
 /* ─── SERVERS ─── */
 function buildServers() {
-  const grid = $('server-grid');
-  grid.innerHTML = '';
-  grid.classList.toggle('expanded', grid.dataset.expanded === 'true');
-  SERVERS.forEach(s => {
-    const el = document.createElement('button');
-    el.className = 'server-card' + (s.id === state.server ? ' selected' : '');
-    el.dataset.id = s.id;
-    el.dataset.status = s.id === state.server ? 'loading' : '';
-    el.innerHTML = `
-      <span class="s-dot"></span>
-      <span class="s-meta">
-        <span class="s-name">${esc(s.name)}</span>
-        <span class="s-note">${esc(s.note)}</span>
-      </span><span class="server-status">${s.id === state.server ? 'Se încarcă…' : 'Pregătit'}</span>`;
-    el.addEventListener('click', () => {
-      if (s.id === state.server) return;
-      state.server = s.id;
-      localStorage.setItem(STORAGE_KEY, String(s.id));
-      attemptedServers.clear();
-      document.querySelectorAll('.server-card').forEach(c => c.classList.toggle('selected', c === el));
-      loadPlayer();
-      toast(`Se redă prin ${s.name}`);
-    });
-    grid.appendChild(el);
-  });
+  // The Cinema Player is the only player exposed by this page.
 }
 
 function updateServerStatus(id, status) {
-  const card = document.querySelector(`.server-card[data-id="${id}"]`);
-  if (!card) return;
-  card.dataset.status = status;
-  const label = card.querySelector('.server-status');
-  if (label) label.textContent = status === 'online' ? 'Disponibil' : status === 'failed' ? 'Indisponibil' : 'Se încarcă…';
+  // Kept as a compatibility hook for the single Cinema Player source.
 }
 
 /* ─── TV SEASON / EPISODE ─── */
@@ -1081,12 +1173,6 @@ function showFatal() {
 }
 
 function startPlayback() {
-  const params = new URLSearchParams(window.location.search);
-  const tvAppMode = params.get('tv') === '1' || sessionStorage.getItem('cinemalibrary_tv_mode') === '1';
-  if (tvAppMode && params.get('external') !== '1') {
-    openPlayerInTvBrowser();
-    return;
-  }
   const prompt = $('resume-prompt');
   if (!state.resumeAt || state.resumeAt <= 15) {
     loadPlayer();
@@ -1150,15 +1236,6 @@ $('back-btn').addEventListener('click', () => {
     loadPlayer();
     toast(state.subtitle === 'ro' ? 'Subtitrarea română este activă' : 'Preferința de subtitrare a fost salvată');
   });
-  const serverSwitch = $('server-switch-btn');
-  const serverGrid = $('server-grid');
-  serverSwitch.addEventListener('click', () => {
-    const expanded = serverGrid.dataset.expanded === 'true';
-    serverGrid.dataset.expanded = String(!expanded);
-    serverGrid.classList.toggle('expanded', !expanded);
-    serverSwitch.setAttribute('aria-expanded', String(!expanded));
-    serverSwitch.querySelector('span').textContent = expanded ? 'Schimbă playerul' : 'Ascunde celelalte playere';
-  });
   buildServers();
 
   // Start the preferred player immediately. TMDB metadata loads in parallel,
@@ -1168,6 +1245,7 @@ $('back-btn').addEventListener('click', () => {
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
   $('player-fullscreen').addEventListener('click', togglePlayerFullscreen);
+  setupOwnControls();
   setupPlayerFullscreenAutoHide();
   setupPlayerActions();
 })();
@@ -1204,25 +1282,21 @@ $('back-btn').addEventListener('click', () => {
       const next = $('nextep-btn');
       if (vis(next)) secs.push({ items: [next] });
     }
-    const playerControls = [
-      $('player-fullscreen'), $('resume-continue'), $('resume-restart'),
-      $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')
-    ].filter(vis);
+    const playerControls = [...document.querySelectorAll('#player-wrap button, #player-wrap input, #player-wrap select'),
+      $('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')
+    ].filter((el, index, list) => vis(el) && list.indexOf(el) === index);
     if (playerControls.length) secs.push({ items: playerControls });
     const enhancerInputs = ['enhancer-brightness', 'enhancer-contrast', 'enhancer-saturation', 'enhancer-warmth', 'enhancer-clarity']
       .map(id => $(id)).filter(vis);
     if (enhancerInputs.length) secs.push({ items: enhancerInputs });
     const subtitle = $('subtitle-select');
     if (vis(subtitle)) secs.push({ items: [subtitle] });
-    const serverSwitch = $('server-switch-btn');
-    if (vis(serverSwitch)) secs.push({ items: [serverSwitch] });
     // The player itself is a focus stop: selecting it just scrolls the video
     // to the middle of the screen (handy on a TV). It's a cross-origin iframe,
     // so we never send real focus into it — setFocus only adds the highlight
     // and scrolls; Enter on it is a harmless no-op click on the wrapper.
     const player = $('player-wrap');
     if (vis(player)) secs.push({ items: [player] });
-    document.querySelectorAll('.server-card').forEach(c => { if (vis(c)) secs.push({ items: [c] }); });
     return secs;
   }
 
@@ -1298,53 +1372,10 @@ $('back-btn').addEventListener('click', () => {
 })();
 </script>
 
-<script>
-/* Samsung TV virtual mouse for the player page. */
-(function () {
-  var tvParam = new URLSearchParams(window.location.search).get('tv') === '1';
-  var tvSession = false;
-  try { tvSession = sessionStorage.getItem('cinemalibrary_tv_mode') === '1'; } catch (_) {}
-  if (!tvParam && !tvSession) return;
-  document.documentElement.classList.add('tv-mode');
-  var cursor = document.createElement('div');
-  cursor.className = 'tv-pointer-cursor';
-  cursor.setAttribute('aria-hidden', 'true');
-  // Keep the cursor inside the fullscreen container so it remains visible
-  // when #player-wrap becomes the document's fullscreen element.
-  var cursorHost = document.getElementById('player-wrap') || document.body;
-  cursorHost.appendChild(cursor);
-  var x = Math.round(window.innerWidth / 2), y = Math.round(window.innerHeight / 2), target = null, speed = 26;
-  function updateTarget() {
-    if (target) target.classList.remove('tv-pointer-hover');
-    var hit = document.elementFromPoint(x + 16, y + 16);
-    target = hit && hit.closest ? hit.closest('button, a, input, select, [role="button"], .server-card, .player-wrap') : null;
-    if (target) target.classList.add('tv-pointer-hover');
-  }
-  document.addEventListener('keydown', function (event) {
-    var key = event.key || '', dx = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0, dy = key === 'ArrowUp' ? -1 : key === 'ArrowDown' ? 1 : 0;
-    if (dx || dy) {
-      event.preventDefault(); event.stopImmediatePropagation();
-      document.documentElement.classList.add('free-pointer');
-      x = Math.max(4, Math.min(innerWidth - 38, x + dx * speed));
-      y = Math.max(4, Math.min(innerHeight - 38, y + dy * speed));
-      cursor.style.left = x + 'px'; cursor.style.top = y + 'px'; updateTarget();
-      if (typeof window.__cinemaShowPlayerControls === 'function') window.__cinemaShowPlayerControls();
-      return;
-    }
-    if ((key === 'Enter' || event.keyCode === 13) && target) { event.preventDefault(); event.stopImmediatePropagation(); target.click(); }
-  }, true);
-  document.addEventListener('mousemove', function () {
-    document.documentElement.classList.remove('free-pointer');
-    if (target) { target.classList.remove('tv-pointer-hover'); target = null; }
-  }, { passive: true });
-  cursor.style.left = x + 'px'; cursor.style.top = y + 'px';
-  updateTarget();
-})();
-</script>
-
 <!-- Cloudflare Web Analytics -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token": "4d43b4f9d71648af99c61048fe24cdd6"}'></script>
 <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
+
