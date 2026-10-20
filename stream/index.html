@@ -6,7 +6,7 @@
   <title>Cinema Library — Vizionare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cinesrc.st">
+  <link rel="preconnect" href="https://cinesrc.st" crossorigin>
   <link rel="dns-prefetch" href="//cinesrc.st">
   <link rel="preconnect" href="https://api.themoviedb.org">
   <link rel="dns-prefetch" href="//api.themoviedb.org">
@@ -1138,7 +1138,11 @@ function loadPlayer() {
   }, 12000);
   syncUrl();
   savePlaybackProgress();
-  autoLoadRomanianSubtitle(loadToken);
+  // Give the external provider a head start on slower TV browsers before the
+  // optional automatic subtitle lookup starts competing for connections.
+  window.setTimeout(() => {
+    if (loadToken === playerLoadToken) autoLoadRomanianSubtitle(loadToken);
+  }, 2500);
   if (state.title) updateTitleBar();
 }
 
