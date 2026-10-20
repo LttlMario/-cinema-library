@@ -2059,7 +2059,14 @@ $('modal-watch-btn').addEventListener('click', () => {
     toast('Titlul a fost trimis către laboratorul playerului.');
     return;
   }
-  libraryUpsert(LIBRARY_KEYS.progress, currentModalItem, { season: s, episode: e });
+  const existingProgress = libraryRead(LIBRARY_KEYS.progress).find(entry => libraryKey(entry) === libraryKey(currentModalItem));
+  const sameEpisode = mediaOf(currentModalItem) === 'movie'
+    || (existingProgress?.season === s && existingProgress?.episode === e);
+  libraryUpsert(LIBRARY_KEYS.progress, currentModalItem, {
+    season: s,
+    episode: e,
+    progressSeconds: sameEpisode ? Number(existingProgress?.progressSeconds) || 0 : 0
+  });
   const destination = new URL(playerUrl(currentModalItem, s, e), document.baseURI);
   destination.searchParams.set('embedded', '1');
   if (new URLSearchParams(window.location.search).get('app') === 'tv') {
