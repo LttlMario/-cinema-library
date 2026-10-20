@@ -80,6 +80,9 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
+    html.tv-mode, html.tv-mode body { scroll-behavior: auto !important; }
+    html.tv-mode body::after { display: none; }
+    html.tv-mode .hero-bg { animation: none !important; transform: none !important; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
@@ -2366,7 +2369,7 @@ $('clear-filters').addEventListener('click', () => {
     // TV keyboard doesn't pop up just from navigating past the search box.
     if (el.tagName === 'SELECT' || el.tagName === 'BUTTON' || el.tagName === 'INPUT') el.focus({ preventScroll: true });
     else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
-    if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    if (scroll) el.scrollIntoView({ behavior: document.documentElement.classList.contains('tv-mode') ? 'auto' : 'smooth', block: 'center', inline: 'center' });
   }
 
   function getSections() {
