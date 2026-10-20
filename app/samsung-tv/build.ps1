@@ -24,9 +24,10 @@ if (Test-Path -LiteralPath $dist) {
 }
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 New-Item -ItemType Directory -Path $packageSource -Force | Out-Null
-foreach ($file in @('config.xml', 'index.html', 'main.js', 'icon.png')) {
+foreach ($file in @('config.xml', 'index.html', 'providers.json', 'icon.png')) {
   Copy-Item -LiteralPath (Join-Path $project $file) -Destination $packageSource
 }
+Copy-Item -LiteralPath (Join-Path $project 'assets') -Destination $packageSource -Recurse
 Push-Location $packageSource
 try {
   # Keep the output outside the project so a previous WGT cannot be packaged
@@ -42,3 +43,4 @@ try {
 } finally {
   Pop-Location
 }
+
