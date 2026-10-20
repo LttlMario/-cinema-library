@@ -308,7 +308,8 @@
     }
     .player-loading.hide { opacity: 0; }
     .resume-prompt {
-      position: absolute; inset: 0; z-index: 5; display: grid; place-items: center;
+      display: none !important;
+      position: absolute; inset: 0; z-index: 5; place-items: center;
       padding: 1rem; background: rgba(0,0,0,.72); backdrop-filter: blur(5px);
     }
     .resume-prompt[hidden] { display: none; }
@@ -1142,37 +1143,13 @@ function loadPlayer() {
 }
 
 function hasResumeAvailable() {
-  return Number(state?.resumeAt) > 10;
+  return false;
 }
 
 function prepareResumeChoice() {
-  const prompt = $('resume-prompt');
-  if (!prompt || !hasResumeAvailable() || resumePromptShown) return;
-  resumePromptShown = true;
-  resumeDecision = null;
-  ownPaused = true;
-  stopWatchCheckTimer();
-  stopSubtitleFallbackClock();
-  prompt.hidden = false;
-  $('resume-prompt-text').textContent = `Ai ajuns aproximativ la minutul ${Math.floor(state.resumeAt / 60)}. Continui de unde ai rămas sau începi de la început?`;
-  const focusPrompt = () => document.dispatchEvent(new CustomEvent('rioma:focus-resume'));
-  focusPrompt();
-  window.setTimeout(focusPrompt, 0);
-  window.setTimeout(focusPrompt, 180);
-  $('resume-continue').onclick = () => {
-    resumeDecision = 'continue';
-    prompt.hidden = true;
-    applyResumeDecision();
-    togglePlayerFullscreen();
-  };
-  $('resume-restart').onclick = () => {
-    resumeDecision = 'restart';
-    state.resumeAt = 0;
-    clearPlaybackProgress();
-    prompt.hidden = true;
-    applyResumeDecision();
-    togglePlayerFullscreen();
-  };
+  // Resume prompts are intentionally disabled. Progress is still saved for
+  // the library history, but playback starts without an interruption.
+  return;
 }
 
 function applyResumeDecision() {
