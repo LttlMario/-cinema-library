@@ -20,3 +20,15 @@
 (function(){const wrap=document.querySelector('.cinema-shell-header .search-wrap'),toggle=wrap?.querySelector('.search-toggle'),input=wrap?.querySelector('input');if(!wrap||!toggle||!input)return;toggle.addEventListener('click',event=>{event.stopPropagation();const open=wrap.classList.toggle('search-open');if(open)input.focus()});input.addEventListener('keydown',event=>{if(event.key==='Escape'){wrap.classList.remove('search-open');input.blur()}});document.addEventListener('click',event=>{if(!event.target.closest('.search-wrap'))wrap.classList.remove('search-open')})})();
 
 (function(){const buttons=[...document.querySelectorAll('[data-shell-menu]')];if(!buttons.length)return;buttons.forEach(button=>{const menu=document.getElementById('shell-'+button.dataset.shellMenu);button.setAttribute('aria-expanded','false');if(menu)button.setAttribute('aria-controls',menu.id);button.addEventListener('click',()=>button.setAttribute('aria-expanded',String(menu?.classList.contains('open'))))});document.addEventListener('click',event=>{if(!event.target.closest('.nav-dropdown'))buttons.forEach(button=>button.setAttribute('aria-expanded','false'))})})();
+
+/* Keep navigation inside the project when GitHub Pages is opened without
+   the trailing slash, and when the site is opened from a local file. */
+(function(){
+  const path=location.pathname, match=path.match(/^(.*\/cinema-library)(?:\/|$)/i);
+  const base=match ? `${location.origin}${match[1]}/` : new URL('./', location.href).href;
+  document.querySelectorAll('.cinema-shell-header a[href],.site-footer a[href]').forEach(link=>{
+    const href=link.getAttribute('href');
+    if(!href||/^(?:[a-z]+:|\/\/|#)/i.test(href)) return;
+    link.href=new URL(href,base).href;
+  });
+})();
