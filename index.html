@@ -682,14 +682,16 @@
       flex-shrink: 0; padding: 0.85rem 2rem 1.2rem;
       border-top: 1px solid var(--line); background: var(--bg-elev);
     }
-    .modal-actions { display: grid; grid-template-columns: 1fr auto auto; gap: 0.7rem; }
+    .modal-actions { display:flex; flex-wrap:wrap; align-items:center; gap:0.7rem; }
     .official-link { grid-column: 1 / -1; justify-self: start; font-size: 0.78rem; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
     .official-link:hover { color: var(--text); }
-    .modal-watch-btn { width: 100%; padding: 0.95rem; font-size: 1.02rem; }
+    .modal-watch-btn { flex:1 1 180px; width:auto; padding: 0.95rem; font-size: 1.02rem; }
     .modal-favorite-btn { padding: 0.95rem 1rem; white-space: nowrap; }
     .modal-favorite-btn.active { color: #ffd166; border-color: rgba(255,209,102,.55); background: rgba(255,209,102,.1); }
     .modal-later-btn { padding: 0.95rem 1rem; white-space: nowrap; }
     .modal-later-btn.active { color: #8ec5ff; border-color: rgba(142,197,255,.55); background: rgba(142,197,255,.1); }
+    .modal-watched-btn,.modal-report-btn { padding: 0.95rem 1rem; white-space: nowrap; }
+    .modal-watched-btn.active { color:#7ee2a6; border-color:rgba(74,209,126,.55); background:rgba(74,209,126,.1); }
 
     /* ─────────────── TOAST ─────────────── */
     #toast {
@@ -877,6 +879,8 @@
         </button>
         <button class="btn modal-favorite-btn" id="modal-favorite-btn" type="button" aria-pressed="false">♡ Favorite</button>
         <button class="btn modal-later-btn" id="modal-later-btn" type="button" aria-pressed="false">＋ Mai târziu</button>
+        <button class="btn modal-watched-btn" id="modal-watched-btn" type="button" aria-pressed="false">● Marchează văzut</button>
+        <button class="btn modal-report-btn" id="modal-report-btn" type="button">⚑ Raportează</button>
         <a class="official-link" id="official-link" href="#" target="_blank" rel="noopener noreferrer">Verifică opțiunile oficiale pe TMDB ↗</a>
       </div>
     </div>
@@ -1895,6 +1899,23 @@ $('modal-later-btn').addEventListener('click', () => {
   renderLibraryRows();
 });
 
+$('modal-watched-btn').addEventListener('click', () => {
+  if (!currentModalItem) return;
+  libraryUpsert(LIBRARY_KEYS.history, currentModalItem);
+  localStorage.removeItem(LIBRARY_KEYS.progress);
+  $('modal-watched-btn').classList.add('active');
+  $('modal-watched-btn').setAttribute('aria-pressed', 'true');
+  toast('Titlul a fost marcat ca văzut.');
+  renderLibraryRows();
+});
+
+$('modal-report-btn').addEventListener('click', () => {
+  if (!currentModalItem) return;
+  const type = mediaOf(currentModalItem);
+  const title = currentModalItem.title || currentModalItem.name || 'Titlu necunoscut';
+  window.open(`https://github.com/LttlMario/cinema-library/issues/new?title=Problemă%20catalog&body=${encodeURIComponent(`${title} (${type}:${currentModalItem.id})`)}`, '_blank', 'noopener');
+});
+
 $('modal-close').addEventListener('click', closeModal);
 $('modal-backdrop').addEventListener('click', e => { if (e.target === $('modal-backdrop')) closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
@@ -2145,7 +2166,7 @@ $('clear-filters').addEventListener('click', () => {
       const s = [{ key: null, items: [$('modal-close')] }];
       if ($('tv-selectors').style.display !== 'none')
         s.push({ key: null, items: [$('season-select'), $('episode-select')] });
-      s.push({ key: null, items: [$('modal-watch-btn'), $('modal-favorite-btn'), $('modal-later-btn'), $('official-link')].filter(vis) });
+      s.push({ key: null, items: [$('modal-watch-btn'), $('modal-watched-btn'), $('modal-later-btn'), $('modal-favorite-btn'), $('modal-report-btn'), $('official-link')].filter(vis) });
       return s;
     }
     if (genreMenu && genreMenu.classList.contains('open'))
