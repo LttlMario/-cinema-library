@@ -2268,13 +2268,24 @@ $('clear-filters').addEventListener('click', () => {
 /* ─── INIT ─── */
 (async function init() {
   renderLibraryRows();
-  loadPersonalizedRow();
+  const isTvMode = document.documentElement.classList.contains('tv-mode');
+  if (!isTvMode) loadPersonalizedRow();
   await Promise.all([loadGenres(), loadHero(), loadTop10()]);
   populateAdvancedFilters();
-  for (const cfg of CATEGORY_ROWS) loadRow(cfg);
+  const initialRows = isTvMode ? CATEGORY_ROWS.slice(0, 3) : CATEGORY_ROWS;
+  for (const cfg of initialRows) loadRow(cfg);
+  if (isTvMode) {
+    const deferred = () => {
+      loadPersonalizedRow();
+      CATEGORY_ROWS.slice(3).forEach(cfg => loadRow(cfg));
+      FRANCHISE_ROWS.forEach(cfg => loadFranchiseRow(cfg));
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(deferred, { timeout: 2500 });
+    else setTimeout(deferred, 1200);
+  }
   // Load franchise rows after the core homepage starts rendering, so the
   // curated chronology enriches the page without delaying the first paint.
-  for (const cfg of FRANCHISE_ROWS) loadFranchiseRow(cfg);
+  if (!isTvMode) for (const cfg of FRANCHISE_ROWS) loadFranchiseRow(cfg);
 })();
 </script>
 
