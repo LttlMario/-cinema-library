@@ -1808,6 +1808,15 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
     const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
     if (['Escape', 'Backspace', 'BrowserBack', 'GoBack', 'Back'].includes(k)) {
+      const subtitlePanel = $('subtitle-panel');
+      if (subtitlePanel && !subtitlePanel.hidden) {
+        e.preventDefault();
+        subtitlePanel.hidden = true;
+        showOwnControls();
+        const captions = $('own-captions');
+        if (captions && vis(captions)) setFocus(captions, false);
+        return;
+      }
       e.preventDefault();
       navigateBackFromPlayer();
       return;
