@@ -200,6 +200,7 @@
     #player { pointer-events:none; }
     .custom-controls { min-height:0; background:#000; }
     .custom-controls.controls-idle,.player-wrap.controls-idle .custom-controls { opacity:1; transform:none; pointer-events:auto; }
+    .custom-controls.tv-hidden { opacity:0; transform:translateY(100%); pointer-events:none; }
     #player-fullscreen { display:none !important; }
     .custom-controls button,.custom-controls select { min-height:29px; padding:5px 7px; border:1px solid rgba(255,255,255,.2); border-radius:6px; background:rgba(20,20,26,.94); color:#fff; font:600 10px system-ui,sans-serif; cursor:pointer; }
     .custom-controls button:hover,.custom-controls select:hover { border-color:var(--accent-h); }
@@ -675,6 +676,7 @@ function showOwnControls() {
   const controls = $('custom-controls');
   const wrap = $('player-wrap');
   controls?.classList.remove('controls-idle');
+  controls?.classList.remove('tv-hidden');
   wrap?.classList.remove('controls-idle');
   clearTimeout(window.__cinemaOwnControlsTimer);
   window.__cinemaOwnControlsTimer = setTimeout(() => {
@@ -1517,14 +1519,12 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
       const next = $('nextep-btn');
       if (vis(next)) secs.push({ items: [next] });
     }
-    // Rioma controls are laid out in rows. Keep the timeline as its own
-    // focus row so ArrowDown from it reaches every control underneath it.
-    const playerTop = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture')].filter(vis);
+    // The timeline is the first visual row; every player button is underneath
+    // it. This makes Down enter the buttons and Up return to the timeline.
     const playerTimeline = [$('own-timeline')].filter(vis);
-    const playerBottom = [$('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
-    if (playerTop.length) secs.push({ items: playerTop });
+    const playerButtons = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture'), $('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
     if (playerTimeline.length) secs.push({ items: playerTimeline });
-    if (playerBottom.length) secs.push({ items: playerBottom });
+    if (playerButtons.length) secs.push({ items: playerButtons });
     const playerExtras = [$('next-episode-action'), $('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
     if (playerExtras.length) secs.push({ items: playerExtras });
     const enhancerInputs = ['enhancer-brightness', 'enhancer-contrast', 'enhancer-saturation', 'enhancer-warmth', 'enhancer-clarity']
@@ -1607,6 +1607,21 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
       }
       e.preventDefault();
       cur.click();
+      return;
+    }
+
+    if (cur === $('own-timeline') && (k === 'ArrowLeft' || k === 'ArrowRight')) {
+      e.preventDefault();
+      seekOwn(k === 'ArrowLeft' ? -10 : 10);
+      return;
+    }
+    if (cur === $('own-timeline') && k === 'ArrowUp') {
+      e.preventDefault();
+      $('custom-controls')?.classList.add('tv-hidden');
+      if (cur) cur.classList.remove('kf');
+      cur = null;
+      active = false;
+      document.documentElement.classList.remove('keynav');
       return;
     }
 
