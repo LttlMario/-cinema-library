@@ -750,7 +750,13 @@ function seekOwn(seconds) {
   showOwnControls();
 }
 function toggleOwnPlayback() {
-  ownCommand(ownPaused ? 'play' : 'pause');
+  const shouldPause = !ownPaused;
+  ownPaused = shouldPause;
+  ownCommand(shouldPause ? 'pause' : 'play');
+  if (shouldPause) stopSubtitleFallbackClock();
+  else if (!providerTimeSignals) startSubtitleFallbackClock(playerLoadToken);
+  updateOwnControls();
+  updateSubtitleDisplay(ownCurrentTime);
   showOwnControls();
 }
 function showOwnControls() {
@@ -1127,6 +1133,17 @@ function loadPlayer() {
       loader.setAttribute('aria-hidden', 'true');
     }
   }, 2500);
+  // Some TV WebViews play the cross-origin iframe without forwarding its
+  // play event. After a short grace period, treat the autoplay gesture as
+  // active so local controls and subtitles keep advancing.
+  window.setTimeout(() => {
+    if (loadToken === playerLoadToken && ownPaused && !providerTimeSignals) {
+      ownPaused = false;
+      startSubtitleFallbackClock(loadToken);
+      updateOwnControls();
+      updateSubtitleDisplay(ownCurrentTime);
+    }
+  }, 900);
 
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
