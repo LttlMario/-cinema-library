@@ -801,6 +801,7 @@ function updateSubtitleSettings() {
 function updateSubtitleDisplay(currentTime = ownCurrentTime) {
   const layer = $('subtitle-layer'), text = $('subtitle-text');
   if (!layer || !text) return;
+  if (ownPaused) { text.textContent = ''; layer.hidden = true; return; }
   const time = Number(currentTime) || 0;
   const cue = subtitleCues.find(item => time + subtitleOffset >= item.start && time + subtitleOffset <= item.end);
   text.textContent = cue?.text || '';
@@ -1181,6 +1182,16 @@ window.addEventListener('message', event => {
     ownPaused = true;
     updateOwnControls();
     showOwnControls();
+    // Samsung WebView may block autoplay on the newly-created cross-origin
+    // iframe. Retry only in TV mode; the popup Redă action is the user's
+    // gesture that should start playback, while the resume prompt can still
+    // pause it again once metadata and duration arrive.
+    if (document.body.classList.contains('tv-mode')) {
+      const readyToken = playerLoadToken;
+      [0, 250, 800, 1600].forEach(delay => window.setTimeout(() => {
+        if (readyToken === playerLoadToken && ownPaused) ownCommand('play');
+      }, delay));
+    }
   } else if (eventType === 'cinesrc:play' || eventType === 'play') {
     ownPaused = false;
     if (!providerTimeSignals) startSubtitleFallbackClock(playerLoadToken);
@@ -1213,6 +1224,10 @@ window.addEventListener('message', event => {
   const completed = ['completed', 'ended', 'finished', 'finish', 'cinesrc:ended', 'cinesrc:completed'].includes(status) || eventType === 'cinesrc:ended' || eventType === 'cinesrc:completed';
   const progress = Number(payload.player_progress ?? payload.currentTime);
   const duration = Number(payload.player_duration ?? payload.duration ?? payload.duration_seconds ?? ownDuration);
+  if (Number.isFinite(duration) && duration > 0 && duration !== ownDuration) {
+    ownDuration = duration;
+    updateOwnControls();
+  }
   const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
   const nearEnd = remaining !== null && remaining <= 60 && remaining >= 0;
   const recommendationNearEnd = remaining !== null && remaining <= 30 && remaining >= 0;
