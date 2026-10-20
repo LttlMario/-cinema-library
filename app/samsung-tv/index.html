@@ -1,25 +1,21 @@
-<!doctype html>
-<html lang="ro">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link rel="preconnect" href="https://lttlmario.github.io">
-  <link rel="dns-prefetch" href="//lttlmario.github.io">
-  <link rel="preconnect" href="https://cinesrc.st">
-  <link rel="dns-prefetch" href="//cinesrc.st">
-  <title>Cinema Library</title>
-  <style>
-    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#08080b}#app-frame{display:block;width:100%;height:100%;border:0;background:#08080b}.app-status{position:fixed;inset:0;display:grid;place-items:center;background:#08080b;color:#a0a0ad;font:600 22px system-ui;z-index:2}.app-status[hidden]{display:none}.app-status button{margin-top:18px;padding:12px 18px;border:1px solid #e50914;border-radius:8px;background:#e50914;color:#fff;font:inherit;cursor:pointer}
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="referrer" content="no-referrer" />
+  <title>TFlix - Smart TV Streaming</title>
+  <!-- Every cold start hits both hosts for the home screen (API call, then
+       poster images) — preconnecting overlaps their DNS/TLS handshakes with
+       app boot instead of paying for them serially once the first fetch
+       actually fires, which matters more on TV network stacks than desktop. -->
+  <link rel="preconnect" href="https://api.themoviedb.org" />
+  <link rel="preconnect" href="https://image.tmdb.org" crossorigin />
+  <script type="module" crossorigin src="./assets/index.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index.css">
 </head>
 <body>
-  <div class="app-status" id="app-loading" role="status">Se încarcă TFlix…</div>
-  <script>
-    // Load TFlix as the top-level TV page. The previous iframe wrapper added
-    // an extra browser layer and slowed down cold starts on Samsung TVs.
-    window.location.replace('https://lttlmario.github.io/cinema-library/tflix/?app=tv&v=20261020-tflix-clean-json-v1');
-  </script>
+  <div id="app"></div>
 </body>
 </html>
-
 
