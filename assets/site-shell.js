@@ -16,7 +16,7 @@
     series: [['Toate serialele', 'catalog.html?type=tv'], ['Seriale recente', 'catalog.html?type=tv&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=tv&sort=top']],
     top: [['Top filme', 'catalog.html?mode=top&type=movie'], ['Top seriale', 'catalog.html?mode=top&type=tv']]
   };
-  const nav = [['Acasă', 'index.html', 'home'], ['Genuri', 'genres.html', 'genres'], ['Filme', 'movies'], ['Seriale', 'series'], ['Vezi împreună', 'watch-together.html', 'together'], ['Top IMDb', 'top']];
+  const nav = [['Acasă', 'index.html', 'home'], ['Genuri', 'genres.html', 'genres'], ['Filme', '', 'movies'], ['Seriale', '', 'series'], ['Vezi împreună', 'watch-together.html', 'together'], ['Top IMDb', '', 'top']];
   document.documentElement.classList.add('cinema-shell-page');
   document.body.classList.add('cinema-shell-page');
   const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css'); document.head.append(css);
