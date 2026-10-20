@@ -965,28 +965,38 @@ const CATEGORY_ROWS = [
   { title: 'Se difuzează astăzi',        endpoint: '/tv/airing_today', media: 'tv',    anchor: 'airing' },
 ];
 
-// Curated universe rows. The order is intentional: it follows the story's
-// recommended chronology, not the release date returned by TMDB.
+// Every collection below is an official TMDB collection. This prevents
+// unrelated titles from being mixed into a universe row. TV-only universes
+// use an explicit list of shows that share the same canon.
 const FRANCHISE_ROWS = [
-  {
-    title: 'Marvel / Avengers — ordinea cronologică',
-    subtitle: 'Filme și seriale în ordinea poveștii',
-    items: [
-      ['movie', 1771], ['movie', 299537], ['movie', 1726], ['movie', 1724], ['movie', 10138],
-      ['movie', 10195], ['movie', 24428], ['movie', 68721], ['movie', 76338], ['movie', 100402],
-      ['movie', 118340], ['movie', 283995], ['movie', 99861], ['movie', 102899], ['movie', 271110],
-      ['movie', 284052], ['movie', 315635], ['movie', 284053], ['movie', 284054], ['movie', 299536],
-      ['movie', 363088], ['movie', 299534], ['tv', 85271], ['tv', 88396], ['tv', 84958], ['movie', 634649]
-    ]
-  },
-  {
-    title: 'The Walking Dead Universe — ordinea cronologică',
-    subtitle: 'Serialele care fac parte din aceeași poveste',
-    items: [
-      ['tv', 62286], ['tv', 1402], ['tv', 94305], ['tv', 130392],
-      ['tv', 206586], ['tv', 194764], ['tv', 211684]
-    ]
-  }
+  { title: 'Marvel Cinematic Universe — ordinea cronologică', subtitle: 'Filme și seriale din același univers', items: [
+    ['movie',1771],['movie',299537],['movie',1726],['movie',1724],['movie',10138],['movie',10195],['movie',24428],['movie',68721],['movie',76338],['movie',100402],['movie',118340],['movie',283995],['movie',99861],['movie',102899],['movie',271110],['movie',284052],['movie',315635],['movie',284053],['movie',284054],['movie',299536],['movie',363088],['movie',299534],['tv',85271],['tv',88396],['tv',84958],['movie',634649]
+  ] },
+  { title: 'The Walking Dead Universe — ordinea cronologică', subtitle: 'Serialele care fac parte din aceeași poveste', items: [['tv',62286],['tv',1402],['tv',94305],['tv',130392],['tv',206586],['tv',194764],['tv',211684]] },
+  { title: 'Harry Potter și Wizarding World', subtitle: 'Colecția oficială și seria Fantastic Beasts', collections: [1241], items: [['movie',259316],['movie',338952],['movie',338953]] },
+  { title: 'Middle-earth — The Lord of the Rings', subtitle: 'The Hobbit și The Lord of the Rings', collections: [119,121] },
+  { title: 'Star Wars Universe', subtitle: 'Filme și seriale din galaxia Star Wars', items: [['movie',11],['movie',1891],['movie',1892],['movie',1893],['movie',140607],['movie',181808],['movie',181812],['movie',181813],['movie',181809],['movie',330459],['movie',438631],['tv',4194],['tv',60554],['tv',82856],['tv',92749],['tv',114479]] },
+  { title: 'Jurassic World', subtitle: 'Toate filmele din universul Jurassic', collections: [328] },
+  { title: 'Fast & Furious', subtitle: 'Familia Fast în ordinea seriei', collections: [9485] },
+  { title: 'Mission: Impossible', subtitle: 'Filmele oficiale ale seriei', collections: [87359] },
+  { title: 'Pirates of the Caribbean', subtitle: 'Aventurile oficiale ale seriei', collections: [295] },
+  { title: 'The Hunger Games', subtitle: 'Panem și povestea oficială', collections: [131635] },
+  { title: 'Transformers', subtitle: 'Filmele din universul Transformers', collections: [8650] },
+  { title: 'The Matrix', subtitle: 'Universul Matrix', collections: [2344] },
+  { title: 'John Wick', subtitle: 'Lumea asasinilor din seria John Wick', collections: [404609] },
+  { title: 'Toy Story', subtitle: 'Colecția oficială Pixar', collections: [10194] },
+  { title: 'Shrek', subtitle: 'Universul Shrek', collections: [2150] },
+  { title: 'How to Train Your Dragon', subtitle: 'Colecția oficială', collections: [8915] },
+  { title: 'Planet of the Apes', subtitle: 'Filmele din universul Planeta Maimuțelor', collections: [173710] },
+  { title: 'Alien', subtitle: 'Universul Alien', collections: [8091] },
+  { title: 'Predator', subtitle: 'Universul Predator', collections: [399] },
+  { title: 'Resident Evil', subtitle: 'Seria oficială Resident Evil', collections: [17255] },
+  { title: 'The Terminator', subtitle: 'Universul Terminator', collections: [528] },
+  { title: 'Rocky și Creed', subtitle: 'Universul oficial Rocky', collections: [1575] },
+  { title: 'Avatar', subtitle: 'Universul Avatar', collections: [87096] },
+  { title: 'The Chronicles of Narnia', subtitle: 'Colecția oficială', collections: [420] },
+  { title: 'Twilight Saga', subtitle: 'Saga oficială Twilight', collections: [33514] },
+  { title: 'Saw', subtitle: 'Universul Saw', collections: [656] }
 ];
 
 /* ─── STATE ─── */
@@ -1497,13 +1507,25 @@ async function loadRow(cfg) {
 
 async function loadFranchiseRow(cfg) {
   const scroller = buildRow({ ...cfg, anchor: null });
-  const loaded = await Promise.allSettled(cfg.items.map(async ([media, id]) => {
+  const directItems = await Promise.allSettled((cfg.items || []).map(async ([media, id]) => {
     const data = await tmdb(`/${media}/${id}`);
     return { ...data, media_type: media };
   }));
-  const items = loaded
-    .filter(result => result.status === 'fulfilled' && result.value?.poster_path)
-    .map(result => result.value);
+  const collectionItems = await Promise.allSettled((cfg.collections || []).map(async id => {
+    const data = await tmdb(`/collection/${id}`);
+    return (data.parts || []).map(item => ({ ...item, media_type: 'movie' }));
+  }));
+  const ordered = directItems.filter(result => result.status === 'fulfilled').map(result => result.value);
+  const collectionOrdered = collectionItems.flatMap(result => result.status === 'fulfilled' ? result.value : [])
+    .sort((a, b) => (a.release_date || '9999-12-31').localeCompare(b.release_date || '9999-12-31'));
+  const seen = new Set();
+  const items = [...ordered, ...collectionOrdered]
+    .filter(item => {
+      const key = `${item.media_type}-${item.id}`;
+      if (!item.poster_path || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   if (!items.length) { scroller.closest('.row')?.remove(); return; }
   scroller.innerHTML = '';
   items.forEach(item => scroller.appendChild(makeCard(item)));
