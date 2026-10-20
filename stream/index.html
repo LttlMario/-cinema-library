@@ -319,7 +319,7 @@
     }
     .resume-card h2 { font-size: 1.15rem; margin-bottom: .45rem; }
     .resume-card p { color: var(--muted); font-size: .86rem; margin-bottom: 1rem; }
-    .resume-actions { display: flex; justify-content: center; gap: .65rem; flex-wrap: wrap; }
+    .resume-actions { display: flex; flex-direction: column; align-items: stretch; gap: .65rem; }
     .resume-actions button { padding: .65rem .9rem; border-radius: 8px; font: inherit; cursor: pointer; }
     .resume-continue { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
     .resume-restart { border: 1px solid var(--line); background: transparent; color: var(--text); }
@@ -1887,7 +1887,9 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
       [[$('subtitle-close'), $('subtitle-language')], [$('subtitle-search'), $('subtitle-clear')], [$('subtitle-results')], [$('subtitle-load')], [$('subtitle-bg')], [$('subtitle-size')], [$('subtitle-color')], [$('subtitle-file')], [$('subtitle-minus'), $('subtitle-plus')]]
         .map(group => group.filter(vis)).filter(group => group.length).forEach(items => secs.push({ items }));
     }
-    const playerExtras = [$('next-episode-action'), $('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
+    const resumeActions = [$('resume-continue'), $('resume-restart')].filter(vis);
+    if (resumeActions.length) secs.push({ items: resumeActions, axis: 'vertical' });
+    const playerExtras = [$('next-episode-action'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
     const watchCheck = [$('watch-check-continue'), $('watch-check-stop')].filter(vis);
     if (watchCheck.length) playerExtras.push(...watchCheck);
     if (playerExtras.length) secs.push({ items: playerExtras });
@@ -1947,11 +1949,17 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
     const ii = sec.items.indexOf(cur);
 
     if (dx) {
+      if (sec.axis === 'vertical') return;
       const ni = ii + dx;
       if (ni >= 0 && ni < sec.items.length) setFocus(sec.items[ni]);
       return;
     }
     if (dy) {
+      if (sec.axis === 'vertical') {
+        const ni = ii + dy;
+        if (ni >= 0 && ni < sec.items.length) setFocus(sec.items[ni]);
+        return;
+      }
       const ns = secs[si + dy];
       if (!ns) return;
       setFocus(ns.items[Math.max(0, Math.min(ii, ns.items.length - 1))]);
