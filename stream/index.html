@@ -658,8 +658,8 @@ function resumeParam(p) {
 /* ─── STATE ─── */
 const $ = id => document.getElementById(id);
 const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v2';
-const tvUserAgent = /SMART[- ]?TV|SMARTTV|Tizen[^;]*(?:TV|SMART)|HbbTV|Web0S/i.test(navigator.userAgent);
-const isTvClient = document.body.classList.contains('tv-mode') || new URLSearchParams(location.search).get('tv') === '1' || tvUserAgent;
+const tvUserAgent = '';
+const isTvClient = document.body.classList.contains('tv-mode') || new URLSearchParams(location.search).get('player-tv') === '1';
 const TMDB_CACHE_TTL = isTvClient ? 30 * 60 * 1000 : 5 * 60 * 1000;
 const TMDB_CACHE_STORE = isTvClient ? localStorage : sessionStorage;
 function readTmdbCache() {
@@ -1754,7 +1754,7 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
 (async function init() {
   const initialParams = new URLSearchParams(location.search);
   if (initialParams.get('embedded') === '1') document.body.classList.add('embedded');
-  if (initialParams.get('tv') === '1' || tvUserAgent || sessionStorage.getItem('cinemalibrary_tv_mode') === '1') document.body.classList.add('tv-mode');
+  if (initialParams.get('player-tv') === '1') document.body.classList.add('tv-mode');
   state = readParams();
   if (!state) {
     $('main').innerHTML = `
