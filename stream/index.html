@@ -709,7 +709,19 @@ function applyOwnPicture(value) {
     night: 'brightness(.82) contrast(1.08) saturate(.88) sepia(.08)'
   };
   const profile = profiles[value] ? value : 'standard';
-  $('player').style.filter = profiles[profile];
+  const player = $('player');
+  const wrap = $('player-wrap');
+  // Tizen's WebView can render a filtered cross-origin iframe as a black surface.
+  if (document.body.classList.contains('tv-mode')) {
+    player.style.filter = 'none';
+    wrap.style.filter = 'none';
+  } else if (document.body.classList.contains('embedded')) {
+    player.style.filter = 'none';
+    wrap.style.filter = profiles[profile];
+  } else {
+    player.style.filter = profiles[profile];
+    wrap.style.filter = 'none';
+  }
   $('own-picture').value = profile;
   localStorage.setItem(OWN_PICTURE_KEY, profile);
 }
@@ -1617,6 +1629,11 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
     const playerButtons = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture'), $('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
     if (playerTimeline.length) secs.push({ items: playerTimeline });
     if (playerButtons.length) secs.push({ items: playerButtons });
+    const subtitlePanel = $('subtitle-panel');
+    if (subtitlePanel && !subtitlePanel.hidden) {
+      [[$('subtitle-language')], [$('subtitle-search'), $('subtitle-clear')], [$('subtitle-results')], [$('subtitle-load')], [$('subtitle-bg')], [$('subtitle-size')], [$('subtitle-color')], [$('subtitle-file')], [$('subtitle-minus'), $('subtitle-plus')]]
+        .map(group => group.filter(vis)).filter(group => group.length).forEach(items => secs.push({ items }));
+    }
     const playerExtras = [$('next-episode-action'), $('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
     if (playerExtras.length) secs.push({ items: playerExtras });
     const enhancerInputs = ['enhancer-brightness', 'enhancer-contrast', 'enhancer-saturation', 'enhancer-warmth', 'enhancer-clarity']
@@ -1634,7 +1651,7 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
   }
 
   function focusInitial() {
-    if (document.body.classList.contains('embedded') && vis($('own-play'))) { setFocus($('own-play')); return; }
+    if (document.body.classList.contains('embedded') && vis($('own-play'))) { showOwnControls(); setFocus($('own-play')); return; }
     const sel = document.querySelector('.server-card.selected');
     if (sel && vis(sel)) { setFocus(sel); return; }
     const secs = getSections();
