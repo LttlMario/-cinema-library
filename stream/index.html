@@ -218,6 +218,24 @@
     #own-quality { min-width:58px; }
     #own-picture { min-width:72px; }
     .custom-controls .control-spacer { margin-left:auto; }
+    .player-hit-area { position:absolute; inset:0; z-index:7; cursor:default; }
+    .subtitle-layer { position:absolute; left:4%; right:4%; bottom:72px; z-index:9; display:flex; justify-content:center; pointer-events:none; text-align:center; }
+    .subtitle-layer[hidden] { display:none; }
+    .subtitle-text { max-width:min(92%, 980px); padding:.28em .55em; border-radius:.2em; background:rgba(0,0,0,.78); color:#fff; font-size:clamp(15px, 2.2vw, 27px); line-height:1.25; text-shadow:0 1px 2px #000; white-space:pre-wrap; }
+    .subtitle-panel { position:absolute; right:12px; bottom:54px; z-index:11; width:min(360px, calc(100% - 24px)); max-height:min(72%, 460px); overflow:auto; padding:1rem; border:1px solid rgba(255,255,255,.2); border-radius:12px; background:rgba(15,15,20,.97); box-shadow:0 12px 35px #000b; color:#fff; }
+    .subtitle-panel[hidden] { display:none; }
+    .subtitle-panel h3 { margin:0 0 .3rem; font-size:.95rem; }
+    .subtitle-panel p { margin:.35rem 0 .7rem; color:#b8b8c5; font-size:.72rem; line-height:1.4; }
+    .subtitle-panel select,.subtitle-panel input[type=file] { width:100%; margin:.35rem 0; }
+    .subtitle-actions { display:flex; gap:.45rem; flex-wrap:wrap; margin:.45rem 0; }
+    .subtitle-actions button { flex:1 1 120px; }
+    .subtitle-settings { display:grid; gap:.55rem; padding-top:.55rem; border-top:1px solid rgba(255,255,255,.12); }
+    .subtitle-setting { display:grid; grid-template-columns:1fr auto; gap:.3rem .55rem; align-items:center; color:#ddd; font-size:.72rem; }
+    .subtitle-setting input,.subtitle-setting select { grid-column:1 / -1; width:100%; }
+    .subtitle-setting output { color:#fff; font-variant-numeric:tabular-nums; }
+    .subtitle-panel details { margin:.6rem 0; color:#ddd; font-size:.75rem; }
+    .subtitle-panel summary { cursor:pointer; }
+    @media (max-width:560px) { .subtitle-panel { right:6px; bottom:50px; width:calc(100% - 12px); } }
     .player-wrap:fullscreen .custom-controls { padding:16px 18px 18px; gap:8px; }
     .player-wrap:fullscreen .custom-controls button,.player-wrap:fullscreen .custom-controls select { min-height:34px; padding:7px 10px; font-size:12px; }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
@@ -388,6 +406,8 @@
       <div class="player-wrap" id="player-wrap">
         <div class="player-loading" id="player-loading" role="status" aria-live="polite" aria-label="Se încarcă playerul"><div class="spinner" aria-hidden="true"></div></div>
         <iframe id="player" title="Player video Cinema Library" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
+        <div class="player-hit-area" id="player-hit-area" aria-hidden="true"></div>
+        <div class="subtitle-layer" id="subtitle-layer" hidden><span class="subtitle-text" id="subtitle-text"></span></div>
         <div class="custom-controls" id="custom-controls" aria-label="Controale Rioma">
           <button id="own-play" type="button" aria-label="Redare">▶</button>
           <button id="own-restart" type="button" aria-label="Pornește de la început">↺</button>
@@ -402,6 +422,22 @@
           <input id="own-volume" type="range" min="0" max="1" value="1" step="0.05" aria-label="Volum">
           <button id="own-captions" type="button" aria-label="Subtitrări">CC</button>
           <button id="own-fullscreen" type="button" aria-label="Fullscreen">⛶</button>
+        </div>
+        <div class="subtitle-panel" id="subtitle-panel" hidden>
+          <h3>Subtitrări</h3>
+          <p>Caută automat după TMDB, sezon, episod și limbă.</p>
+          <select id="subtitle-language" class="sel" aria-label="Limba subtitrării"><option value="ro">Română</option><option value="en">Engleză</option><option value="ro,en">Română sau engleză</option></select>
+          <div class="subtitle-actions"><button type="button" id="subtitle-search">Caută online</button><button type="button" class="secondary" id="subtitle-clear">Oprește</button></div>
+          <select id="subtitle-results" class="sel" aria-label="Rezultate subtitrări" hidden></select>
+          <button type="button" id="subtitle-load" hidden>Folosește subtitrarea selectată</button>
+          <p id="subtitle-status" role="status"></p>
+          <div class="subtitle-settings">
+            <div class="subtitle-setting"><span>Fundal</span><output id="subtitle-bg-value">78%</output><input id="subtitle-bg" type="range" min="0" max="100" value="78" step="1" aria-label="Opacitate fundal"></div>
+            <div class="subtitle-setting"><span>Mărime text</span><output id="subtitle-size-value">22px</output><input id="subtitle-size" type="range" min="12" max="36" value="22" step="1" aria-label="Mărime text"></div>
+            <div class="subtitle-setting"><span>Culoare text</span><select id="subtitle-color" class="sel" aria-label="Culoare text"><option value="#ffffff">Alb</option><option value="#ffe66d">Galben</option><option value="#8fd3ff">Albastru deschis</option></select></div>
+          </div>
+          <details><summary>Folosește un fișier local</summary><input id="subtitle-file" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip"></details>
+          <div class="subtitle-actions"><button type="button" class="secondary" id="subtitle-minus">−0,5s</button><button type="button" class="secondary" id="subtitle-plus">+0,5s</button></div>
         </div>
         <button class="player-fullscreen-action" id="player-fullscreen" type="button" title="Full screen pentru player" aria-label="Full screen pentru player">⛶</button>
         <div class="resume-prompt" id="resume-prompt" hidden>
@@ -591,6 +627,10 @@ let ownPaused = true;
 let ownMuted = false;
 let ownCurrentTime = 0;
 let ownDuration = 0;
+let subtitleCues = [];
+let subtitleOffset = 0;
+let subtitleResults = [];
+let selectedSubtitleFileId = null;
 const OWN_QUALITY_KEY = 'cinemalibrary_player_quality_v1';
 const OWN_PICTURE_KEY = 'cinemalibrary_player_picture_v1';
 
@@ -644,6 +684,63 @@ function applyOwnPicture(value) {
   $('own-picture').value = profile;
   localStorage.setItem(OWN_PICTURE_KEY, profile);
 }
+function parseSubtitles(text) {
+  const clean = String(text || '').replace(/^\uFEFF/, '').replace(/\r/g, '');
+  return clean.split(/\n{2,}/).map(block => {
+    const lines = block.trim().split('\n');
+    const index = lines.findIndex(line => line.includes('-->'));
+    if (index < 0) return null;
+    const [start, end] = lines[index].split('-->').map(part => part.trim().split(/\s+/)[0]);
+    const time = value => { const parts = value.replace(',', '.').split(':').map(Number); return parts.length === 3 ? parts[0] * 3600 + parts[1] * 60 + parts[2] : parts[0] * 60 + parts[1]; };
+    return { start: time(start), end: time(end), text: lines.slice(index + 1).join('\n').replace(/<[^>]+>/g, '') };
+  }).filter(item => item && Number.isFinite(item.start) && Number.isFinite(item.end) && item.text);
+}
+function updateSubtitleSettings() {
+  const text = $('subtitle-text');
+  const bg = Number($('subtitle-bg')?.value || 78), size = Number($('subtitle-size')?.value || 22), color = $('subtitle-color')?.value || '#fff';
+  if (text) { text.style.backgroundColor = `rgba(0,0,0,${bg / 100})`; text.style.fontSize = `${size}px`; text.style.color = color; }
+  if ($('subtitle-bg-value')) $('subtitle-bg-value').textContent = `${bg}%`;
+  if ($('subtitle-size-value')) $('subtitle-size-value').textContent = `${size}px`;
+  try { localStorage.setItem('cinemalibrary_subtitle_settings', JSON.stringify({ bg, size, color })); } catch {}
+  updateSubtitleDisplay();
+}
+function updateSubtitleDisplay() {
+  const layer = $('subtitle-layer'), text = $('subtitle-text');
+  if (!layer || !text) return;
+  const cue = subtitleCues.find(item => ownCurrentTime + subtitleOffset >= item.start && ownCurrentTime + subtitleOffset <= item.end);
+  text.textContent = cue?.text || '';
+  layer.hidden = !cue;
+}
+function clearOwnSubtitles() { subtitleCues = []; subtitleOffset = 0; $('subtitle-layer').hidden = true; if ($('subtitle-status')) $('subtitle-status').textContent = 'Subtitrarea a fost oprită.'; }
+function toggleSubtitlePanel() { const panel = $('subtitle-panel'); if (!panel) return; panel.hidden = !panel.hidden; showOwnControls(); }
+function setupSubtitlePanel() {
+  $('subtitle-search')?.addEventListener('click', async () => {
+    const status = $('subtitle-status'); if (!state) return;
+    status.textContent = 'Se caută subtitrări online…';
+    try {
+      const params = new URLSearchParams({ tmdb_id: state.id, type: state.type, season: String(state.season || 1), episode: String(state.episode || 1), languages: $('subtitle-language').value });
+      const response = await fetch(`/api/subtitles/search?${params}`); const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Căutarea online nu este disponibilă pe acest server.');
+      subtitleResults = (payload.data || []).flatMap(item => (item.attributes?.files || []).map(file => ({ id:file.file_id, language:item.attributes.language, release:item.attributes.release || 'Subtitrare', downloads:item.attributes.download_count || 0 })));
+      $('subtitle-results').innerHTML = subtitleResults.map((item, i) => `<option value="${i}">${esc(item.language.toUpperCase())} · ${esc(item.release)} · ${item.downloads} descărcări</option>`).join('');
+      $('subtitle-results').hidden = !subtitleResults.length; $('subtitle-load').hidden = !subtitleResults.length; selectedSubtitleFileId = subtitleResults[0]?.id || null;
+      status.textContent = subtitleResults.length ? `${subtitleResults.length} rezultate găsite.` : 'Nu am găsit subtitrări.';
+    } catch (error) { status.textContent = error.message || 'Căutarea online a eșuat.'; }
+  });
+  $('subtitle-results')?.addEventListener('change', event => { selectedSubtitleFileId = subtitleResults[Number(event.target.value)]?.id || null; });
+  $('subtitle-load')?.addEventListener('click', async () => {
+    if (!selectedSubtitleFileId) return; const status = $('subtitle-status'); status.textContent = 'Se descarcă subtitrarea…';
+    try { const response = await fetch(`/api/subtitles/content?file_id=${encodeURIComponent(selectedSubtitleFileId)}`); if (!response.ok) throw new Error('Descărcarea subtitrării a eșuat.'); subtitleCues = parseSubtitles(await response.text()); subtitleOffset = 0; $('subtitle-panel').hidden = true; status.textContent = `Subtitrarea a fost încărcată (${subtitleCues.length} replici).`; updateSubtitleDisplay(); }
+    catch (error) { status.textContent = error.message || 'Subtitrarea nu a putut fi încărcată.'; }
+  });
+  $('subtitle-file')?.addEventListener('change', async event => { const file = event.target.files?.[0]; if (!file) return; subtitleCues = parseSubtitles(await file.text()); subtitleOffset = 0; $('subtitle-panel').hidden = true; $('subtitle-status').textContent = `${file.name} a fost încărcat.`; updateSubtitleDisplay(); });
+  $('subtitle-clear')?.addEventListener('click', clearOwnSubtitles);
+  $('subtitle-minus')?.addEventListener('click', () => { subtitleOffset -= .5; updateSubtitleDisplay(); });
+  $('subtitle-plus')?.addEventListener('click', () => { subtitleOffset += .5; updateSubtitleDisplay(); });
+  ['subtitle-bg','subtitle-size','subtitle-color'].forEach(id => { $(id)?.addEventListener('input', updateSubtitleSettings); $(id)?.addEventListener('change', updateSubtitleSettings); });
+  try { const saved = JSON.parse(localStorage.getItem('cinemalibrary_subtitle_settings') || 'null'); if (saved) { $('subtitle-bg').value = saved.bg ?? 78; $('subtitle-size').value = saved.size ?? 22; $('subtitle-color').value = saved.color ?? '#ffffff'; } } catch {}
+  updateSubtitleSettings();
+}
 function setupOwnControls() {
   $('own-play').addEventListener('click', toggleOwnPlayback);
   $('own-restart').addEventListener('click', () => ownCommand('seek', [0]));
@@ -662,8 +759,7 @@ function setupOwnControls() {
   });
   $('own-picture').addEventListener('change', event => applyOwnPicture(event.target.value));
   $('own-captions').addEventListener('click', () => {
-    $('servers-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    $('subtitle-select').focus();
+    toggleSubtitlePanel();
   });
   $('own-fullscreen').addEventListener('click', togglePlayerFullscreen);
   try {
@@ -948,6 +1044,19 @@ function setupPlayerFullscreenAutoHide() {
     document.addEventListener(eventName, show, { passive: true });
   });
   show();
+}
+
+function setupPlayerGestures() {
+  const hit = $('player-hit-area');
+  if (!hit) return;
+  let clickTimer = 0;
+  hit.addEventListener('click', () => {
+    if (!$('subtitle-panel')?.hidden) { $('subtitle-panel').hidden = true; showOwnControls(); return; }
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(toggleOwnPlayback, 220);
+  });
+  hit.addEventListener('dblclick', () => { clearTimeout(clickTimer); togglePlayerFullscreen(); });
+  hit.addEventListener('pointermove', showOwnControls, { passive: true });
 }
 
 function applyEnhancer() {
@@ -1251,10 +1360,12 @@ $('back-btn').addEventListener('click', () => {
   // so the video does not wait for title details, posters, or episode lists.
   startPlayback();
   setupEnhancer();
+  setupSubtitlePanel();
   if (state.type === 'tv') await setupTv();
   else await setupMovie();
   $('player-fullscreen').addEventListener('click', togglePlayerFullscreen);
   setupOwnControls();
+  setupPlayerGestures();
   setupPlayerFullscreenAutoHide();
   setupPlayerActions();
 })();
