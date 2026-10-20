@@ -976,6 +976,14 @@ function loadPlayer() {
     }
   }, 1500);
 
+  // Samsung WebView may start the media but never fire iframe.onload.
+  window.setTimeout(() => {
+    if (loadToken === playerLoadToken) {
+      loader.classList.add('hide');
+      loader.setAttribute('aria-hidden', 'true');
+    }
+  }, 2500);
+
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
     loader.classList.add('hide');
