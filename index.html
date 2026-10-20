@@ -769,7 +769,7 @@
 </head>
 <body>
   <div class="rioma-overlay" id="rioma-overlay" hidden aria-label="Player Rioma fullscreen">
-    <iframe id="rioma-overlay-frame" title="Player Rioma" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
+    <iframe id="rioma-overlay-frame" title="Player Rioma" tabindex="0" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
   </div>
 
 <!-- ─────────────── NAVBAR ─────────────── -->
@@ -1979,6 +1979,7 @@ function openRiomaOverlay(url) {
   const frame = $('rioma-overlay-frame');
   if (!overlay || !frame) { window.location.href = url; return; }
   frame.src = url;
+  frame.setAttribute('tabindex', '0');
   overlay.hidden = false;
   overlay.classList.add('open');
   // This call remains inside the Redă click gesture, so browsers and TV
@@ -1987,6 +1988,10 @@ function openRiomaOverlay(url) {
   if (request) {
     try { Promise.resolve(request.call(overlay)).catch(() => {}); } catch {}
   }
+  // Transfer the TV remote focus into Rioma after Redă.
+  const focusRioma = () => { try { frame.focus(); } catch {} };
+  focusRioma();
+  window.setTimeout(focusRioma, 120);
 }
 
 ['fullscreenchange', 'webkitfullscreenchange'].forEach(eventName => {
