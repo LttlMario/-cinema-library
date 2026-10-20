@@ -768,13 +768,9 @@
     .rioma-overlay iframe { display:block; width:100%; height:100%; border:0; background:#000; }
   </style>
 <script>
-  // The Samsung wrapper appends ?tv=1 so TV-only sizing never affects the
-  // normal desktop and mobile website.
-  const tvUserAgent = /SMART[- ]?TV|SMARTTV|Tizen[^;]*(?:TV|SMART)|HbbTV|Web0S/i.test(navigator.userAgent);
-  if (new URLSearchParams(window.location.search).get('tv') === '1' || tvUserAgent) {
-    document.documentElement.classList.add('tv-mode');
-    try { sessionStorage.setItem('cinemalibrary_tv_mode', '1'); } catch (_) {}
-  }
+  // The TV wrapper uses app=tv only as a shell marker. The website itself
+  // must stay identical to the desktop web version; TV-specific behavior is
+  // enabled only inside the Rioma player overlay.
 </script>
 </head>
 <body>
@@ -2066,6 +2062,9 @@ $('modal-watch-btn').addEventListener('click', () => {
   libraryUpsert(LIBRARY_KEYS.progress, currentModalItem, { season: s, episode: e });
   const destination = new URL(playerUrl(currentModalItem, s, e), document.baseURI);
   destination.searchParams.set('embedded', '1');
+  if (new URLSearchParams(window.location.search).get('app') === 'tv') {
+    destination.searchParams.set('player-tv', '1');
+  }
   // Stop and unload the delayed YouTube trailer before opening Rioma. Keeping
   // it alive behind the overlay causes a small trailer surface to reappear on
   // Samsung TV WebViews and compete with playback.
