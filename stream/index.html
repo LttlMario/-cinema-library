@@ -1244,19 +1244,29 @@ window.addEventListener('message', event => {
   const eventType = String(message.type || message.event || payload.event || '').toLowerCase();
   if (eventType === 'cinesrc:ready' || eventType === 'ready') {
     ownPaused = true;
+    const waitingForResumeChoice = Number(state?.resumeAt) > 10 && !resumePromptShown;
+    if (waitingForResumeChoice) ownCommand('pause');
     updateOwnControls();
     showOwnControls();
     // Samsung WebView may block autoplay on the newly-created cross-origin
     // iframe. Retry only in TV mode; the popup Redă action is the user's
     // gesture that should start playback, while the resume prompt can still
     // pause it again once metadata and duration arrive.
-    if (document.body.classList.contains('tv-mode')) {
+    if (document.body.classList.contains('tv-mode') && !waitingForResumeChoice) {
       const readyToken = playerLoadToken;
       [0, 250, 800, 1600].forEach(delay => window.setTimeout(() => {
         if (readyToken === playerLoadToken && ownPaused) ownCommand('play');
       }, delay));
     }
   } else if (eventType === 'cinesrc:play' || eventType === 'play') {
+    if (Number(state?.resumeAt) > 10 && !resumePromptShown) {
+      ownPaused = true;
+      ownCommand('pause');
+      stopSubtitleFallbackClock();
+      updateOwnControls();
+      if (ownDuration) showResumeChoice();
+      return;
+    }
     ownPaused = false;
     if (!providerTimeSignals) startSubtitleFallbackClock(playerLoadToken);
     armWatchCheckTimer();
@@ -1273,11 +1283,19 @@ window.addEventListener('message', event => {
     stopSubtitleFallbackClock();
     ownCurrentTime = Number(payload.currentTime ?? payload.player_progress) || 0;
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
+    if (Number(state?.resumeAt) > 10 && !resumePromptShown) {
+      ownPaused = true;
+      ownCommand('pause');
+    }
     updateOwnControls();
     updateSubtitleDisplay(ownCurrentTime);
     showResumeChoice();
   } else if (eventType === 'cinesrc:loadedmetadata' || eventType === 'loadedmetadata') {
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
+    if (Number(state?.resumeAt) > 10 && !resumePromptShown) {
+      ownPaused = true;
+      ownCommand('pause');
+    }
     updateOwnControls();
     updateSubtitleDisplay(ownCurrentTime);
     showResumeChoice();
