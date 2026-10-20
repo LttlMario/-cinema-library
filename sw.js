@@ -1,4 +1,4 @@
-const CACHE = 'cinema-library-shell-v9';
+const CACHE = 'cinema-library-shell-v10';
 const SHELL = [
   './', './index.html', './catalog.html', './genres.html', './stream/index.html',
   './404.html', './contribute.html', './manifest.webmanifest',
