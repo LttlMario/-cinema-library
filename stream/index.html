@@ -6,6 +6,14 @@
   <title>Cinema Library — Vizionare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cinesrc.st">
+  <link rel="dns-prefetch" href="//cinesrc.st">
+  <link rel="preconnect" href="https://api.themoviedb.org">
+  <link rel="dns-prefetch" href="//api.themoviedb.org">
+  <link rel="preconnect" href="https://image.tmdb.org">
+  <link rel="dns-prefetch" href="//image.tmdb.org">
+  <link rel="preconnect" href="https://cinema-library-subtitles-api.bmariomihail.chatgpt.site">
+  <link rel="dns-prefetch" href="//cinema-library-subtitles-api.bmariomihail.chatgpt.site">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="../assets/icons/cinema-library-favicon.png" type="image/png">
   <link rel="manifest" href="../manifest.webmanifest">
@@ -253,6 +261,8 @@
     .player-back-action:active { transform:scale(.96); }
     .player-back-action svg { width:16px; height:16px; flex:none; }
     body.embedded .player-back-action { top:1rem; left:1rem; }
+    .player-wrap.controls-idle .player-back-action,
+    .player-back-action.tv-hidden { opacity:0; pointer-events:none; transform:translateY(-8px); }
     .player-wrap:fullscreen .player-back-action,
     .player-wrap:-webkit-full-screen .player-back-action,
     .player-wrap:-moz-full-screen .player-back-action { top:1.25rem; left:1.25rem; }
@@ -623,13 +633,14 @@ function resumeParam(p) {
 
 /* ─── STATE ─── */
 const $ = id => document.getElementById(id);
-const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v1';
-const TMDB_CACHE_TTL = 5 * 60 * 1000;
+const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v2';
+const TMDB_CACHE_TTL = document.body.classList.contains('tv-mode') ? 30 * 60 * 1000 : 5 * 60 * 1000;
+const TMDB_CACHE_STORE = document.body.classList.contains('tv-mode') ? localStorage : sessionStorage;
 function readTmdbCache() {
-  try { return JSON.parse(sessionStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
+  try { return JSON.parse(TMDB_CACHE_STORE.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
 }
 function writeTmdbCache(cache) {
-  try { sessionStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(cache)); } catch {}
+  try { TMDB_CACHE_STORE.setItem(TMDB_CACHE_KEY, JSON.stringify(cache)); } catch {}
 }
 const tmdb = async path => {
   const localizedPath = `${path}${path.includes('?') ? '&' : '?'}language=ro-RO`;
@@ -713,6 +724,7 @@ function showOwnControls() {
   const wrap = $('player-wrap');
   controls?.classList.remove('controls-idle');
   controls?.classList.remove('tv-hidden');
+  $('player-back-action')?.classList.remove('tv-hidden');
   $('player-fullscreen')?.classList.remove('tv-hidden');
   wrap?.classList.remove('controls-idle');
   clearTimeout(window.__cinemaOwnControlsTimer);
@@ -727,6 +739,7 @@ function hideOwnControls() {
   clearTimeout(window.__cinemaOwnControlsTimer);
   $('custom-controls')?.classList.add('tv-hidden');
   $('custom-controls')?.classList.add('controls-idle');
+  $('player-back-action')?.classList.add('tv-hidden');
   $('player-fullscreen')?.classList.add('tv-hidden');
 }
 function applyOwnPicture(value) {
@@ -1695,6 +1708,8 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
     }
     // The timeline is the first visual row; every player button is underneath
     // it. This makes Down enter the buttons and Up return to the timeline.
+    const playerBack = [$('player-back-action')].filter(vis);
+    if (playerBack.length) secs.push({ items: playerBack });
     const playerTimeline = [$('own-timeline')].filter(vis);
     const playerButtons = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture'), $('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
     if (playerTimeline.length) secs.push({ items: playerTimeline });
@@ -1818,10 +1833,15 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
     if (cur === $('own-timeline') && k === 'ArrowUp') {
       e.preventDefault();
       hideOwnControls();
-      if (cur) cur.classList.remove('kf');
-      cur = null;
-      active = false;
-      document.documentElement.classList.remove('keynav');
+      const back = $('player-back-action');
+      back?.classList.remove('tv-hidden');
+      if (back && vis(back)) setFocus(back, false);
+      else {
+        if (cur) cur.classList.remove('kf');
+        cur = null;
+        active = false;
+        document.documentElement.classList.remove('keynav');
+      }
       return;
     }
 
