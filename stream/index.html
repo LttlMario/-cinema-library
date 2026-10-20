@@ -1761,7 +1761,16 @@ function navigateBackFromPlayer() {
   returnToPopupFromPlayer();
 }
 $('back-btn').addEventListener('click', navigateBackFromPlayer);
+function persistCurrentPlayback() {
+  if (!state) return;
+  const current = Number(ownCurrentTime) || 0;
+  const saved = Number(state.resumeAt) || 0;
+  if (current > 0) state.resumeAt = Math.floor(current);
+  else if (!Number.isFinite(saved)) state.resumeAt = 0;
+  savePlaybackProgress();
+}
 function returnToPopupFromPlayer() {
+  persistCurrentPlayback();
   const wrap = $('player-wrap');
   const fullscreen = document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap;
   const close = () => {
@@ -1779,6 +1788,8 @@ function returnToPopupFromPlayer() {
   } catch { close(); }
 }
 $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
+window.addEventListener('pagehide', persistCurrentPlayback);
+window.addEventListener('beforeunload', persistCurrentPlayback);
 
 /* ─── INIT ─── */
 (async function init() {
