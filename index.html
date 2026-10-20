@@ -1029,6 +1029,22 @@ const $ = id => document.getElementById(id);
 const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v2';
 const TMDB_CACHE_TTL = document.documentElement.classList.contains('tv-mode') ? 30 * 60 * 1000 : 5 * 60 * 1000;
 const TMDB_CACHE_STORE = document.documentElement.classList.contains('tv-mode') ? localStorage : sessionStorage;
+const TMDB_MAX_IN_FLIGHT = 5;
+let tmdbInFlight = 0;
+const tmdbQueue = [];
+function pumpTmdbQueue() {
+  while (tmdbInFlight < TMDB_MAX_IN_FLIGHT && tmdbQueue.length) {
+    const job = tmdbQueue.shift();
+    tmdbInFlight++;
+    job().finally(() => { tmdbInFlight--; pumpTmdbQueue(); });
+  }
+}
+function queueTmdbRequest(job) {
+  return new Promise((resolve, reject) => {
+    tmdbQueue.push(() => job().then(resolve, reject));
+    pumpTmdbQueue();
+  });
+}
 function readTmdbCache() {
   try { return JSON.parse(TMDB_CACHE_STORE.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
 }
@@ -1040,21 +1056,25 @@ const tmdb = async path => {
   const cache = readTmdbCache();
   const cached = cache[localizedPath];
   if (cached && Date.now() - cached.time < TMDB_CACHE_TTL) return cached.data;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
-    const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
-    if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
-    const data = await r.json();
-    cache[localizedPath] = { time: Date.now(), data };
-    writeTmdbCache(cache);
-    return data;
+    return await queueTmdbRequest(async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      try {
+        const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
+        if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
+        const data = await r.json();
+        cache[localizedPath] = { time: Date.now(), data };
+        writeTmdbCache(cache);
+        return data;
+      } finally { clearTimeout(timeout); }
+    });
   } catch (error) {
     if (cached) return cached.data;
     const message = error.name === 'AbortError' ? 'TMDB nu a răspuns la timp.' : 'Catalogul TMDB nu este disponibil momentan.';
     toast(message);
     throw new Error(message);
-  } finally { clearTimeout(timeout); }
+  }
 };
 const poster   = (p, size = 'w342') => p ? `${IMG_BASE}${size}${p}` : null;
 const backdrop = (b, size = 'w1280') => b ? `${IMG_BASE}${size}${b}` : null;
