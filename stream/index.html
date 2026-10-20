@@ -1582,6 +1582,15 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
 
   const vis = el => !!(el && el.getClientRects().length);
 
+  function handleRemoteKey(key) {
+    if (!key) return;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  }
+
+  window.addEventListener('message', event => {
+    if (event.data?.type === 'rioma:remote-key') handleRemoteKey(String(event.data.key || ''));
+  });
+
   function setFocus(el, scroll = true) {
     if (!el) return;
     if (cur) cur.classList.remove('kf');
