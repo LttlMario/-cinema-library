@@ -2003,7 +2003,28 @@ function openRiomaOverlay(url) {
 window.addEventListener('message', event => {
   const frame = $('rioma-overlay-frame');
   if (event.data?.type === 'rioma:close' && frame && event.source === frame.contentWindow) closeRiomaOverlay();
+  if (event.data?.type === 'cinema:remote-key') {
+    const key = String(event.data.key || '');
+    const overlay = $('rioma-overlay');
+    if (overlay && !overlay.hidden && frame?.contentWindow) {
+      frame.contentWindow.postMessage({ type: 'rioma:remote-key', key }, '*');
+    } else if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'].includes(key)) {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    }
+  }
 });
+
+// Some Samsung WebViews keep the remote focus on the outer wrapper even
+// after the Rioma overlay opens. Forward navigation keys into the player.
+document.addEventListener('keydown', event => {
+  const overlay = $('rioma-overlay');
+  const frame = $('rioma-overlay-frame');
+  const keys = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Escape','Backspace','BrowserBack','GoBack','Back'];
+  if (!overlay || overlay.hidden || !frame?.contentWindow || !keys.includes(event.key)) return;
+  frame.contentWindow.postMessage({ type: 'rioma:remote-key', key: event.key }, '*');
+  event.preventDefault();
+  event.stopPropagation();
+}, true);
 
 $('modal-watch-btn').addEventListener('click', () => {
   if (!currentModalItem) return;
