@@ -142,7 +142,7 @@
     loaded = false;
     loading.hidden = false;
     error.hidden = true;
-    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-sub-ro-v9';
+    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-tv-fast-v1';
     window.setTimeout(showError, 12000);
   }
 
