@@ -972,7 +972,7 @@ const FRANCHISE_ROWS = [
   { title: 'Marvel Cinematic Universe — ordinea cronologică', subtitle: 'Filme și seriale din același univers', items: [
     ['movie',1771],['movie',299537],['movie',1726],['movie',1724],['movie',10138],['movie',10195],['movie',24428],['movie',68721],['movie',76338],['movie',100402],['movie',118340],['movie',283995],['movie',99861],['movie',102899],['movie',271110],['movie',284052],['movie',315635],['movie',284053],['movie',284054],['movie',299536],['movie',363088],['movie',299534],['tv',85271],['tv',88396],['tv',84958],['movie',634649]
   ] },
-  { title: 'The Walking Dead Universe — ordinea cronologică', subtitle: 'Serialele care fac parte din aceeași poveste', items: [['tv',62286],['tv',1402],['tv',94305],['tv',130392],['tv',206586],['tv',194764],['tv',211684]] },
+  { title: 'The Walking Dead Universe — ordinea cronologică', subtitle: 'Serialele care fac parte din aceeași poveste', allowed: ['tv-62286','tv-1402','tv-94305','tv-130392','tv-206586','tv-194764','tv-211684'], items: [['tv',62286],['tv',1402],['tv',94305],['tv',130392],['tv',206586],['tv',194764],['tv',211684]] },
   { title: 'Harry Potter și Wizarding World', subtitle: 'Colecția oficială și seria Fantastic Beasts', collections: [1241], items: [['movie',259316],['movie',338952],['movie',338953]] },
   { title: 'Middle-earth — The Lord of the Rings', subtitle: 'The Hobbit și The Lord of the Rings', collections: [119,121] },
   { title: 'Star Wars Universe', subtitle: 'Filme și seriale din galaxia Star Wars', items: [['movie',11],['movie',1891],['movie',1892],['movie',1893],['movie',140607],['movie',181808],['movie',181812],['movie',181813],['movie',181809],['movie',330459],['movie',438631],['tv',4194],['tv',60554],['tv',82856],['tv',92749],['tv',114479]] },
@@ -1522,6 +1522,7 @@ async function loadFranchiseRow(cfg) {
   const items = [...ordered, ...collectionOrdered]
     .filter(item => {
       const key = `${item.media_type}-${item.id}`;
+      if (cfg.allowed && !cfg.allowed.includes(key)) return false;
       if (!item.poster_path || seen.has(key)) return false;
       seen.add(key);
       return true;
