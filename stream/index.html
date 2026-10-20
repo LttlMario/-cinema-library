@@ -1592,7 +1592,24 @@ function navigateBackFromPlayer() {
   else location.href = HOME_URL;
 }
 $('back-btn').addEventListener('click', navigateBackFromPlayer);
-$('player-back-action').addEventListener('click', navigateBackFromPlayer);
+function returnToPopupFromPlayer() {
+  const wrap = $('player-wrap');
+  const fullscreen = document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap;
+  const close = () => {
+    if (window.parent !== window) window.parent.postMessage({ type: 'rioma:close' }, '*');
+    else if (history.length > 1 && document.referrer.includes(location.host)) history.back();
+    else location.href = HOME_URL;
+  };
+  if (!fullscreen) { close(); return; }
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if (!exit) { close(); return; }
+  try {
+    const result = exit.call(document);
+    if (result && typeof result.then === 'function') result.then(close, close);
+    else close();
+  } catch { close(); }
+}
+$('player-back-action').addEventListener('click', returnToPopupFromPlayer);
 
 /* ─── INIT ─── */
 (async function init() {
