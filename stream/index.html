@@ -243,6 +243,10 @@
     .subtitle-panel { position:absolute; right:12px; bottom:54px; z-index:11; width:min(360px, calc(100% - 24px)); max-height:min(72%, 460px); overflow:auto; padding:1rem; border:1px solid rgba(255,255,255,.2); border-radius:12px; background:rgba(15,15,20,.97); box-shadow:0 12px 35px #000b; color:#fff; }
     .subtitle-panel[hidden] { display:none; }
     .subtitle-panel h3 { margin:0 0 .3rem; font-size:.95rem; }
+    .subtitle-panel-head { display:flex; align-items:center; justify-content:space-between; gap:.6rem; margin-bottom:.3rem; }
+    .subtitle-panel-head h3 { margin:0; }
+    .subtitle-close { display:grid; place-items:center; width:28px; height:28px; padding:0; border:1px solid rgba(255,255,255,.2); border-radius:6px; background:rgba(255,255,255,.06); color:#fff; font:700 18px/1 system-ui,sans-serif; cursor:pointer; }
+    .subtitle-close:hover,.subtitle-close:focus-visible { background:var(--accent); border-color:var(--accent-h); }
     .subtitle-panel p { margin:.35rem 0 .7rem; color:#b8b8c5; font-size:.72rem; line-height:1.4; }
     .subtitle-panel select,.subtitle-panel input[type=file] { width:100%; margin:.35rem 0; }
     .subtitle-actions { display:flex; gap:.45rem; flex-wrap:wrap; margin:.45rem 0; }
@@ -477,7 +481,7 @@
           <button id="own-fullscreen" type="button" aria-label="Fullscreen">⛶</button>
         </div>
         <div class="subtitle-panel" id="subtitle-panel" hidden>
-          <h3>Subtitrări</h3>
+          <div class="subtitle-panel-head"><h3>Subtitrări</h3><button class="subtitle-close" id="subtitle-close" type="button" aria-label="Închide subtitrările" title="Închide">×</button></div>
           <p>Caută automat după TMDB, sezon, episod și limbă.</p>
           <select id="subtitle-language" class="sel" aria-label="Limba subtitrării"><option value="ro">Română</option><option value="en">Engleză</option><option value="ro,en">Română sau engleză</option></select>
           <div class="subtitle-actions"><button type="button" id="subtitle-search">Caută online</button><button type="button" class="secondary" id="subtitle-clear">Oprește</button></div>
@@ -832,6 +836,12 @@ function toggleSubtitlePanel() {
   if (!panel.hidden) window.setTimeout(() => document.dispatchEvent(new CustomEvent('rioma:focus-subtitles')), 0);
 }
 function setupSubtitlePanel() {
+  $('subtitle-close')?.addEventListener('click', () => {
+    const panel = $('subtitle-panel');
+    if (!panel) return;
+    panel.hidden = true;
+    showOwnControls();
+  });
   $('subtitle-search')?.addEventListener('click', async () => {
     const status = $('subtitle-status'); if (!state) return;
     status.textContent = 'Se caută subtitrări online…';
@@ -1730,7 +1740,7 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
     if (playerButtons.length) secs.push({ items: playerButtons });
     const subtitlePanel = $('subtitle-panel');
     if (subtitlePanel && !subtitlePanel.hidden) {
-      [[$('subtitle-language')], [$('subtitle-search'), $('subtitle-clear')], [$('subtitle-results')], [$('subtitle-load')], [$('subtitle-bg')], [$('subtitle-size')], [$('subtitle-color')], [$('subtitle-file')], [$('subtitle-minus'), $('subtitle-plus')]]
+      [[$('subtitle-close'), $('subtitle-language')], [$('subtitle-search'), $('subtitle-clear')], [$('subtitle-results')], [$('subtitle-load')], [$('subtitle-bg')], [$('subtitle-size')], [$('subtitle-color')], [$('subtitle-file')], [$('subtitle-minus'), $('subtitle-plus')]]
         .map(group => group.filter(vis)).filter(group => group.length).forEach(items => secs.push({ items }));
     }
     const playerExtras = [$('next-episode-action'), $('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
