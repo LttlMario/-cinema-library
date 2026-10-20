@@ -246,6 +246,17 @@
     .player-details p { margin:.5rem 0; color:var(--muted); line-height:1.55; font-size:.86rem; }
     .player-details-meta { color:var(--muted); font-size:.8rem; }
     @media (max-width:560px){.player-details{grid-template-columns:90px 1fr}.player-details img{width:90px}.player-action{flex:1 1 45%}}
+    .end-recommendations { position:absolute; left:1rem; right:1rem; bottom:4.4rem; z-index:12; padding:1rem; border:1px solid rgba(255,255,255,.16); border-radius:12px; background:rgba(10,10,14,.97); box-shadow:0 12px 35px rgba(0,0,0,.65); }
+    .end-recommendations[hidden] { display:none; }
+    .end-recommendations h2 { margin:0 0 .25rem; font-size:1rem; }
+    .end-recommendations p { margin:0 0 .8rem; color:var(--muted); font-size:.78rem; }
+    .recommendation-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; max-height:24vh; overflow:hidden; }
+    .recommendation-card { min-width:0; padding:0; border:0; background:transparent; color:var(--text); text-align:left; cursor:pointer; }
+    .recommendation-card img { display:block; width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; background:var(--card); }
+    .recommendation-card span { display:block; margin-top:.35rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.72rem; font-weight:700; }
+    .recommendation-card:hover img,.recommendation-card:focus-visible img { outline:2px solid var(--accent-h); outline-offset:2px; }
+    @media (max-width:800px){.end-recommendations{left:.55rem;right:.55rem;bottom:3.8rem;padding:.7rem}.recommendation-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:.45rem}}
+    @media (max-width:560px){.end-recommendations{bottom:3.4rem;padding:.6rem}.end-recommendations h2{font-size:.85rem}.end-recommendations p{font-size:.68rem;margin-bottom:.5rem}.recommendation-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem}.recommendation-card span{font-size:.62rem}}
     body.embedded { overflow:hidden; background:#000; }
     body.embedded header,
     body.embedded #tv-panel,
@@ -254,6 +265,7 @@
     body.embedded .player-details,
     body.embedded #player-details,
     body.embedded .enhancer-panel { display:none !important; }
+    body.tv-mode .contribute-btn { display:none !important; }
     body.embedded main { display:block; width:100vw; max-width:none; height:100vh; padding:0; margin:0; }
     body.embedded .player-col { width:100vw; height:100vh; }
     body.embedded .player-wrap { width:100vw; height:100vh; aspect-ratio:auto; margin:0; border:0; border-radius:0; }
@@ -485,6 +497,11 @@
         <p class="enhancer-note">Claritatea folosește contrast local simulat, iar temperatura ajustează tonurile reci/calde. Reglajele schimbă aspectul pe acest dispozitiv, nu rezoluția sau bitrate-ul sursei.</p>
       </section>
       <section class="player-details" id="player-details" hidden></section>
+      <section class="end-recommendations" id="end-recommendations" hidden aria-live="polite">
+        <h2>Filme și seriale care s-ar putea să-ți placă</h2>
+        <p>Recomandări bazate pe genurile titlului vizionat.</p>
+        <div class="recommendation-grid" id="end-recommendation-grid"></div>
+      </section>
     </div>
 
     <div class="panel" id="tv-panel" hidden>
@@ -641,6 +658,7 @@ let subtitleAutoToken = 0;
 let subtitleFallbackTimer = 0;
 let providerTimeSignals = 0;
 let resumePromptShown = false;
+let endRecommendationsShownForToken = 0;
 const OWN_QUALITY_KEY = 'cinemalibrary_player_quality_v1';
 const OWN_PICTURE_KEY = 'cinemalibrary_player_picture_v1';
 
@@ -881,7 +899,10 @@ function syncUrl() {
 function loadPlayer() {
   attemptedServers.add(state.server);
   autoNextEpisodeToken += 1;
+  endRecommendationsShownForToken = 0;
   const inlineNext = $('next-episode-action');
+  const recommendationPanel = $('end-recommendations');
+  if (recommendationPanel) recommendationPanel.hidden = true;
   if (inlineNext) inlineNext.hidden = true;
   const serverId = state.server;
   const loadToken = ++playerLoadToken;
@@ -994,6 +1015,64 @@ function clearPlaybackProgress() {
   } catch {}
 }
 
+function recommendationUrl(item) {
+  const params = new URLSearchParams({
+    type: item.media_type,
+    id: String(item.id),
+    server: String(state?.server || 3),
+    sub: state?.subtitle || 'ro'
+  });
+  if (item.media_type === 'tv') {
+    params.set('s', '1');
+    params.set('e', '1');
+  }
+  if (document.body.classList.contains('embedded')) params.set('embedded', '1');
+  return `${location.pathname}?${params.toString()}`;
+}
+
+async function showEndRecommendations() {
+  const panel = $('end-recommendations');
+  const grid = $('end-recommendation-grid');
+  if (!panel || !grid || !state?.media || endRecommendationsShownForToken === playerLoadToken) return;
+  endRecommendationsShownForToken = playerLoadToken;
+  const genres = [
+    ...(state.media.genre_ids || []),
+    ...(state.media.genres || []).map(genre => genre.id)
+  ].map(Number).filter(Number.isFinite).filter((id, index, all) => all.indexOf(id) === index).slice(0, 3);
+  if (!genres.length) return;
+  try {
+    const watched = new Set(readLibrary(LIBRARY_KEYS.history).map(libraryId));
+    const currentKey = `${state.type}-${state.id}`;
+    const query = `with_genres=${genres.join('|')}&sort_by=popularity.desc&vote_count.gte=20&include_adult=false&page=1`;
+    const [movies, shows] = await Promise.all([tmdb(`/discover/movie?${query}`), tmdb(`/discover/tv?${query}`)]);
+    const seen = new Set();
+    const items = [...(movies.results || []).map(item => ({ ...item, media_type: 'movie' })), ...(shows.results || []).map(item => ({ ...item, media_type: 'tv' }))]
+      .filter(item => {
+        const key = `${item.media_type}-${item.id}`;
+        if (!item.poster_path || key === currentKey || watched.has(key) || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 5);
+    if (!items.length) return;
+    grid.innerHTML = '';
+    items.forEach(item => {
+      const title = item.title || item.name || 'Titlu';
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'recommendation-card';
+      card.setAttribute('aria-label', `Redă ${title}`);
+      card.innerHTML = `<img src="https://image.tmdb.org/t/p/w342${item.poster_path}" alt="${esc(title)}" loading="lazy"><span>${esc(title)}</span>`;
+      card.addEventListener('click', () => { location.href = recommendationUrl(item); });
+      grid.appendChild(card);
+    });
+    panel.hidden = false;
+  } catch {
+    // Recommendations are optional; playback remains uninterrupted if TMDB is unavailable.
+  }
+}
+
 function normalizePlayerPayload(message) {
   let payload = message?.data ?? message?.detail ?? message ?? {};
   if (typeof payload === 'string') {
@@ -1045,9 +1124,11 @@ window.addEventListener('message', event => {
   const duration = Number(payload.player_duration ?? payload.duration ?? payload.duration_seconds ?? ownDuration);
   const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
   const nearEnd = remaining !== null && remaining <= 60 && remaining >= 0;
+  const recommendationNearEnd = remaining !== null && remaining <= 30 && remaining >= 0;
   const percentageEnd = !Number.isFinite(duration) && progress >= 99;
   const shouldAutoNext = state?.server === 3 && state.type === 'tv' && completed && autoNextEpisodeToken === playerLoadToken;
   if (state?.server === 3 && (completed || nearEnd || percentageEnd)) revealInlineNextEpisode();
+  if (recommendationNearEnd || completed) showEndRecommendations();
   if (Number.isFinite(progress) && state?.server === 3) {
     state.resumeAt = progress;
     if (completed) clearPlaybackProgress();
@@ -1450,7 +1531,9 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
 
 /* ─── INIT ─── */
 (async function init() {
-  if (new URLSearchParams(location.search).get('embedded') === '1') document.body.classList.add('embedded');
+  const initialParams = new URLSearchParams(location.search);
+  if (initialParams.get('embedded') === '1') document.body.classList.add('embedded');
+  if (initialParams.get('tv') === '1' || sessionStorage.getItem('cinemalibrary_tv_mode') === '1') document.body.classList.add('tv-mode');
   state = readParams();
   if (!state) {
     $('main').innerHTML = `
