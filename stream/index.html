@@ -188,6 +188,11 @@
     .next-episode-action:hover { background:var(--accent); color:#fff; }
     .player-fullscreen-action { position:absolute; right:.85rem; bottom:1.15rem; z-index:7; display:grid; place-items:center; width:42px; height:38px; padding:0; border:1px solid rgba(255,255,255,.42); border-radius:8px; background:rgba(10,10,14,.9); color:#fff; cursor:pointer; opacity:.92; box-shadow:0 4px 16px rgba(0,0,0,.5); transition:opacity .22s ease, transform .22s ease, background .18s ease, border-color .18s ease; }
     .player-wrap.controls-idle .player-fullscreen-action { opacity:0; pointer-events:none; transform:translateY(8px); }
+    /* A cross-origin player iframe owns mousemove events in its own document.
+       Keep our fullscreen control available above it in normal browsers too. */
+    .player-wrap:fullscreen .player-fullscreen-action,
+    .player-wrap:-webkit-full-screen .player-fullscreen-action,
+    .player-wrap:-moz-full-screen .player-fullscreen-action { opacity:.92; pointer-events:auto; transform:none; }
     .player-fullscreen-action:hover { opacity:1; background:var(--accent); border-color:var(--accent-h); transform:translateY(-1px); }
     .player-fullscreen-action:focus-visible { opacity:1; outline:3px solid var(--accent-h); outline-offset:3px; }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
