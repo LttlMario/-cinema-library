@@ -209,7 +209,8 @@
     #own-timeline,#own-volume { appearance:none; -webkit-appearance:none; height:4px; border:0; border-radius:999px; background:#555861; cursor:pointer; }
     #own-timeline { order:-2; flex:0 0 100%; width:100%; }
     #own-time { color:#eee; font-size:10px; white-space:nowrap; }
-    #own-volume { width:72px; }
+    #own-volume { width:72px; display:none; }
+    .custom-controls.volume-open #own-volume { display:block; }
     #own-timeline::-webkit-slider-runnable-track,#own-volume::-webkit-slider-runnable-track { height:4px; border-radius:999px; background:#555861; }
     #own-timeline::-webkit-slider-thumb,#own-volume::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:12px; height:12px; margin-top:-4px; border:2px solid #fff; border-radius:50%; background:var(--accent); box-shadow:0 1px 4px #0008; }
     #own-timeline::-moz-range-track,#own-volume::-moz-range-track { height:4px; border-radius:999px; background:#555861; }
@@ -429,7 +430,7 @@
           <select id="own-quality" aria-label="Claritate video"><option value="auto">Auto</option><option value="1080p">1080p</option><option value="720p">720p</option><option value="480p">480p</option></select>
           <select id="own-picture" aria-label="Profil imagine"><option value="standard">Standard</option><option value="cinema">Cinema</option><option value="bright">Luminos</option><option value="contrast">Contrast</option><option value="vivid">Viu</option><option value="natural">Natural</option><option value="night">Noapte</option></select>
           <span class="control-spacer"></span>
-          <button id="own-mute" type="button" aria-label="Dezactivează sunetul">🔊</button>
+          <button id="own-mute" type="button" aria-label="Arată volumul" aria-expanded="false" title="Arată volumul">🔊</button>
           <input id="own-volume" type="range" min="0" max="1" value="1" step="0.05" aria-label="Volum">
           <button id="own-captions" type="button" aria-label="Subtitrări">CC</button>
           <button id="own-fullscreen" type="button" aria-label="Fullscreen">⛶</button>
@@ -796,12 +797,20 @@ async function autoLoadRomanianSubtitle(loadToken) {
     if (token === subtitleAutoToken && loadToken === playerLoadToken && $('subtitle-status')) $('subtitle-status').textContent = error.message || 'Româna este solicitată automat de sursa Rioma.';
   }
 }
+function toggleVolumeControl() {
+  const controls = $('custom-controls');
+  const button = $('own-mute');
+  if (!controls || !button) return;
+  const open = controls.classList.toggle('volume-open');
+  button.setAttribute('aria-expanded', String(open));
+  button.setAttribute('title', open ? 'Ascunde volumul' : 'Arată volumul');
+}
 function setupOwnControls() {
   $('own-play').addEventListener('click', toggleOwnPlayback);
   $('own-restart').addEventListener('click', () => ownCommand('seek', [0]));
   $('own-back10').addEventListener('click', () => seekOwn(-10));
   $('own-forward10').addEventListener('click', () => seekOwn(10));
-  $('own-mute').addEventListener('click', () => ownCommand('setMuted', [!ownMuted]));
+  $('own-mute').addEventListener('click', toggleVolumeControl);
   $('own-volume').addEventListener('input', event => ownCommand('setVolume', [Number(event.target.value)]));
   $('own-timeline').addEventListener('input', event => {
     if (ownDuration) ownCommand('seek', [(Number(event.target.value) / 100) * ownDuration]);
@@ -1421,10 +1430,21 @@ function toast(msg){
 // account root. Resolve the parent directory to stay inside this repository.
 const HOME_URL = new URL('../', document.baseURI).href;
 $('logo').addEventListener('click', () => { location.href = HOME_URL; });
-$('back-btn').addEventListener('click', () => {
+function navigateBackFromPlayer() {
+  const wrap = $('player-wrap');
+  const fullscreen = document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap;
+  if (fullscreen) {
+    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+    return;
+  }
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'rioma:close' }, '*');
+    return;
+  }
   if (history.length > 1 && document.referrer.includes(location.host)) history.back();
   else location.href = HOME_URL;
-});
+}
+$('back-btn').addEventListener('click', navigateBackFromPlayer);
 
 /* ─── INIT ─── */
 (async function init() {
@@ -1505,7 +1525,7 @@ $('back-btn').addEventListener('click', () => {
     if (playerTop.length) secs.push({ items: playerTop });
     if (playerTimeline.length) secs.push({ items: playerTimeline });
     if (playerBottom.length) secs.push({ items: playerBottom });
-    const playerExtras = [$('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
+    const playerExtras = [$('next-episode-action'), $('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
     if (playerExtras.length) secs.push({ items: playerExtras });
     const enhancerInputs = ['enhancer-brightness', 'enhancer-contrast', 'enhancer-saturation', 'enhancer-warmth', 'enhancer-clarity']
       .map(id => $(id)).filter(vis);
@@ -1522,6 +1542,7 @@ $('back-btn').addEventListener('click', () => {
   }
 
   function focusInitial() {
+    if (document.body.classList.contains('embedded') && vis($('own-play'))) { setFocus($('own-play')); return; }
     const sel = document.querySelector('.server-card.selected');
     if (sel && vis(sel)) { setFocus(sel); return; }
     const secs = getSections();
@@ -1552,6 +1573,12 @@ $('back-btn').addEventListener('click', () => {
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     const k = e.key;
     const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+
+    if (['Escape', 'Backspace', 'BrowserBack', 'GoBack', 'Back'].includes(k)) {
+      e.preventDefault();
+      navigateBackFromPlayer();
+      return;
+    }
 
     if (!active) {
       if (arrows[k]) {
