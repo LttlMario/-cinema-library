@@ -49,5 +49,39 @@
   document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach((item) => item.classList.remove('open')));
   const mobileToggle = document.getElementById('home-mobile-menu'), navElement = document.getElementById('home-nav'); mobileToggle.onclick = (event) => { event.stopPropagation(); const open = navElement.classList.toggle('mobile-open'); mobileToggle.setAttribute('aria-expanded', String(open)); }; navElement.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => navElement.classList.remove('mobile-open')));
   }
+
+  // Launch every direct stream link in the same Rioma fullscreen surface.
+  // This keeps catalog, genres and watch-together consistent with the home
+  // modal without navigating to a separate details/player page.
+  function openRiomaFromLink(href) {
+    let overlay = document.getElementById('rioma-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'rioma-overlay';
+      overlay.className = 'rioma-overlay';
+      overlay.hidden = true;
+      overlay.innerHTML = '<iframe id="rioma-overlay-frame" title="Player Rioma" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>';
+      document.body.append(overlay);
+      const style = document.createElement('style');
+      style.textContent = '.rioma-overlay{position:fixed;inset:0;z-index:10000;background:#000}.rioma-overlay[hidden]{display:none}.rioma-overlay iframe{display:block;width:100%;height:100%;border:0;background:#000}';
+      document.head.append(style);
+    }
+    const frame = document.getElementById('rioma-overlay-frame');
+    const destination = new URL(href, document.baseURI);
+    destination.searchParams.set('embedded', '1');
+    frame.src = destination.href;
+    overlay.hidden = false;
+    overlay.classList.add('open');
+    const request = overlay.requestFullscreen || overlay.webkitRequestFullscreen;
+    if (request) { try { Promise.resolve(request.call(overlay)).catch(() => {}); } catch {} }
+  }
+  document.addEventListener('click', event => {
+    const link = event.target.closest?.('a[href]');
+    if (!link || event.defaultPrevented || link.target === '_blank') return;
+    const url = new URL(link.href, document.baseURI);
+    if (!/(?:^|\/)stream\/(?:index\.html)?$/i.test(url.pathname.replace(/\/$/, '/'))) return;
+    event.preventDefault();
+    openRiomaFromLink(url.href);
+  });
 })();
 
