@@ -1388,6 +1388,7 @@ function showResumeChoice() {
     prompt.hidden = true;
     ownCommand('seek', [Math.floor(state.resumeAt)]);
     ownCommand('play');
+    togglePlayerFullscreen();
   };
   $('resume-restart').onclick = () => {
     state.resumeAt = 0;
@@ -1395,6 +1396,7 @@ function showResumeChoice() {
     prompt.hidden = true;
     ownCommand('seek', [0]);
     ownCommand('play');
+    togglePlayerFullscreen();
   };
 }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1560,6 +1562,14 @@ $('back-btn').addEventListener('click', () => {
 
     if (k === 'Enter') {
       if (!cur) { focusInitial(); return; }
+      const player = $('player-wrap');
+      if (cur === player) {
+        e.preventDefault();
+        const fullscreen = document.fullscreenElement === player || document.webkitFullscreenElement === player;
+        if (!fullscreen) togglePlayerFullscreen();
+        else toggleOwnPlayback();
+        return;
+      }
       if (cur.tagName === 'SELECT') {
         // Older WebViews lack showPicker — there the native Enter opens it.
         if (typeof cur.showPicker === 'function') { e.preventDefault(); try { cur.showPicker(); } catch (err) {} }
