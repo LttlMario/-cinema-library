@@ -1,4 +1,4 @@
-const CACHE = 'cinema-library-shell-v3';
+const CACHE = 'cinema-library-shell-v4';
 const SHELL = [
   './', './index.html', './catalog.html', './genres.html', './stream/index.html',
   './404.html', './contribute.html', './manifest.webmanifest',
@@ -15,6 +15,22 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
+  const url = new URL(request.url);
+  const isShell = url.pathname === '/' || [
+    '/index.html', '/catalog.html', '/genres.html', '/stream/index.html',
+    '/404.html', '/contribute.html', '/manifest.webmanifest',
+    '/assets/site-shell.css', '/assets/site-shell.js'
+  ].includes(url.pathname);
+  if (isShell) {
+    event.respondWith(caches.match(request, { ignoreSearch: true }).then(cached => {
+      const refresh = fetch(request).then(response => {
+        if (response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
+        return response;
+      }).catch(() => cached || caches.match('./404.html'));
+      return cached || refresh;
+    }));
+    return;
+  }
   event.respondWith(fetch(request).then(response => {
     if (!response.ok) return response;
     const copy = response.clone();
