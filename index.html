@@ -1061,12 +1061,12 @@ const tmdb = async path => {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
       try {
-        const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
-        if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
-        const data = await r.json();
-        cache[localizedPath] = { time: Date.now(), data };
-        writeTmdbCache(cache);
-        return data;
+      const r = await fetch(`${API_BASE}${localizedPath}`, { headers: HEADERS, signal: controller.signal });
+      if (!r.ok) throw new Error(`TMDB request failed (${r.status})`);
+      const data = await r.json();
+      cache[localizedPath] = { time: Date.now(), data };
+      writeTmdbCache(cache);
+      return data;
       } finally { clearTimeout(timeout); }
     });
   } catch (error) {
@@ -2090,7 +2090,21 @@ $('modal-watch-btn').addEventListener('click', () => {
   const destination = new URL(playerUrl(currentModalItem, s, e), document.baseURI);
   destination.searchParams.set('embedded', '1');
   if (new URLSearchParams(window.location.search).get('app') === 'tv') {
-    destination.searchParams.set('player-tv', '1');
+    // On Samsung TV the catalog stays in the app, while playback is handed
+    // to the real TFlix browser player. The return URL lets its Back/X action
+    // restore this exact catalog view instead of opening another player page.
+    const tflix = new URL('https://lttlmario.github.io/cinema-library/tflix/');
+    tflix.searchParams.set('app', 'tv');
+    tflix.searchParams.set('play', '1');
+    tflix.searchParams.set('fullscreen', '1');
+    tflix.searchParams.set('type', mediaOf(currentModalItem));
+    tflix.searchParams.set('id', String(currentModalItem.id));
+    tflix.searchParams.set('season', String(s));
+    tflix.searchParams.set('episode', String(e));
+    tflix.searchParams.set('return', `${window.location.origin}${window.location.pathname}?app=tv&v=20261021-cinema-catalog`);
+    closeModal(true);
+    window.parent.postMessage({ type: 'open-in-tv-browser', url: tflix.href }, '*');
+    return;
   }
   // Stop and unload the delayed YouTube trailer before opening Rioma. Keeping
   // it alive behind the overlay causes a small trailer surface to reappear on
@@ -2573,4 +2587,3 @@ $('clear-filters').addEventListener('click', () => {
 <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
-
