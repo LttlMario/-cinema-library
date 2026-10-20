@@ -1,4 +1,4 @@
-const CACHE = 'cinema-library-shell-v5';
+const CACHE = 'cinema-library-shell-v6';
 const SHELL = [
   './', './index.html', './catalog.html', './genres.html', './stream/index.html',
   './404.html', './contribute.html', './manifest.webmanifest',
@@ -22,7 +22,8 @@ self.addEventListener('fetch', event => {
     '/assets/site-shell.css', '/assets/site-shell.js'
   ].includes(url.pathname);
   if (isShell) {
-    event.respondWith(caches.match(request, { ignoreSearch: true }).then(cached => {
+    const cacheOptions = url.pathname === '/stream/index.html' ? {} : { ignoreSearch: true };
+    event.respondWith(caches.match(request, cacheOptions).then(cached => {
       const refresh = fetch(request).then(response => {
         if (response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
         return response;
