@@ -1678,6 +1678,12 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
     }
   }
 
+  function activateCurrent() {
+    if (!cur) return;
+    if (cur === $('own-play')) { toggleOwnPlayback(); return; }
+    cur.click();
+  }
+
   document.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     const k = e.key;
@@ -1695,6 +1701,12 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
         document.documentElement.classList.add('keynav');
         if (cur && vis(cur)) setFocus(cur); else focusInitial();
         e.preventDefault();
+      } else if (k === 'Enter') {
+        active = true;
+        document.documentElement.classList.add('keynav');
+        if (cur && vis(cur)) setFocus(cur, false); else focusInitial();
+        e.preventDefault();
+        activateCurrent();
       }
       return;
     }
@@ -1715,7 +1727,7 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
         return;
       }
       e.preventDefault();
-      cur.click();
+      activateCurrent();
       return;
     }
 
