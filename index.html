@@ -770,7 +770,8 @@
 <script>
   // The Samsung wrapper appends ?tv=1 so TV-only sizing never affects the
   // normal desktop and mobile website.
-  if (new URLSearchParams(window.location.search).get('tv') === '1') {
+  const tvUserAgent = /SMART[- ]?TV|SMARTTV|Tizen[^;]*(?:TV|SMART)|HbbTV|Web0S/i.test(navigator.userAgent);
+  if (new URLSearchParams(window.location.search).get('tv') === '1' || tvUserAgent) {
     document.documentElement.classList.add('tv-mode');
     try { sessionStorage.setItem('cinemalibrary_tv_mode', '1'); } catch (_) {}
   }
