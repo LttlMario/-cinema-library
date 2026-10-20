@@ -4,8 +4,8 @@
     "name": "Cinema Library — CineSrc (TMDB)",
     "description": "Provider TMDB pentru filme și seriale.",
     "type": "embed",
-    "movieUrl": "https://cinesrc.st/embed/movie/{id}?autoplay=true",
-    "tvUrl": "https://cinesrc.st/embed/tv/{id}?s={season}&e={episode}&autoplay=true"
+    "movieUrl": "https://cinesrc.st/embed/movie/{id}?autoplay=true&controls=true",
+    "tvUrl": "https://cinesrc.st/embed/tv/{id}?s={season}&e={episode}&autoplay=true&controls=true"
   }
 ]
 
