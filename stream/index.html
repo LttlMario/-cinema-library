@@ -490,7 +490,7 @@
           <p id="subtitle-status" role="status"></p>
           <div class="subtitle-settings">
             <div class="subtitle-setting"><span>Fundal</span><output id="subtitle-bg-value">78%</output><input id="subtitle-bg" type="range" min="0" max="100" value="78" step="1" aria-label="Opacitate fundal"></div>
-            <div class="subtitle-setting"><span>Mărime text</span><output id="subtitle-size-value">22px</output><input id="subtitle-size" type="range" min="12" max="36" value="22" step="1" aria-label="Mărime text"></div>
+            <div class="subtitle-setting"><span>Mărime text</span><output id="subtitle-size-value">22px</output><input id="subtitle-size" type="range" min="12" max="72" value="22" step="1" aria-label="Mărime text"></div>
             <div class="subtitle-setting"><span>Culoare text</span><select id="subtitle-color" class="sel" aria-label="Culoare text"><option value="#ffffff">Alb</option><option value="#ffe66d">Galben</option><option value="#8fd3ff">Albastru deschis</option></select></div>
           </div>
           <details><summary>Folosește un fișier local</summary><input id="subtitle-file" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip"></details>
@@ -1036,18 +1036,6 @@ function loadPlayer() {
   applyEnhancer();
   applyOwnPicture(localStorage.getItem(OWN_PICTURE_KEY) || 'standard');
   showOwnControls();
-  // Some versions of the embedded source autoplay correctly but do not emit
-  // timeupdate messages to the parent. Start a temporary local clock so the
-  // automatically loaded subtitle still appears; a real provider event takes
-  // over immediately when available.
-  window.setTimeout(() => {
-    if (loadToken === playerLoadToken && providerTimeSignals === 0) {
-      ownPaused = false;
-      updateOwnControls();
-      startSubtitleFallbackClock(loadToken);
-    }
-  }, 1500);
-
   // Samsung WebView may start the media but never fire iframe.onload. In
   // that case the audio was audible while the loading layer covered the image.
   window.setTimeout(() => {
