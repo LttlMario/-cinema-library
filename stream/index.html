@@ -563,6 +563,7 @@ const libraryId = item => `${item.media_type || (item.title ? 'movie' : 'tv')}-$
 const attemptedServers = new Set();
 const PROGRESS_KEY = 'cinemalibrary_progress';
 let playerLoadToken = 0;
+let autoNextEpisodeToken = 0;
 
 /* ─── PARAMS ─── */
 function readParams() {
@@ -607,6 +608,7 @@ function syncUrl() {
 /* ─── PLAYER ─── */
 function loadPlayer() {
   attemptedServers.add(state.server);
+  autoNextEpisodeToken += 1;
   const inlineNext = $('next-episode-action');
   if (inlineNext) inlineNext.hidden = true;
   const serverId = state.server;
@@ -699,14 +701,23 @@ function clearPlaybackProgress() {
 }
 
 window.addEventListener('message', event => {
-  if (event.origin !== 'https://vidsrc.sh' || event.data?.type !== 'PLAYER_EVENT') return;
-  const payload = event.data.data || {};
-  const status = String(payload.player_status || payload.status || '').toLowerCase();
+  const allowedOrigin = event.origin === 'https://vidsrc.sh' || event.origin.endsWith('.vidsrc.sh');
+  if (!allowedOrigin) return;
+  const message = event.data || {};
+  const payload = message.data || message.detail || message;
+  const eventType = String(message.type || message.event || payload.event || '').toLowerCase();
+  const status = String(payload.player_status || payload.status || eventType).toLowerCase();
   const completed = ['completed', 'ended', 'finished', 'finish'].includes(status);
   const progress = Number(payload.player_progress);
   const duration = Number(payload.player_duration ?? payload.duration ?? payload.duration_seconds);
   const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
-  if (state?.server === 3 && (completed || (remaining !== null && remaining <= 60 && remaining >= 0) || (!Number.isFinite(duration) && progress >= 99))) revealInlineNextEpisode();
+  const nearEnd = remaining !== null && remaining <= 60 && remaining >= 0;
+  const percentageEnd = !Number.isFinite(duration) && progress >= 99;
+  if (state?.server === 3 && (completed || nearEnd || percentageEnd)) revealInlineNextEpisode();
+  if (state?.server === 3 && state.type === 'tv' && completed && autoNextEpisodeToken === playerLoadToken) {
+    autoNextEpisodeToken += 1;
+    goNextEpisode(true);
+  }
   if (!Number.isFinite(progress) || !state || state.server !== 3) return;
   state.resumeAt = progress;
   if (completed) clearPlaybackProgress();
@@ -1021,9 +1032,12 @@ function updateNextBtn() {
   btn.title = next ? `Următorul: S${next.season} E${next.episode}` : 'Nu există următorul episod';
 }
 
-async function goNextEpisode() {
+async function goNextEpisode(isAutomatic = false) {
   const next = computeNext();
-  if (!next) { toast('Următorul episod nu este disponibil.'); return; }
+  if (!next) {
+    if (!isAutomatic) toast('Următorul episod nu este disponibil.');
+    return;
+  }
   $('next-episode-action').hidden = true;
   const seasonChanged = next.season !== state.season;
   state.season = next.season;
@@ -1034,7 +1048,7 @@ async function goNextEpisode() {
   updateNextBtn();
   savePlaybackProgress();
   loadPlayer();
-  toast(`Se încarcă S${state.season} E${state.episode}…`);
+  toast(`${isAutomatic ? 'Episodul s-a terminat. ' : ''}Se încarcă S${state.season} E${state.episode}…`);
 }
 
 /* ─── MOVIE TITLE ─── */
