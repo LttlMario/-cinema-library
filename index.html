@@ -857,6 +857,8 @@
   </div>
 </header>
 
+<script src="assets/site-shell.js"></script>
+
 <!-- ─────────────── HERO ─────────────── -->
 <section id="hero" class="empty"></section>
 
@@ -1202,6 +1204,8 @@ document.querySelectorAll('[data-menu]').forEach(button => button.addEventListen
 }));
 document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach(x => x.classList.remove('open')));
 
+if (!serverMenu.dataset.sharedPopulated) {
+serverMenu.dataset.sharedPopulated = 'true';
 SERVERS.forEach(s => {
   const el = document.createElement('div');
   el.className = 'server-item' + (s.id === currentServer ? ' active' : '');
@@ -1218,6 +1222,7 @@ SERVERS.forEach(s => {
   });
   serverMenu.appendChild(el);
 });
+}
 
 const savedServer = SERVERS.find(s => s.id === currentServer) || SERVERS[0];
 serverLabel.textContent = savedServer.name;
