@@ -158,6 +158,13 @@
       box-shadow: var(--shadow);
     }
     #player { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+    .picture-overlay { position:absolute; inset:0; z-index:1; pointer-events:none; background:transparent; }
+    .picture-overlay.cinema { background:rgba(255,185,120,.08); mix-blend-mode:screen; }
+    .picture-overlay.bright { background:rgba(255,255,255,.14); mix-blend-mode:screen; }
+    .picture-overlay.contrast { background:rgba(0,0,0,.08); mix-blend-mode:overlay; }
+    .picture-overlay.vivid { background:rgba(255,30,30,.08); mix-blend-mode:color; }
+    .picture-overlay.natural { background:rgba(255,225,190,.03); mix-blend-mode:soft-light; }
+    .picture-overlay.night { background:rgba(0,0,20,.24); mix-blend-mode:multiply; }
     #player:-webkit-full-screen { position: fixed; inset: 0; width: 100vw; height: 100vh; }
     #player:-moz-full-screen    { position: fixed; inset: 0; width: 100vw; height: 100vh; }
     #player:fullscreen          { position: fixed; inset: 0; width: 100vw; height: 100vh; }
@@ -199,8 +206,9 @@
        its native controller cannot appear as a second controller. */
     #player { pointer-events:none; }
     .custom-controls { min-height:0; background:#000; }
-    .custom-controls.controls-idle,.player-wrap.controls-idle .custom-controls { opacity:1; transform:none; pointer-events:auto; }
+    .custom-controls.controls-idle,.player-wrap.controls-idle .custom-controls { opacity:0; transform:translateY(100%); pointer-events:none; }
     .custom-controls.tv-hidden { opacity:0; transform:translateY(100%); pointer-events:none; }
+    .player-fullscreen-action.tv-hidden { opacity:0; transform:translateY(100%); pointer-events:none; }
     #player-fullscreen { display:none !important; }
     .custom-controls button,.custom-controls select { min-height:29px; padding:5px 7px; border:1px solid rgba(255,255,255,.2); border-radius:6px; background:rgba(20,20,26,.94); color:#fff; font:600 10px system-ui,sans-serif; cursor:pointer; }
     .custom-controls button:hover,.custom-controls select:hover { border-color:var(--accent-h); }
@@ -240,6 +248,14 @@
     @media (max-width:560px) { .subtitle-panel { right:6px; bottom:50px; width:calc(100% - 12px); } }
     .player-wrap:fullscreen .custom-controls { padding:16px 18px 18px; gap:8px; }
     .player-wrap:fullscreen .custom-controls button,.player-wrap:fullscreen .custom-controls select { min-height:34px; padding:7px 10px; font-size:12px; }
+    .player-back-action { position:absolute; top:.85rem; left:.85rem; z-index:12; display:inline-flex; align-items:center; gap:.35rem; min-height:36px; padding:.45rem .75rem; border:1px solid rgba(255,255,255,.34); border-radius:8px; background:rgba(10,10,14,.86); color:#fff; font:700 12px system-ui,sans-serif; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.42); transition:opacity .2s,transform .2s,background .2s,border-color .2s; }
+    .player-back-action:hover,.player-back-action:focus-visible { background:rgba(229,9,20,.92); border-color:var(--accent-h); transform:translateY(-1px); }
+    .player-back-action:active { transform:scale(.96); }
+    .player-back-action svg { width:16px; height:16px; flex:none; }
+    body.embedded .player-back-action { top:1rem; left:1rem; }
+    .player-wrap:fullscreen .player-back-action,
+    .player-wrap:-webkit-full-screen .player-back-action,
+    .player-wrap:-moz-full-screen .player-back-action { top:1.25rem; left:1.25rem; }
     .player-details { margin-top:1rem; padding:1.1rem; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); display:grid; grid-template-columns:130px 1fr; gap:1rem; }
     .player-details img { width:130px; aspect-ratio:2/3; object-fit:cover; border-radius:8px; }
     .player-details h1 { margin:0 0 .5rem; font-size:1.35rem; color:var(--accent-h); }
@@ -252,7 +268,7 @@
     .end-recommendations p { margin:0 0 .8rem; color:var(--muted); font-size:.78rem; }
     .recommendation-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; max-height:24vh; overflow:hidden; }
     .recommendation-card { min-width:0; padding:0; border:0; background:transparent; color:var(--text); text-align:left; cursor:pointer; }
-    .recommendation-card img { display:block; width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; background:var(--card); }
+    .recommendation-card img,.recommendation-placeholder { display:block; width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; background:var(--card); }
     .recommendation-card span { display:block; margin-top:.35rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.72rem; font-weight:700; }
     .recommendation-card:hover img,.recommendation-card:focus-visible img { outline:2px solid var(--accent-h); outline-offset:2px; }
     @media (max-width:800px){.end-recommendations{left:.55rem;right:.55rem;bottom:3.8rem;padding:.7rem}.recommendation-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:.45rem}}
@@ -431,6 +447,8 @@
       <div class="player-wrap" id="player-wrap">
         <div class="player-loading" id="player-loading" role="status" aria-live="polite" aria-label="Se încarcă playerul"><div class="spinner" aria-hidden="true"></div></div>
         <iframe id="player" title="Player video Cinema Library" allowfullscreen allow="autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *"></iframe>
+        <div class="picture-overlay" id="picture-overlay" aria-hidden="true"></div>
+        <button class="player-back-action" id="player-back-action" type="button" title="Înapoi la popup" aria-label="Înapoi la popup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Înapoi</span></button>
         <div class="player-hit-area" id="player-hit-area" aria-hidden="true"></div>
         <div class="subtitle-layer" id="subtitle-layer" hidden><span class="subtitle-text" id="subtitle-text"></span></div>
         <div class="custom-controls" id="custom-controls" aria-label="Controale Rioma">
@@ -695,11 +713,21 @@ function showOwnControls() {
   const wrap = $('player-wrap');
   controls?.classList.remove('controls-idle');
   controls?.classList.remove('tv-hidden');
+  $('player-fullscreen')?.classList.remove('tv-hidden');
   wrap?.classList.remove('controls-idle');
   clearTimeout(window.__cinemaOwnControlsTimer);
   window.__cinemaOwnControlsTimer = setTimeout(() => {
-    if (!ownPaused) controls?.classList.add('controls-idle');
-  }, 2600);
+    if (!ownPaused) {
+      controls?.classList.add('controls-idle');
+      $('player-fullscreen')?.classList.add('tv-hidden');
+    }
+  }, 2000);
+}
+function hideOwnControls() {
+  clearTimeout(window.__cinemaOwnControlsTimer);
+  $('custom-controls')?.classList.add('tv-hidden');
+  $('custom-controls')?.classList.add('controls-idle');
+  $('player-fullscreen')?.classList.add('tv-hidden');
 }
 function applyOwnPicture(value) {
   const profiles = {
@@ -711,17 +739,22 @@ function applyOwnPicture(value) {
   const profile = profiles[value] ? value : 'standard';
   const player = $('player');
   const wrap = $('player-wrap');
-  // Tizen's WebView can render a filtered cross-origin iframe as a black surface.
+  // Tizen's WebView can render a filtered cross-origin iframe as a black
+  // surface. Keep the TV player clean; desktop still gets the full effect.
   const isTizenPlayback = document.body.classList.contains('tv-mode') || /Tizen/i.test(navigator.userAgent);
   if (isTizenPlayback) {
     player.style.filter = 'none';
     wrap.style.filter = 'none';
+    const overlay = $('picture-overlay');
+    if (overlay) overlay.className = `picture-overlay ${profile === 'standard' ? '' : profile}`;
   } else if (document.body.classList.contains('embedded')) {
     player.style.filter = 'none';
     wrap.style.filter = profiles[profile];
+    $('picture-overlay')?.classList.remove('cinema','bright','contrast','vivid','natural','night');
   } else {
     player.style.filter = profiles[profile];
     wrap.style.filter = 'none';
+    $('picture-overlay')?.classList.remove('cinema','bright','contrast','vivid','natural','night');
   }
   $('own-picture').value = profile;
   localStorage.setItem(OWN_PICTURE_KEY, profile);
@@ -769,7 +802,13 @@ function startSubtitleFallbackClock(loadToken) {
   }, 250);
 }
 function clearOwnSubtitles() { subtitleCues = []; subtitleOffset = 0; $('subtitle-layer').hidden = true; if ($('subtitle-status')) $('subtitle-status').textContent = 'Subtitrarea a fost oprită.'; }
-function toggleSubtitlePanel() { const panel = $('subtitle-panel'); if (!panel) return; panel.hidden = !panel.hidden; showOwnControls(); }
+function toggleSubtitlePanel() {
+  const panel = $('subtitle-panel');
+  if (!panel) return;
+  panel.hidden = !panel.hidden;
+  showOwnControls();
+  if (!panel.hidden) window.setTimeout(() => document.dispatchEvent(new CustomEvent('rioma:focus-subtitles')), 0);
+}
 function setupSubtitlePanel() {
   $('subtitle-search')?.addEventListener('click', async () => {
     const status = $('subtitle-status'); if (!state) return;
@@ -914,9 +953,9 @@ function loadPlayer() {
   autoNextEpisodeToken += 1;
   endRecommendationsShownForToken = 0;
   const inlineNext = $('next-episode-action');
+  if (inlineNext) inlineNext.hidden = true;
   const recommendationPanel = $('end-recommendations');
   if (recommendationPanel) recommendationPanel.hidden = true;
-  if (inlineNext) inlineNext.hidden = true;
   const serverId = state.server;
   const loadToken = ++playerLoadToken;
   const src = serverUrlResolvers[state.server](state);
@@ -977,7 +1016,8 @@ function loadPlayer() {
     }
   }, 1500);
 
-  // Samsung WebView may start the media but never fire iframe.onload.
+  // Samsung WebView may start the media but never fire iframe.onload. In
+  // that case the audio was audible while the loading layer covered the image.
   window.setTimeout(() => {
     if (loadToken === playerLoadToken) {
       loader.classList.add('hide');
@@ -1056,11 +1096,13 @@ async function showEndRecommendations() {
   const grid = $('end-recommendation-grid');
   if (!panel || !grid || !state?.media || endRecommendationsShownForToken === playerLoadToken) return;
   endRecommendationsShownForToken = playerLoadToken;
+
   const genres = [
     ...(state.media.genre_ids || []),
     ...(state.media.genres || []).map(genre => genre.id)
   ].map(Number).filter(Number.isFinite).filter((id, index, all) => all.indexOf(id) === index).slice(0, 3);
   if (!genres.length) return;
+
   try {
     const watched = new Set(readLibrary(LIBRARY_KEYS.history).map(libraryId));
     const currentKey = `${state.type}-${state.id}`;
@@ -1077,6 +1119,7 @@ async function showEndRecommendations() {
       .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
       .slice(0, 5);
     if (!items.length) return;
+
     grid.innerHTML = '';
     items.forEach(item => {
       const title = item.title || item.name || 'Titlu';
@@ -1549,6 +1592,7 @@ function navigateBackFromPlayer() {
   else location.href = HOME_URL;
 }
 $('back-btn').addEventListener('click', navigateBackFromPlayer);
+$('player-back-action').addEventListener('click', navigateBackFromPlayer);
 
 /* ─── INIT ─── */
 (async function init() {
@@ -1667,6 +1711,15 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
     if (secs.length) setFocus(secs[0].items[0]);
   }
 
+  document.addEventListener('rioma:focus-subtitles', () => {
+    const panel = $('subtitle-panel');
+    const target = $('subtitle-language');
+    if (!panel || panel.hidden || !vis(target)) return;
+    active = true;
+    document.documentElement.classList.add('keynav');
+    setFocus(target, false);
+  });
+
   function move(dx, dy) {
     const secs = getSections();
     if (!secs.length) return;
@@ -1747,7 +1800,7 @@ $('back-btn').addEventListener('click', navigateBackFromPlayer);
     }
     if (cur === $('own-timeline') && k === 'ArrowUp') {
       e.preventDefault();
-      $('custom-controls')?.classList.add('tv-hidden');
+      hideOwnControls();
       if (cur) cur.classList.remove('kf');
       cur = null;
       active = false;
