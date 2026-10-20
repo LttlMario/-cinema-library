@@ -386,7 +386,6 @@
         <button class="player-action" data-action="favorite">♡ Favorite</button>
         <button class="player-action" data-action="together">● Vezi împreună</button>
         <button class="player-action" data-action="report">⚑ Raportează</button>
-        <button class="player-action" data-action="open-internet">🌐 Deschide în Internet</button>
         <button class="player-action" data-action="enhancer" aria-expanded="false">✦ Îmbunătățește imaginea</button>
       </div>
       <section class="enhancer-panel" id="enhancer-panel" hidden aria-label="Îmbunătățire imagine">
@@ -868,7 +867,6 @@ function setupPlayerActions() {
     if (action === 'together') location.href = `../watch-together.html?type=${state.type}&id=${state.id}&s=${state.season || 1}&e=${state.episode || 1}`;
     if (action === 'report') window.open('https://github.com/LttlMario/cinema-library/issues/new?title=Problemă player&body=' + encodeURIComponent(`${state.title} (${state.id})`), '_blank', 'noopener');
     if (action === 'trailer') window.open(`https://www.themoviedb.org/${state.type}/${state.id}/videos`, '_blank', 'noopener');
-    if (action === 'open-internet') openPlayerInTvBrowser();
     if (action === 'next-episode') {
       button.hidden = true;
       const existingNext = $('nextep-btn');
