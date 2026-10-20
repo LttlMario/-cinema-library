@@ -713,15 +713,17 @@ window.addEventListener('message', event => {
   const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
   const nearEnd = remaining !== null && remaining <= 60 && remaining >= 0;
   const percentageEnd = !Number.isFinite(duration) && progress >= 99;
+  const shouldAutoNext = state?.server === 3 && state.type === 'tv' && completed && autoNextEpisodeToken === playerLoadToken;
   if (state?.server === 3 && (completed || nearEnd || percentageEnd)) revealInlineNextEpisode();
-  if (state?.server === 3 && state.type === 'tv' && completed && autoNextEpisodeToken === playerLoadToken) {
+  if (Number.isFinite(progress) && state?.server === 3) {
+    state.resumeAt = progress;
+    if (completed) clearPlaybackProgress();
+    else savePlaybackProgress();
+  }
+  if (shouldAutoNext) {
     autoNextEpisodeToken += 1;
     goNextEpisode(true);
   }
-  if (!Number.isFinite(progress) || !state || state.server !== 3) return;
-  state.resumeAt = progress;
-  if (completed) clearPlaybackProgress();
-  else savePlaybackProgress();
 });
 
 function handlePlayerFailure(serverId) {
