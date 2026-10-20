@@ -631,6 +631,7 @@ let subtitleCues = [];
 let subtitleOffset = 0;
 let subtitleResults = [];
 let selectedSubtitleFileId = null;
+let subtitleAutoToken = 0;
 const OWN_QUALITY_KEY = 'cinemalibrary_player_quality_v1';
 const OWN_PICTURE_KEY = 'cinemalibrary_player_picture_v1';
 
@@ -740,6 +741,38 @@ function setupSubtitlePanel() {
   ['subtitle-bg','subtitle-size','subtitle-color'].forEach(id => { $(id)?.addEventListener('input', updateSubtitleSettings); $(id)?.addEventListener('change', updateSubtitleSettings); });
   try { const saved = JSON.parse(localStorage.getItem('cinemalibrary_subtitle_settings') || 'null'); if (saved) { $('subtitle-bg').value = saved.bg ?? 78; $('subtitle-size').value = saved.size ?? 22; $('subtitle-color').value = saved.color ?? '#ffffff'; } } catch {}
   updateSubtitleSettings();
+}
+async function autoLoadRomanianSubtitle(loadToken) {
+  if (!state || state.subtitle === 'en') return;
+  const token = ++subtitleAutoToken;
+  const cacheKey = `cinemalibrary_subtitle_${state.type}_${state.id}_${state.season || 1}_${state.episode || 1}_ro`;
+  let cachedContent = '';
+  try { cachedContent = localStorage.getItem(cacheKey) || ''; } catch {}
+  try {
+    const status = $('subtitle-status');
+    if (status) status.textContent = 'Se caută automat subtitrarea în română…';
+    const params = new URLSearchParams({ tmdb_id: state.id, type: state.type, season: String(state.season || 1), episode: String(state.episode || 1), languages: 'ro' });
+    const searchResponse = await fetch(`/api/subtitles/search?${params}`);
+    const searchText = await searchResponse.text();
+    let searchPayload = {};
+    try { searchPayload = JSON.parse(searchText); } catch { throw new Error('Căutarea online a subtitrărilor nu este disponibilă pe această versiune live.'); }
+    if (!searchResponse.ok) throw new Error(searchPayload.error || 'Căutarea online nu este disponibilă.');
+    subtitleResults = (searchPayload.data || []).flatMap(item => (item.attributes?.files || []).map(file => ({ id:file.file_id, language:item.attributes.language, release:item.attributes.release || 'Subtitrare', downloads:item.attributes.download_count || 0 })));
+    selectedSubtitleFileId = subtitleResults[0]?.id || null;
+    if (!selectedSubtitleFileId) { if (status) status.textContent = 'Nu am găsit automat subtitrare în română pentru acest titlu.'; return; }
+    const content = cachedContent || await (async () => {
+      const contentResponse = await fetch(`/api/subtitles/content?file_id=${encodeURIComponent(selectedSubtitleFileId)}`);
+      if (!contentResponse.ok) throw new Error('Subtitrarea nu a putut fi descărcată.');
+      return contentResponse.text();
+    })();
+    if (token !== subtitleAutoToken || loadToken !== playerLoadToken) return;
+    subtitleCues = parseSubtitles(content); subtitleOffset = 0;
+    try { localStorage.setItem(cacheKey, content); } catch {}
+    updateSubtitleDisplay();
+    if (status) status.textContent = `Subtitrarea română a fost încărcată automat (${subtitleCues.length} replici).`;
+  } catch (error) {
+    if (token === subtitleAutoToken && loadToken === playerLoadToken && $('subtitle-status')) $('subtitle-status').textContent = error.message || 'Căutarea automată a subtitrării a eșuat.';
+  }
 }
 function setupOwnControls() {
   $('own-play').addEventListener('click', toggleOwnPlayback);
@@ -873,6 +906,7 @@ function loadPlayer() {
   }, 12000);
   syncUrl();
   savePlaybackProgress();
+  autoLoadRomanianSubtitle(loadToken);
   if (state.title) updateTitleBar();
 }
 
