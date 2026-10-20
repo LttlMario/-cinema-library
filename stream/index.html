@@ -244,6 +244,17 @@
     .player-details p { margin:.5rem 0; color:var(--muted); line-height:1.55; font-size:.86rem; }
     .player-details-meta { color:var(--muted); font-size:.8rem; }
     @media (max-width:560px){.player-details{grid-template-columns:90px 1fr}.player-details img{width:90px}.player-action{flex:1 1 45%}}
+    body.embedded { overflow:hidden; background:#000; }
+    body.embedded header,
+    body.embedded #tv-panel,
+    body.embedded #servers-panel,
+    body.embedded .player-actions,
+    body.embedded .player-details,
+    body.embedded #player-details,
+    body.embedded .enhancer-panel { display:none !important; }
+    body.embedded main { display:block; width:100vw; max-width:none; height:100vh; padding:0; margin:0; }
+    body.embedded .player-col { width:100vw; height:100vh; }
+    body.embedded .player-wrap { width:100vw; height:100vh; aspect-ratio:auto; margin:0; border:0; border-radius:0; }
     .player-loading {
       position: absolute; inset: 0; display: grid; place-items: center;
       background: var(--bg-elev); z-index: 1; transition: opacity .4s; pointer-events: none;
@@ -1426,6 +1437,7 @@ $('back-btn').addEventListener('click', () => {
 
 /* ─── INIT ─── */
 (async function init() {
+  if (new URLSearchParams(location.search).get('embedded') === '1') document.body.classList.add('embedded');
   state = readParams();
   if (!state) {
     $('main').innerHTML = `
