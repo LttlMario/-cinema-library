@@ -2101,7 +2101,7 @@ $('modal-watch-btn').addEventListener('click', () => {
     tflix.searchParams.set('id', String(currentModalItem.id));
     tflix.searchParams.set('season', String(s));
     tflix.searchParams.set('episode', String(e));
-    tflix.searchParams.set('return', `${window.location.origin}${window.location.pathname}?app=tv&v=20261021-cinema-catalog`);
+    tflix.searchParams.set('return', `${window.location.origin}${window.location.pathname}?app=tv&v=20261021-cinema-catalog&reopen=1&type=${encodeURIComponent(mediaOf(currentModalItem))}&id=${encodeURIComponent(currentModalItem.id)}&season=${s}&episode=${e}`);
     closeModal(true);
     window.parent.postMessage({ type: 'open-in-tv-browser', url: tflix.href }, '*');
     return;
@@ -2376,6 +2376,29 @@ $('clear-filters').addEventListener('click', () => {
   // Load franchise rows after the core homepage starts rendering, so the
   // curated chronology enriches the page without delaying the first paint.
   if (!isTvMode) for (const cfg of FRANCHISE_ROWS) loadFranchiseRow(cfg);
+
+  // When TFlix was opened from a catalog popup, its Back/X action returns to
+  // this URL. Rehydrate the same title popup instead of dropping the user on
+  // the home page.
+  const reopen = new URLSearchParams(window.location.search);
+  if (reopen.get('reopen') === '1' && reopen.get('id')) {
+    try {
+      const type = reopen.get('type') === 'tv' ? 'tv' : 'movie';
+      const item = await tmdb(`/${type}/${encodeURIComponent(reopen.get('id'))}`);
+      item.media_type = type;
+      await openModal(item);
+      const season = Number(reopen.get('season')) || 1;
+      const episode = Number(reopen.get('episode')) || 1;
+      if (type === 'tv') {
+        const seasonSel = $('season-select');
+        if (seasonSel) seasonSel.value = String(season);
+        const epSel = $('episode-select');
+        if (epSel) epSel.value = String(episode);
+      }
+    } catch (error) {
+      console.warn('Could not restore the title popup:', error);
+    }
+  }
 })();
 </script>
 
