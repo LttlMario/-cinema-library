@@ -714,6 +714,9 @@ let subtitleFallbackTimer = 0;
 let subtitleDisplayTimer = 0;
 let providerTimeSignals = 0;
 let resumePromptShown = false;
+let resumeDecision = null;
+let resumePlayerReady = false;
+let resumeDecisionAppliedToken = 0;
 let watchCheckTimer = 0;
 let watchCheckShown = false;
 const WATCH_CHECK_IDLE_MS = 2 * 60 * 60 * 1000;
@@ -1057,6 +1060,8 @@ function loadPlayer() {
   if (recommendationPanel) recommendationPanel.hidden = true;
   const serverId = state.server;
   const loadToken = ++playerLoadToken;
+  resumePlayerReady = false;
+  resumeDecisionAppliedToken = 0;
   const src = serverUrlResolvers[state.server](state);
   const loader = $('player-loading');
   loader.classList.remove('hide');
@@ -1093,7 +1098,12 @@ function loadPlayer() {
   frame.src = src;
   old.replaceWith(frame);
   ownPaused = true;
-  resumePromptShown = false;
+  // The resume choice is displayed before this iframe is created. Preserve
+  // it while the provider loads and apply it only after the provider is ready.
+  if (!hasResumeAvailable()) {
+    resumePromptShown = false;
+    resumeDecision = null;
+  }
   watchCheckShown = false;
   stopWatchCheckTimer();
   $('watch-check-prompt').hidden = true;
@@ -1127,6 +1137,52 @@ function loadPlayer() {
   savePlaybackProgress();
   autoLoadRomanianSubtitle(loadToken);
   if (state.title) updateTitleBar();
+}
+
+function hasResumeAvailable() {
+  return Number(state?.resumeAt) > 10;
+}
+
+function prepareResumeChoice() {
+  const prompt = $('resume-prompt');
+  if (!prompt || !hasResumeAvailable() || resumePromptShown) return;
+  resumePromptShown = true;
+  resumeDecision = null;
+  ownPaused = true;
+  stopWatchCheckTimer();
+  stopSubtitleFallbackClock();
+  prompt.hidden = false;
+  $('resume-prompt-text').textContent = `Ai ajuns aproximativ la minutul ${Math.floor(state.resumeAt / 60)}. Continui de unde ai rămas sau începi de la început?`;
+  const focusPrompt = () => document.dispatchEvent(new CustomEvent('rioma:focus-resume'));
+  focusPrompt();
+  window.setTimeout(focusPrompt, 0);
+  window.setTimeout(focusPrompt, 180);
+  $('resume-continue').onclick = () => {
+    resumeDecision = 'continue';
+    prompt.hidden = true;
+    applyResumeDecision();
+    togglePlayerFullscreen();
+  };
+  $('resume-restart').onclick = () => {
+    resumeDecision = 'restart';
+    state.resumeAt = 0;
+    clearPlaybackProgress();
+    prompt.hidden = true;
+    applyResumeDecision();
+    togglePlayerFullscreen();
+  };
+}
+
+function applyResumeDecision() {
+  if (!resumePlayerReady || !resumeDecision || resumeDecisionAppliedToken === playerLoadToken) return;
+  resumeDecisionAppliedToken = playerLoadToken;
+  if (resumeDecision === 'continue') {
+    ownCommand('seek', [Math.floor(state.resumeAt)]);
+    ownCommand('play');
+  } else {
+    ownCommand('seek', [0]);
+    ownCommand('play');
+  }
 }
 
 function savePlaybackProgress() {
@@ -1244,27 +1300,30 @@ window.addEventListener('message', event => {
   const eventType = String(message.type || message.event || payload.event || '').toLowerCase();
   if (eventType === 'cinesrc:ready' || eventType === 'ready') {
     ownPaused = true;
-    const waitingForResumeChoice = Number(state?.resumeAt) > 10 && !resumePromptShown;
+    resumePlayerReady = true;
+    const waitingForResumeChoice = hasResumeAvailable() && !resumeDecision;
     if (waitingForResumeChoice) ownCommand('pause');
     updateOwnControls();
     showOwnControls();
+    if (waitingForResumeChoice) prepareResumeChoice();
+    applyResumeDecision();
     // Samsung WebView may block autoplay on the newly-created cross-origin
     // iframe. Retry only in TV mode; the popup Redă action is the user's
     // gesture that should start playback, while the resume prompt can still
     // pause it again once metadata and duration arrive.
-    if (document.body.classList.contains('tv-mode') && !waitingForResumeChoice) {
+    if (document.body.classList.contains('tv-mode') && !waitingForResumeChoice && !resumeDecision) {
       const readyToken = playerLoadToken;
       [0, 250, 800, 1600].forEach(delay => window.setTimeout(() => {
         if (readyToken === playerLoadToken && ownPaused) ownCommand('play');
       }, delay));
     }
   } else if (eventType === 'cinesrc:play' || eventType === 'play') {
-    if (Number(state?.resumeAt) > 10 && !resumePromptShown) {
+    if (hasResumeAvailable() && !resumeDecision) {
       ownPaused = true;
       ownCommand('pause');
       stopSubtitleFallbackClock();
       updateOwnControls();
-      if (ownDuration) showResumeChoice();
+      prepareResumeChoice();
       return;
     }
     ownPaused = false;
@@ -1283,13 +1342,14 @@ window.addEventListener('message', event => {
     stopSubtitleFallbackClock();
     ownCurrentTime = Number(payload.currentTime ?? payload.player_progress) || 0;
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
-    if (Number(state?.resumeAt) > 10 && !resumePromptShown) {
+    if (hasResumeAvailable() && !resumeDecision) {
       ownPaused = true;
       ownCommand('pause');
+      prepareResumeChoice();
     }
     updateOwnControls();
     updateSubtitleDisplay(ownCurrentTime);
-    showResumeChoice();
+    applyResumeDecision();
   } else if (eventType === 'cinesrc:loadedmetadata' || eventType === 'loadedmetadata') {
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
     if (Number(state?.resumeAt) > 10 && !resumePromptShown) {
@@ -1312,7 +1372,7 @@ window.addEventListener('message', event => {
   if (Number.isFinite(duration) && duration > 0 && duration !== ownDuration) {
     ownDuration = duration;
     updateOwnControls();
-    showResumeChoice();
+    applyResumeDecision();
   }
   const remaining = Number.isFinite(progress) && Number.isFinite(duration) && duration > 0 ? duration - progress : null;
   const nearEnd = remaining !== null && remaining <= 60 && remaining >= 0;
@@ -1671,30 +1731,7 @@ function startPlayback() {
   loadPlayer();
 }
 function showResumeChoice() {
-  const prompt = $('resume-prompt');
-  if (resumePromptShown || !prompt || !state?.resumeAt || state.resumeAt < 10 || !ownDuration || state.resumeAt >= ownDuration - 30) return;
-  resumePromptShown = true;
-  ownPaused = true;
-  stopWatchCheckTimer();
-  ownCommand('pause');
-  updateOwnControls();
-  $('resume-prompt-text').textContent = `Ai ajuns aproximativ la minutul ${Math.floor(state.resumeAt / 60)}.`;
-  prompt.hidden = false;
-  document.dispatchEvent(new CustomEvent('rioma:focus-resume'));
-  $('resume-continue').onclick = () => {
-    prompt.hidden = true;
-    ownCommand('seek', [Math.floor(state.resumeAt)]);
-    ownCommand('play');
-    togglePlayerFullscreen();
-  };
-  $('resume-restart').onclick = () => {
-    state.resumeAt = 0;
-    clearPlaybackProgress();
-    prompt.hidden = true;
-    ownCommand('seek', [0]);
-    ownCommand('play');
-    togglePlayerFullscreen();
-  };
+  prepareResumeChoice();
 }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtDate(d){
@@ -1776,6 +1813,10 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
     toast(state.subtitle === 'ro' ? 'Subtitrarea română este activă' : 'Preferința de subtitrare a fost salvată');
   });
   buildServers();
+
+  // Ask before creating the provider iframe. The selected action is held in
+  // memory and applied only after the provider sends its ready event.
+  prepareResumeChoice();
 
   // Start the preferred player immediately. TMDB metadata loads in parallel,
   // so the video does not wait for title details, posters, or episode lists.
