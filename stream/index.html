@@ -187,9 +187,10 @@
     .next-episode-action { position:absolute; right:1rem; bottom:5.35rem; z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
     .next-episode-action:hover { background:var(--accent); color:#fff; }
     .player-fullscreen-action { position:absolute; right:.85rem; bottom:1.15rem; z-index:7; display:grid; place-items:center; width:42px; height:38px; padding:0; border:1px solid rgba(255,255,255,.42); border-radius:8px; background:rgba(10,10,14,.9); color:#fff; cursor:pointer; opacity:.92; box-shadow:0 4px 16px rgba(0,0,0,.5); transition:opacity .22s ease, transform .22s ease, background .18s ease, border-color .18s ease; }
-    .player-wrap.controls-idle .player-fullscreen-action { opacity:0; pointer-events:none; transform:translateY(8px); }
-    /* A cross-origin player iframe owns mousemove events in its own document.
-       Keep our fullscreen control available above it in normal browsers too. */
+    /* The cross-origin player iframe owns mouse events, so a hidden overlay
+       control cannot be revealed by moving the mouse over the video. Keep
+       our control permanently available above the player in every mode. */
+    .player-wrap.controls-idle .player-fullscreen-action,
     .player-wrap:fullscreen .player-fullscreen-action,
     .player-wrap:-webkit-full-screen .player-fullscreen-action,
     .player-wrap:-moz-full-screen .player-fullscreen-action { opacity:.92; pointer-events:auto; transform:none; }
