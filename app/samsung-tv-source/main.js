@@ -140,7 +140,7 @@
     loaded = false;
     loading.hidden = false;
     error.hidden = true;
-    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-rioma-controls';
+    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-rioma-lab-controls';
     window.setTimeout(showError, 12000);
   }
 
