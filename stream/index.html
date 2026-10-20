@@ -634,6 +634,8 @@ let subtitleOffset = 0;
 let subtitleResults = [];
 let selectedSubtitleFileId = null;
 let subtitleAutoToken = 0;
+let subtitleFallbackTimer = 0;
+let providerTimeSignals = 0;
 const OWN_QUALITY_KEY = 'cinemalibrary_player_quality_v1';
 const OWN_PICTURE_KEY = 'cinemalibrary_player_picture_v1';
 
@@ -714,6 +716,20 @@ function updateSubtitleDisplay(currentTime = ownCurrentTime) {
   const cue = subtitleCues.find(item => time + subtitleOffset >= item.start && time + subtitleOffset <= item.end);
   text.textContent = cue?.text || '';
   layer.hidden = !cue;
+}
+function stopSubtitleFallbackClock() {
+  if (subtitleFallbackTimer) { clearInterval(subtitleFallbackTimer); subtitleFallbackTimer = 0; }
+}
+function startSubtitleFallbackClock(loadToken) {
+  stopSubtitleFallbackClock();
+  const startedAt = performance.now();
+  const startTime = ownCurrentTime;
+  subtitleFallbackTimer = window.setInterval(() => {
+    if (loadToken !== playerLoadToken || providerTimeSignals > 0) { stopSubtitleFallbackClock(); return; }
+    ownCurrentTime = startTime + (performance.now() - startedAt) / 1000;
+    updateOwnControls();
+    updateSubtitleDisplay(ownCurrentTime);
+  }, 250);
 }
 function clearOwnSubtitles() { subtitleCues = []; subtitleOffset = 0; $('subtitle-layer').hidden = true; if ($('subtitle-status')) $('subtitle-status').textContent = 'Subtitrarea a fost oprită.'; }
 function toggleSubtitlePanel() { const panel = $('subtitle-panel'); if (!panel) return; panel.hidden = !panel.hidden; showOwnControls(); }
@@ -891,6 +907,8 @@ function loadPlayer() {
   frame.src = src;
   old.replaceWith(frame);
   ownPaused = true;
+  providerTimeSignals = 0;
+  stopSubtitleFallbackClock();
   ownMuted = false;
   ownCurrentTime = 0;
   ownDuration = 0;
@@ -898,6 +916,17 @@ function loadPlayer() {
   applyEnhancer();
   applyOwnPicture(localStorage.getItem(OWN_PICTURE_KEY) || 'standard');
   showOwnControls();
+  // Some versions of the embedded source autoplay correctly but do not emit
+  // timeupdate messages to the parent. Start a temporary local clock so the
+  // automatically loaded subtitle still appears; a real provider event takes
+  // over immediately when available.
+  window.setTimeout(() => {
+    if (loadToken === playerLoadToken && providerTimeSignals === 0) {
+      ownPaused = false;
+      updateOwnControls();
+      startSubtitleFallbackClock(loadToken);
+    }
+  }, 1500);
 
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
@@ -971,13 +1000,17 @@ window.addEventListener('message', event => {
     showOwnControls();
   } else if (eventType === 'cinesrc:play' || eventType === 'play') {
     ownPaused = false;
+    if (!providerTimeSignals) startSubtitleFallbackClock(playerLoadToken);
     updateOwnControls();
     showOwnControls();
   } else if (eventType === 'cinesrc:pause' || eventType === 'pause') {
     ownPaused = true;
+    stopSubtitleFallbackClock();
     updateOwnControls();
     showOwnControls();
   } else if (eventType === 'cinesrc:timeupdate' || eventType === 'timeupdate') {
+    providerTimeSignals += 1;
+    stopSubtitleFallbackClock();
     ownCurrentTime = Number(payload.currentTime ?? payload.player_progress) || 0;
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
     updateOwnControls();
