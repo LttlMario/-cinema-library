@@ -72,6 +72,8 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
+    body.tv-mode { scroll-behavior: auto !important; }
+    body.tv-mode::after { display: none; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
@@ -1711,7 +1713,7 @@ $('player-back-action').addEventListener('click', returnToPopupFromPlayer);
     cur = el;
     el.classList.add('kf');
     if (el.tagName === 'SELECT' || el.tagName === 'BUTTON' || el.tagName === 'INPUT') el.focus({ preventScroll: true });
-    if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    if (scroll) el.scrollIntoView({ behavior: document.body.classList.contains('tv-mode') ? 'auto' : 'smooth', block: 'center', inline: 'nearest' });
   }
 
   function getSections() {
