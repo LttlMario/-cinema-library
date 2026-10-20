@@ -647,7 +647,9 @@ function loadPlayer() {
     if (loadToken !== playerLoadToken || settled) return;
     loader.classList.add('hide');
     loader.setAttribute('aria-hidden', 'true');
-    fail();
+    // Do not replace a slow cross-origin player automatically. Some providers
+    // keep the iframe loading while their consent/ad layer initializes; doing
+    // an automatic failover here reloads the player and repeats the ad.
   }, 12000);
   syncUrl();
   savePlaybackProgress();
