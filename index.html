@@ -1701,7 +1701,7 @@ async function scheduleModalTrailer(item) {
   const frame = $('modal-trailer-frame');
   const panel = $('modal-trailer');
   if (!frame || !panel) return;
-  frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(trailer.key)}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`;
+  frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(trailer.key)}?autoplay=1&mute=1&playsinline=1&controls=0&disablekb=1&iv_load_policy=3&rel=0&modestbranding=1`;
   panel.hidden = false;
 }
 
