@@ -1076,6 +1076,8 @@ function loadPlayer() {
   const frame = document.createElement('iframe');
   frame.id = 'player';
   frame.allowFullscreen = true;
+  frame.loading = 'eager';
+  frame.setAttribute('fetchpriority', 'high');
   // Use "*" so the fullscreen permission cascades to nested cross-origin
   // The Cinema Player may load the media layer inside a nested iframe.
   frame.setAttribute('allow', 'autoplay *; encrypted-media *; picture-in-picture *; fullscreen *; web-share *');
