@@ -142,7 +142,7 @@
     loaded = false;
     loading.hidden = false;
     error.hidden = true;
-    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-video-layer-v1';
+    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-picture-safe-v1';
     window.setTimeout(showError, 12000);
   }
 
