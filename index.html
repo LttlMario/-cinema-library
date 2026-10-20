@@ -115,6 +115,7 @@
     html.tv-mode .search-toggle,
     html.tv-mode #theme-toggle,
     html.tv-mode #contribute-btn { min-width: 52px; min-height: 52px; }
+    html.tv-mode #contribute-btn { display: none !important; }
     html.tv-mode .hero-title { font-size: clamp(2.6rem, 5vw, 5.2rem); }
     html.tv-mode .row-title { font-size: 1.55rem; }
     html.tv-mode .card-info-title { font-size: .98rem; }
@@ -1412,6 +1413,7 @@ function libraryUpsert(key, item, extra = {}) {
 function rememberTitle(item) {
   libraryUpsert(LIBRARY_KEYS.history, item);
   renderLibraryRows();
+  loadPersonalizedRow();
 }
 
 function isFavorite(item) {
@@ -1473,6 +1475,43 @@ function renderLibraryRows() {
     items.slice(0, 12).forEach(entry => scroller.appendChild(makeCard(entry, { removeKey: section.clearable ? section.key : null })));
     container.prepend(row);
   });
+}
+
+
+async function loadPersonalizedRow() {
+  document.querySelector('.personalized-row')?.remove();
+  const history = libraryRead(LIBRARY_KEYS.history);
+  if (!history.length) return;
+  const counts = new Map();
+  history.forEach(item => (item.genre_ids || []).forEach(id => {
+    const genreId = Number(id);
+    if (Number.isFinite(genreId)) counts.set(genreId, (counts.get(genreId) || 0) + 1);
+  }));
+  const genres = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id]) => id);
+  if (!genres.length) return;
+  const requests = ['movie', 'tv'].map(type => {
+    const query = `with_genres=${genres.join('|')}&sort_by=popularity.desc&vote_count.gte=20&include_adult=false&page=1`;
+    return tmdb(`/discover/${type}?${query}`);
+  });
+  const results = await Promise.allSettled(requests);
+  const watched = new Set(history.map(libraryKey));
+  const seen = new Set();
+  const items = results.flatMap(result => result.status === 'fulfilled' ? (result.value.results || []) : [])
+    .map(item => ({ ...item, media_type: item.media_type || (item.title ? 'movie' : 'tv') }))
+    .filter(item => {
+      const key = libraryKey(item);
+      if (!item.poster_path || watched.has(key) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+    .slice(0, 25);
+  if (!items.length) return;
+  const scroller = buildRow({ title: 'S-ar putea să-ți placă', subtitle: 'Bazat pe ceea ce ai vizionat' });
+  const row = scroller.closest('.row');
+  row.classList.add('personalized-row');
+  scroller.innerHTML = '';
+  items.forEach(item => scroller.appendChild(makeCard(item)));
 }
 
 $('favorites-nav').addEventListener('click', () => {
@@ -2018,6 +2057,7 @@ $('modal-watched-btn').addEventListener('click', () => {
   $('modal-watched-btn').setAttribute('aria-pressed', 'true');
   toast('Titlul a fost marcat ca văzut.');
   renderLibraryRows();
+  loadPersonalizedRow();
 });
 
 $('modal-report-btn').addEventListener('click', () => {
@@ -2228,6 +2268,7 @@ $('clear-filters').addEventListener('click', () => {
 /* ─── INIT ─── */
 (async function init() {
   renderLibraryRows();
+  loadPersonalizedRow();
   await Promise.all([loadGenres(), loadHero(), loadTop10()]);
   populateAdvancedFilters();
   for (const cfg of CATEGORY_ROWS) loadRow(cfg);
