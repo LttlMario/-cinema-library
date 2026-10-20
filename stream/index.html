@@ -1756,18 +1756,9 @@ function toast(msg){
 const HOME_URL = new URL('../', document.baseURI).href;
 $('logo').addEventListener('click', () => { location.href = HOME_URL; });
 function navigateBackFromPlayer() {
-  const wrap = $('player-wrap');
-  const fullscreen = document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap;
-  if (fullscreen) {
-    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
-    return;
-  }
-  if (window.parent !== window) {
-    window.parent.postMessage({ type: 'rioma:close' }, '*');
-    return;
-  }
-  if (history.length > 1 && document.referrer.includes(location.host)) history.back();
-  else location.href = HOME_URL;
+  // A single Back action must leave fullscreen and return to the title popup,
+  // including when the key comes from the Samsung TV wrapper.
+  returnToPopupFromPlayer();
 }
 $('back-btn').addEventListener('click', navigateBackFromPlayer);
 function returnToPopupFromPlayer() {
