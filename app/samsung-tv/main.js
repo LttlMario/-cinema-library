@@ -104,6 +104,8 @@
     } else if (EXIT_KEYS[keyCode]) {
       event.preventDefault();
       exitApplication();
+    } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].indexOf(event.key) !== -1) {
+      try { frame.contentWindow.postMessage({ type: 'cinema:remote-key', key: event.key }, '*'); } catch (_) {}
     }
   }
 
@@ -140,7 +142,7 @@
     loaded = false;
     loading.hidden = false;
     error.hidden = true;
-    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-remote-focus-v1';
+    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-remote-key-v1';
     window.setTimeout(showError, 12000);
   }
 
