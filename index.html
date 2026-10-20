@@ -114,7 +114,6 @@
     html.tv-mode .genre-btn { font-size: 1rem; padding: .72rem 1.1rem; }
     html.tv-mode .search-toggle,
     html.tv-mode #theme-toggle,
-    html.tv-mode #server-btn,
     html.tv-mode #contribute-btn { min-width: 52px; min-height: 52px; }
     html.tv-mode .hero-title { font-size: clamp(2.6rem, 5vw, 5.2rem); }
     html.tv-mode .row-title { font-size: 1.55rem; }
@@ -240,40 +239,6 @@
       .contribute-btn { padding: 0.45rem 0.6rem; }
     }
 
-    .server-wrap { position: relative; flex-shrink: 0; }
-    .server-btn {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.45rem 0.85rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--line); border-radius: 99px;
-      color: var(--text); font-size: 0.8rem; font-weight: 600;
-      cursor: pointer; white-space: nowrap; transition: background .2s, border-color .2s;
-    }
-    .server-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
-    .server-btn .s-live { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
-    .server-btn svg { flex-shrink: 0; opacity: .7; }
-
-    .server-menu {
-      position: absolute; top: calc(100% + 10px); right: 0;
-      min-width: 210px; background: var(--bg-elev);
-      border: 1px solid var(--line); border-radius: 12px;
-      box-shadow: var(--shadow); overflow: hidden; display: none; z-index: 400;
-    }
-    .server-menu.open { display: block; animation: pop .18s var(--ease); }
-    .server-menu-header {
-      padding: 0.7rem 1rem; font-size: 0.66rem; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
-      border-bottom: 1px solid var(--line);
-    }
-    .server-item {
-      display: flex; align-items: center; gap: 0.7rem;
-      padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; font-weight: 500;
-      transition: background .15s;
-    }
-    .server-item:hover { background: var(--card-h); }
-    .server-item.active { color: #fff; }
-    .server-item.active .s-dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-    .s-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: .15s; }
 
     @keyframes pop { from { opacity: 0; transform: translateY(-8px) scale(.97); } to { opacity: 1; transform: none; } }
 
@@ -763,24 +728,6 @@
       -webkit-text-stroke-color: var(--accent);
       text-shadow: 0 0 40px rgba(229,9,20,0.35);
     }
-    .tv-pointer-cursor {
-      position: fixed; left: 0; top: 0; width: 34px; height: 34px;
-      display: none; place-items: center; pointer-events: none; z-index: 10001;
-      color: #fff; font: 900 27px/1 Arial, sans-serif;
-      text-shadow: 0 2px 5px #000, 0 0 4px #000;
-      filter: drop-shadow(0 0 5px rgba(229,9,20,.95));
-      transition: left .06s ease-out, top .06s ease-out;
-      will-change: left, top;
-    }
-    .tv-pointer-cursor::before { content: '◀'; transform: none; }
-    html.tv-mode.keynav .tv-pointer-cursor { display: grid; }
-    html.tv-mode.free-pointer .tv-pointer-cursor { display: grid; }
-    html.tv-mode.free-pointer .tv-pointer-hover {
-      outline: 4px solid var(--accent-h) !important;
-      outline-offset: 4px;
-      box-shadow: 0 0 0 8px rgba(229,9,20,.22), 0 14px 34px rgba(0,0,0,.65) !important;
-    }
-
     /* ─────────────── RESPONSIVE ─────────────── */
     @media (max-width: 860px) {
       .home-mobile-menu { display:grid; }
@@ -795,7 +742,6 @@
     }
     @media (max-width: 560px) {
       .logo { font-size: 1.35rem; }
-      .server-btn span.s-name { display: none; }
       .btn { padding: 0.7rem 1.4rem; font-size: 0.9rem; }
       .modal-body { padding: 1.2rem 1.3rem 1.5rem; }
       .modal-footer { padding: 0.85rem 1.3rem 1.1rem; }
@@ -844,16 +790,6 @@
     </a>
     <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activează tema deschisă" title="Schimbă tema">☼</button>
 
-    <div class="server-wrap">
-      <button class="server-btn" id="server-btn">
-        <span class="s-live"></span>
-        <span class="s-name" id="server-label">Rakan</span>
-        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-      <div class="server-menu" id="server-menu">
-        <div class="server-menu-header">Playere de streaming</div>
-      </div>
-    </div>
   </div>
 </header>
 
@@ -1004,14 +940,7 @@ const HEADERS = {
   'accept': 'application/json'
 };
 
-const SERVERS = [
-  { name: 'Rakan',   id: 1 },
-  { name: 'Bard',    id: 2 },
-  { name: 'Xayah',   id: 3 },
-  { name: 'Ekko',    id: 4 },
-  { name: 'Naafiri', id: 5 },
-  { name: 'Ryze',    id: 6 },
-];
+const CINEMA_PLAYER_ID = 3;
 
 const CURRENT_YEAR = new Date().getFullYear();
 const CATEGORY_ROWS = [
@@ -1023,11 +952,6 @@ const CATEGORY_ROWS = [
 ];
 
 /* ─── STATE ─── */
-const STORAGE_KEY = 'cinemalibrary_server_v2';
-let currentServer = (() => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  return saved ? parseInt(saved, 10) : 3;
-})();
 let currentFilter = 'all';
 let searchResults = [];
 let searchRequestId = 0;
@@ -1174,11 +1098,6 @@ function updateActiveNav() {
 
 window.addEventListener('scroll', updateActiveNav, { passive: true });
 
-/* ─── SERVER DROPDOWN ─── */
-const serverMenu  = $('server-menu');
-const serverBtn   = $('server-btn');
-const serverLabel = $('server-label');
-
 const genreMenu = $('genre-menu');
 const genreBtn = $('genre-btn');
 if (genreMenu && genreBtn) {
@@ -1204,39 +1123,14 @@ document.querySelectorAll('[data-menu]').forEach(button => button.addEventListen
 }));
 document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach(x => x.classList.remove('open')));
 
-if (!serverMenu.dataset.sharedPopulated) {
-serverMenu.dataset.sharedPopulated = 'true';
-SERVERS.forEach(s => {
-  const el = document.createElement('div');
-  el.className = 'server-item' + (s.id === currentServer ? ' active' : '');
-  el.dataset.id = s.id;
-  el.innerHTML = `<div class="s-dot"></div><span>${esc(s.name)}</span>`;
-  el.addEventListener('click', () => {
-    currentServer = s.id;
-    localStorage.setItem(STORAGE_KEY, s.id);
-    serverLabel.textContent = s.name;
-    document.querySelectorAll('.server-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-    serverMenu.classList.remove('open');
-    toast(`Now streaming from ${s.name}`);
-  });
-  serverMenu.appendChild(el);
-});
-}
-
-const savedServer = SERVERS.find(s => s.id === currentServer) || SERVERS[0];
-serverLabel.textContent = savedServer.name;
-
-serverBtn.addEventListener('click', e => { e.stopPropagation(); serverMenu.classList.toggle('open'); });
 document.addEventListener('click', () => {
-  serverMenu.classList.remove('open');
   if (genreMenu) genreMenu.classList.remove('open');
   if (genreBtn) genreBtn.setAttribute('aria-expanded', 'false');
 });
 
 /* ─── PLAYER URL ─── */
 function playerUrl(item, season = 1, episode = 1) {
-  const p = new URLSearchParams({ server: currentServer });
+  const p = new URLSearchParams({ server: CINEMA_PLAYER_ID });
   p.set('tv', '1');
   const type = mediaOf(item);
   if (type === 'movie') {
@@ -1934,16 +1828,8 @@ $('modal-watch-btn').addEventListener('click', () => {
   }
   libraryUpsert(LIBRARY_KEYS.progress, currentModalItem, { season: s, episode: e });
   const destination = new URL(playerUrl(currentModalItem, s, e), document.baseURI);
-  destination.searchParams.set('external', '1');
-  const tvMode = new URLSearchParams(window.location.search).get('tv') === '1'
-    || sessionStorage.getItem('cinemalibrary_tv_mode') === '1';
-  if (tvMode && window.parent !== window) {
-    // The Samsung wrapper is a local file:// document, so its origin is not
-    // the GitHub Pages origin. The wrapper validates event.origin itself.
-    window.parent.postMessage({ type: 'open-in-tv-browser', url: destination.href }, '*');
-    toast('Se deschide playerul în Internet…');
-    return;
-  }
+  // Rioma stays inside the Cinema Library app, including on Samsung TV.
+  // Do not hand playback off to the external TV browser.
   window.location.href = destination.href;
 });
 
@@ -2193,19 +2079,8 @@ $('clear-filters').addEventListener('click', () => {
   let cur = null;        // element the engine currently points at
   let lastCard = null;   // card that opened the modal (refocused on close)
   const mem = new Map(); // section key -> last item index
-  const tvCursor = document.createElement('div');
-  tvCursor.className = 'tv-pointer-cursor';
-  tvCursor.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(tvCursor);
 
   const vis = el => !!(el && el.getClientRects().length);
-
-  function placeTvCursor(el) {
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    tvCursor.style.left = `${Math.max(6, Math.min(window.innerWidth - 40, rect.left - 20))}px`;
-    tvCursor.style.top = `${Math.max(6, Math.min(window.innerHeight - 40, rect.top - 20))}px`;
-  }
 
   function setFocus(el, scroll = true) {
     if (!el) return;
@@ -2216,7 +2091,6 @@ $('clear-filters').addEventListener('click', () => {
     }
     cur = el;
     el.classList.add('kf');
-    placeTvCursor(el);
     const rp = el.closest('.rank-card');
     if (rp) rp.classList.add('kf-parent');
     // Real focus only where native behaviour needs it (selects open their
@@ -2225,7 +2099,6 @@ $('clear-filters').addEventListener('click', () => {
     if (el.tagName === 'SELECT' || el.tagName === 'BUTTON' || el.tagName === 'INPUT') el.focus({ preventScroll: true });
     else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
     if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-    requestAnimationFrame(() => placeTvCursor(el));
   }
 
   function getSections() {
@@ -2237,10 +2110,6 @@ $('clear-filters').addEventListener('click', () => {
       s.push({ key: null, items: [$('modal-watch-btn'), $('modal-favorite-btn'), $('modal-later-btn'), $('official-link')].filter(vis) });
       return s;
     }
-    // Server dropdown open → trap focus on its items (one per "section",
-    // so Up/Down walks the vertical list)
-    if (serverMenu.classList.contains('open'))
-      return [...serverMenu.querySelectorAll('.server-item')].map(i => ({ key: null, items: [i] }));
     if (genreMenu && genreMenu.classList.contains('open'))
       return [...genreMenu.querySelectorAll('.genre-option')].map(i => ({ key: null, items: [i] }));
 
@@ -2248,7 +2117,7 @@ $('clear-filters').addEventListener('click', () => {
     const header = [
       $('home-mobile-menu'), $('logo'), ...document.querySelectorAll('.nav-link'),
       $('favorites-nav'), genreBtn, $('search-toggle'), searchInput, $('search-clear'),
-      $('contribute-btn'), $('theme-toggle'), serverBtn
+      $('contribute-btn'), $('theme-toggle')
     ].filter(vis);
     if (header.length) secs.push({ key: 'header', items: header });
 
@@ -2338,8 +2207,7 @@ $('clear-filters').addEventListener('click', () => {
     const typing = ae && ae.tagName === 'INPUT';
 
     if (k === 'Escape') {
-      if (serverMenu.classList.contains('open')) { serverMenu.classList.remove('open'); setFocus(serverBtn, false); }
-      else if (typing) ae.blur();
+      if (typing) ae.blur();
       return;                       // modal Escape: the page's own handler closes it
     }
 
@@ -2361,10 +2229,7 @@ $('clear-filters').addEventListener('click', () => {
       const el = cur;
       el.click();
       requestAnimationFrame(() => {
-        if (serverMenu.classList.contains('open'))
-          setFocus(serverMenu.querySelector('.server-item.active') || serverMenu.querySelector('.server-item'), false);
-        else if (el.classList.contains('server-item')) setFocus(serverBtn, false);
-        else if (el.classList.contains('nav-link') && el.dataset.nav && el.dataset.nav !== 'home') {
+        if (el.classList.contains('nav-link') && el.dataset.nav && el.dataset.nav !== 'home') {
           // Jump straight into the row the nav link scrolled to
           const sc = document.querySelector(`.row[data-anchor="${el.dataset.nav}"] .scroller`);
           const first = sc && sc.querySelector('.card');
@@ -2397,70 +2262,6 @@ $('clear-filters').addEventListener('click', () => {
       active = false;
       document.documentElement.classList.remove('keynav');
     }, { passive: true }));
-  window.addEventListener('scroll', () => {
-    if (active && cur) placeTvCursor(cur);
-  }, { passive: true });
-})();
-</script>
-
-<script>
-/* Samsung TV virtual mouse: arrows move freely, OK activates underneath. */
-(function () {
-  if (!document.documentElement.classList.contains('tv-mode')) return;
-  var cursor = document.querySelector('.tv-pointer-cursor');
-  var x = Math.round(window.innerWidth / 2);
-  var y = Math.round(window.innerHeight / 2);
-  var target = null;
-  var speed = 26;
-  var keys = { 37: [-1, 0], 38: [0, -1], 39: [1, 0], 40: [0, 1] };
-
-  function moveCursor(dx, dy) {
-    x = Math.max(4, Math.min(window.innerWidth - 38, x + dx * speed));
-    y = Math.max(4, Math.min(window.innerHeight - 38, y + dy * speed));
-    cursor.style.left = x + 'px';
-    cursor.style.top = y + 'px';
-    if (y < 90) window.scrollBy(0, -45);
-    if (y > window.innerHeight - 90) window.scrollBy(0, 45);
-    updateTarget();
-  }
-
-  function updateTarget() {
-    if (target) target.classList.remove('tv-pointer-hover');
-    var hit = document.elementFromPoint(x + 16, y + 16);
-    target = hit && hit.closest
-      ? hit.closest('button, a, input, select, [role="button"], .card, .nav-link, .genre-btn, .server-item, .server-card, .player-wrap')
-      : null;
-    if (target) target.classList.add('tv-pointer-hover');
-  }
-
-  document.addEventListener('keydown', function (event) {
-    var key = event.key || '';
-    var direction = key === 'ArrowLeft' ? [-1, 0] : key === 'ArrowUp' ? [0, -1] : key === 'ArrowRight' ? [1, 0] : key === 'ArrowDown' ? [0, 1] : keys[event.keyCode];
-    if (direction) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      document.documentElement.classList.add('free-pointer');
-      moveCursor(direction[0], direction[1]);
-      return;
-    }
-    if (key === 'Enter' || event.keyCode === 13) {
-      if (target) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        target.click();
-      }
-    }
-  }, true);
-  window.addEventListener('resize', function () {
-    x = Math.min(x, window.innerWidth - 38);
-    y = Math.min(y, window.innerHeight - 38);
-    updateTarget();
-  });
-  document.addEventListener('mousemove', function () {
-    document.documentElement.classList.remove('free-pointer');
-    if (target) { target.classList.remove('tv-pointer-hover'); target = null; }
-  }, { passive: true });
-  moveCursor(0, 0);
 })();
 </script>
 
@@ -2470,3 +2271,4 @@ $('clear-filters').addEventListener('click', () => {
 <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
+
