@@ -712,7 +712,8 @@ function applyOwnPicture(value) {
   const player = $('player');
   const wrap = $('player-wrap');
   // Tizen's WebView can render a filtered cross-origin iframe as a black surface.
-  if (document.body.classList.contains('tv-mode')) {
+  const isTizenPlayback = document.body.classList.contains('tv-mode') || /Tizen/i.test(navigator.userAgent);
+  if (isTizenPlayback) {
     player.style.filter = 'none';
     wrap.style.filter = 'none';
   } else if (document.body.classList.contains('embedded')) {
