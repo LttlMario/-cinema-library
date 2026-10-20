@@ -77,12 +77,12 @@
 
   function goBack() {
     try {
-      if (frame && frame.contentWindow && frame.contentWindow.history && frame.contentWindow.history.length > 1) {
-        frame.contentWindow.history.back();
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({ type: 'cinema:remote-key', key: 'Back' }, '*');
         return;
       }
     } catch (_) {
-      // Cross-origin history is intentionally protected by the TV browser.
+      // Fall through to the application exit if the embedded page is unavailable.
     }
     exitApplication();
   }
@@ -142,7 +142,7 @@
     loaded = false;
     loading.hidden = false;
     error.hidden = true;
-    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-back-cc-v2';
+    frame.src = 'https://lttlmario.github.io/cinema-library/?tv=1&v=20261020-back-cc-v4';
     window.setTimeout(showError, 12000);
   }
 
