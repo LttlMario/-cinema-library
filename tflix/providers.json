@@ -2,9 +2,10 @@
   {
     "id": "cinema-library-cinesrc",
     "name": "Cinema Library — CineSrc (TMDB)",
-    "description": "Embed provider that resolves movies and series by TMDB ID.",
+    "description": "Provider TMDB pentru filme și seriale.",
     "type": "embed",
     "movieUrl": "https://cinesrc.st/embed/movie/{id}?autoplay=true",
     "tvUrl": "https://cinesrc.st/embed/tv/{id}?s={season}&e={episode}&autoplay=true"
   }
 ]
+
