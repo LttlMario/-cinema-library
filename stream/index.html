@@ -182,7 +182,7 @@
     .enhancer-control output { color:var(--text); font-variant-numeric:tabular-nums; }
     .enhancer-control input { width:100%; accent-color:var(--accent); cursor:pointer; }
     @media (max-width:560px){.enhancer-controls{grid-template-columns:1fr}}
-    .next-episode-action { position:absolute; right:1rem; bottom:5.35rem; z-index:6; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
+    .next-episode-action { position:absolute; right:1rem; bottom:5.35rem; z-index:10; min-width:210px; border-color:rgba(255,255,255,.24); background:rgba(20,20,26,.94); color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.45); white-space:nowrap; text-align:center; }
     .next-episode-action:hover { background:var(--accent); color:#fff; }
     .player-fullscreen-action { position:absolute; right:.85rem; bottom:1.15rem; z-index:7; display:grid; place-items:center; width:42px; height:38px; padding:0; border:1px solid rgba(255,255,255,.42); border-radius:8px; background:rgba(10,10,14,.9); color:#fff; cursor:pointer; opacity:.92; box-shadow:0 4px 16px rgba(0,0,0,.5); transition:opacity .22s ease, transform .22s ease, background .18s ease, border-color .18s ease; }
     /* The cross-origin player iframe owns mouse events, so a hidden overlay
@@ -218,7 +218,7 @@
     #own-quality { min-width:58px; }
     #own-picture { min-width:72px; }
     .custom-controls .control-spacer { margin-left:auto; }
-    .player-hit-area { position:absolute; inset:0; z-index:7; cursor:default; }
+    .player-hit-area { position:absolute; inset:0; z-index:2; cursor:default; }
     .subtitle-layer { position:absolute; left:4%; right:4%; bottom:72px; z-index:9; display:flex; justify-content:center; pointer-events:none; text-align:center; }
     .subtitle-layer[hidden] { display:none; }
     .subtitle-text { max-width:min(92%, 980px); padding:.28em .55em; border-radius:.2em; background:rgba(0,0,0,.78); color:#fff; font-size:clamp(15px, 2.2vw, 27px); line-height:1.25; text-shadow:0 1px 2px #000; white-space:pre-wrap; }
