@@ -2066,6 +2066,10 @@ $('modal-watch-btn').addEventListener('click', () => {
   libraryUpsert(LIBRARY_KEYS.progress, currentModalItem, { season: s, episode: e });
   const destination = new URL(playerUrl(currentModalItem, s, e), document.baseURI);
   destination.searchParams.set('embedded', '1');
+  // Stop and unload the delayed YouTube trailer before opening Rioma. Keeping
+  // it alive behind the overlay causes a small trailer surface to reappear on
+  // Samsung TV WebViews and compete with playback.
+  closeModal(true);
   // Rioma stays inside the Cinema Library app, including on Samsung TV.
   // Do not hand playback off to the external TV browser.
   openRiomaOverlay(destination.href);
