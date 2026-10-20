@@ -564,8 +564,8 @@ const SERVERS = [
 /* Single source used by Rioma. */
 const serverUrlResolvers = {
   3: (p) => p.type === 'movie'
-    ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave${resumeParam(p)}`
-    : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&prioritize=true&lastserver=wave${resumeParam(p)}`
+    ? `https://cinesrc.st/embed/movie/${p.id}?autoplay=true&prioritize=true&lastserver=wave${subtitleParam(p, 'sub')}${resumeParam(p)}`
+    : `https://cinesrc.st/embed/tv/${p.id}?s=${p.season}&e=${p.episode}&autoplay=true&prioritize=true&lastserver=wave${subtitleParam(p, 'sub')}${resumeParam(p)}`
 };
 function subtitleParam(p, key) {
   if (!p.subtitle || p.subtitle === 'auto') return '';
@@ -755,7 +755,7 @@ async function autoLoadRomanianSubtitle(loadToken) {
     const searchResponse = await fetch(`/api/subtitles/search?${params}`);
     const searchText = await searchResponse.text();
     let searchPayload = {};
-    try { searchPayload = JSON.parse(searchText); } catch { throw new Error('Căutarea online a subtitrărilor nu este disponibilă pe această versiune live.'); }
+    try { searchPayload = JSON.parse(searchText); } catch { throw new Error('Româna este solicitată automat de sursa Rioma. Căutarea suplimentară online necesită un backend securizat.'); }
     if (!searchResponse.ok) throw new Error(searchPayload.error || 'Căutarea online nu este disponibilă.');
     subtitleResults = (searchPayload.data || []).flatMap(item => (item.attributes?.files || []).map(file => ({ id:file.file_id, language:item.attributes.language, release:item.attributes.release || 'Subtitrare', downloads:item.attributes.download_count || 0 })));
     selectedSubtitleFileId = subtitleResults[0]?.id || null;
@@ -771,7 +771,7 @@ async function autoLoadRomanianSubtitle(loadToken) {
     updateSubtitleDisplay();
     if (status) status.textContent = `Subtitrarea română a fost încărcată automat (${subtitleCues.length} replici).`;
   } catch (error) {
-    if (token === subtitleAutoToken && loadToken === playerLoadToken && $('subtitle-status')) $('subtitle-status').textContent = error.message || 'Căutarea automată a subtitrării a eșuat.';
+    if (token === subtitleAutoToken && loadToken === playerLoadToken && $('subtitle-status')) $('subtitle-status').textContent = error.message || 'Româna este solicitată automat de sursa Rioma.';
   }
 }
 function setupOwnControls() {
