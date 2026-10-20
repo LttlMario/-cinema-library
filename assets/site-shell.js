@@ -7,10 +7,6 @@
   const page = (path.split('/').pop() || 'index.html').toLowerCase();
   const isHome = page === 'index.html' || page === '';
   const active = page === 'genres.html' ? 'genres' : page === 'watch-together.html' ? 'together' : 'home';
-  const servers = [
-    { name: 'Rakan', id: 1 }, { name: 'Bard', id: 2 }, { name: 'Xayah', id: 3 },
-    { name: 'Ekko', id: 4 }, { name: 'Naafiri', id: 5 }, { name: 'Ryze', id: 6 }
-  ];
   const menus = {
     movies: [['Toate filmele', 'catalog.html?type=movie'], ['Lansări recente', 'catalog.html?type=movie&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=movie&sort=top']],
     series: [['Toate serialele', 'catalog.html?type=tv'], ['Seriale recente', 'catalog.html?type=tv&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=tv&sort=top']],
@@ -28,7 +24,7 @@
   const header = document.createElement('header');
   header.className = 'cinema-shell-header';
   header.id = 'header';
-  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Navigație principală">${navHtml}</nav><button class="library-nav-btn" id="favorites-nav" type="button" title="Deschide favoritele">♥ Favorite</button><div class="nav-right"><div class="search-wrap open" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Caută filme și seriale">⌕</button><input id="search" type="text" placeholder="Caută filme și seriale…" autocomplete="off"><button id="search-clear" type="button" aria-label="Șterge">✕</button></div><a class="contribute-btn" id="contribute-btn" href="contribute.html"><span aria-hidden="true">♥</span><span class="s-name">Contribuie</span></a><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Schimbă tema">☼</button><div class="server-wrap"><button class="server-btn" id="server-btn" type="button"><span class="s-live"></span><span class="s-name" id="server-label">Xayah</span><span aria-hidden="true">⌄</span></button><div class="server-menu" id="server-menu"><div class="server-menu-header">Playere de streaming</div></div></div></div>`;
+  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Navigație principală">${navHtml}</nav><button class="library-nav-btn" id="favorites-nav" type="button" title="Deschide favoritele">♥ Favorite</button><div class="nav-right"><div class="search-wrap open" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Caută filme și seriale">⌕</button><input id="search" type="text" placeholder="Caută filme și seriale…" autocomplete="off"><button id="search-clear" type="button" aria-label="Șterge">✕</button></div><a class="contribute-btn" id="contribute-btn" href="contribute.html"><span aria-hidden="true">♥</span><span class="s-name">Contribuie</span></a><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Schimbă tema">☼</button></div>`;
   document.body.prepend(header);
   if (!isHome && main && !document.querySelector('.shell-hero')) {
     const hero = document.createElement('section'); hero.className = 'shell-hero'; hero.setAttribute('aria-label', 'Titluri populare');
@@ -50,11 +46,8 @@
   const search = document.getElementById('search'); search.onkeydown = (event) => { if (event.key === 'Enter' && search.value.trim()) location.href = appUrl(`index.html?search=${encodeURIComponent(search.value.trim())}`); };
   document.getElementById('search-clear').onclick = () => { search.value = ''; search.focus(); };
   document.querySelectorAll('[data-shell-menu]').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); const menu = document.getElementById(`shell-${button.dataset.shellMenu}`); document.querySelectorAll('.nav-submenu.open').forEach((item) => { if (item !== menu) item.classList.remove('open'); }); menu.classList.toggle('open'); }));
-  document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open,.server-menu.open').forEach((item) => item.classList.remove('open')));
-  const serverButton = document.getElementById('server-btn'), serverMenu = document.getElementById('server-menu'), serverLabel = document.getElementById('server-label');
-  const stored = Number(localStorage.getItem('cinemalibrary_server_v2')) || 3; const selected = servers.find((server) => server.id === stored) || servers[2]; serverLabel.textContent = selected.name;
-  if (!isHome) servers.forEach((server) => { const item = document.createElement('button'); item.type = 'button'; item.className = `server-item${server.id === selected.id ? ' active' : ''}`; item.dataset.id = server.id; item.textContent = server.name; item.onclick = () => { localStorage.setItem('cinemalibrary_server_v2', String(server.id)); serverLabel.textContent = server.name; serverMenu.classList.remove('open'); serverMenu.querySelectorAll('.server-item').forEach((entry) => entry.classList.toggle('active', entry === item)); }; serverMenu.append(item); });
-  serverButton.onclick = (event) => { event.stopPropagation(); serverMenu.classList.toggle('open'); };
+  document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach((item) => item.classList.remove('open')));
   const mobileToggle = document.getElementById('home-mobile-menu'), navElement = document.getElementById('home-nav'); mobileToggle.onclick = (event) => { event.stopPropagation(); const open = navElement.classList.toggle('mobile-open'); mobileToggle.setAttribute('aria-expanded', String(open)); }; navElement.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => navElement.classList.remove('mobile-open')));
   }
 })();
+
