@@ -237,7 +237,7 @@
     #own-picture { min-width:72px; }
     .custom-controls .control-spacer { margin-left:auto; }
     .player-hit-area { position:absolute; inset:0; z-index:2; cursor:default; }
-    .subtitle-layer { position:absolute; left:4%; right:4%; bottom:72px; z-index:9; display:flex; justify-content:center; pointer-events:none; text-align:center; }
+    .subtitle-layer { position:absolute; left:4%; right:4%; bottom:72px; z-index:20; display:flex; justify-content:center; pointer-events:none; text-align:center; isolation:isolate; }
     .subtitle-layer[hidden] { display:none; }
     .subtitle-text { max-width:min(92%, 980px); padding:.28em .55em; border-radius:.2em; background:rgba(0,0,0,.78); color:#fff; font-size:clamp(15px, 2.2vw, 27px); line-height:1.25; text-shadow:0 1px 2px #000; white-space:pre-wrap; }
     .subtitle-panel { position:absolute; right:12px; bottom:54px; z-index:11; width:min(360px, calc(100% - 24px)); max-height:min(72%, 460px); overflow:auto; padding:1rem; border:1px solid rgba(255,255,255,.2); border-radius:12px; background:rgba(15,15,20,.97); box-shadow:0 12px 35px #000b; color:#fff; }
@@ -685,6 +685,7 @@ let subtitleResults = [];
 let selectedSubtitleFileId = null;
 let subtitleAutoToken = 0;
 let subtitleFallbackTimer = 0;
+let subtitleDisplayTimer = 0;
 let providerTimeSignals = 0;
 let resumePromptShown = false;
 let endRecommendationsShownForToken = 0;
@@ -800,6 +801,14 @@ function updateSubtitleDisplay(currentTime = ownCurrentTime) {
   text.textContent = cue?.text || '';
   layer.hidden = !cue;
 }
+function stopSubtitleDisplayLoop() {
+  if (subtitleDisplayTimer) { clearInterval(subtitleDisplayTimer); subtitleDisplayTimer = 0; }
+}
+function startSubtitleDisplayLoop() {
+  stopSubtitleDisplayLoop();
+  updateSubtitleDisplay(ownCurrentTime);
+  subtitleDisplayTimer = window.setInterval(() => updateSubtitleDisplay(ownCurrentTime), 120);
+}
 function stopSubtitleFallbackClock() {
   if (subtitleFallbackTimer) { clearInterval(subtitleFallbackTimer); subtitleFallbackTimer = 0; }
 }
@@ -814,7 +823,7 @@ function startSubtitleFallbackClock(loadToken) {
     updateSubtitleDisplay(ownCurrentTime);
   }, 250);
 }
-function clearOwnSubtitles() { subtitleCues = []; subtitleOffset = 0; $('subtitle-layer').hidden = true; if ($('subtitle-status')) $('subtitle-status').textContent = 'Subtitrarea a fost oprită.'; }
+function clearOwnSubtitles() { subtitleCues = []; subtitleOffset = 0; stopSubtitleDisplayLoop(); $('subtitle-layer').hidden = true; if ($('subtitle-status')) $('subtitle-status').textContent = 'Subtitrarea a fost oprită.'; }
 function toggleSubtitlePanel() {
   const panel = $('subtitle-panel');
   if (!panel) return;
@@ -839,10 +848,10 @@ function setupSubtitlePanel() {
   $('subtitle-results')?.addEventListener('change', event => { selectedSubtitleFileId = subtitleResults[Number(event.target.value)]?.id || null; });
   $('subtitle-load')?.addEventListener('click', async () => {
     if (!selectedSubtitleFileId) return; const status = $('subtitle-status'); status.textContent = 'Se descarcă subtitrarea…';
-    try { const response = await fetch(subtitleApiUrl(`/api/subtitles/content?file_id=${encodeURIComponent(selectedSubtitleFileId)}`)); if (!response.ok) throw new Error('Descărcarea subtitrării a eșuat.'); subtitleCues = parseSubtitles(await response.text()); subtitleOffset = 0; $('subtitle-panel').hidden = true; status.textContent = `Subtitrarea a fost încărcată (${subtitleCues.length} replici).`; updateSubtitleDisplay(); }
+    try { const response = await fetch(subtitleApiUrl(`/api/subtitles/content?file_id=${encodeURIComponent(selectedSubtitleFileId)}`)); if (!response.ok) throw new Error('Descărcarea subtitrării a eșuat.'); subtitleCues = parseSubtitles(await response.text()); subtitleOffset = 0; $('subtitle-panel').hidden = true; status.textContent = `Subtitrarea a fost încărcată (${subtitleCues.length} replici).`; startSubtitleDisplayLoop(); }
     catch (error) { status.textContent = error.message || 'Subtitrarea nu a putut fi încărcată.'; }
   });
-  $('subtitle-file')?.addEventListener('change', async event => { const file = event.target.files?.[0]; if (!file) return; subtitleCues = parseSubtitles(await file.text()); subtitleOffset = 0; $('subtitle-panel').hidden = true; $('subtitle-status').textContent = `${file.name} a fost încărcat.`; updateSubtitleDisplay(); });
+  $('subtitle-file')?.addEventListener('change', async event => { const file = event.target.files?.[0]; if (!file) return; subtitleCues = parseSubtitles(await file.text()); subtitleOffset = 0; $('subtitle-panel').hidden = true; $('subtitle-status').textContent = `${file.name} a fost încărcat.`; startSubtitleDisplayLoop(); });
   $('subtitle-clear')?.addEventListener('click', clearOwnSubtitles);
   $('subtitle-minus')?.addEventListener('click', () => { subtitleOffset -= .5; updateSubtitleDisplay(); });
   $('subtitle-plus')?.addEventListener('click', () => { subtitleOffset += .5; updateSubtitleDisplay(); });
@@ -876,7 +885,7 @@ async function autoLoadRomanianSubtitle(loadToken) {
     if (token !== subtitleAutoToken || loadToken !== playerLoadToken) return;
     subtitleCues = parseSubtitles(content); subtitleOffset = 0;
     try { localStorage.setItem(cacheKey, content); } catch {}
-    updateSubtitleDisplay();
+    startSubtitleDisplayLoop();
     if (status) status.textContent = `Subtitrarea română a fost încărcată automat (${subtitleCues.length} replici).`;
   } catch (error) {
     if (token === subtitleAutoToken && loadToken === playerLoadToken && $('subtitle-status')) $('subtitle-status').textContent = error.message || 'Româna este solicitată automat de sursa Rioma.';
@@ -963,6 +972,9 @@ function syncUrl() {
 /* ─── PLAYER ─── */
 function loadPlayer() {
   attemptedServers.add(state.server);
+  stopSubtitleDisplayLoop();
+  subtitleCues = [];
+  $('subtitle-layer').hidden = true;
   autoNextEpisodeToken += 1;
   endRecommendationsShownForToken = 0;
   const inlineNext = $('next-episode-action');
@@ -1185,9 +1197,11 @@ window.addEventListener('message', event => {
     ownCurrentTime = Number(payload.currentTime ?? payload.player_progress) || 0;
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
     updateOwnControls();
+    updateSubtitleDisplay(ownCurrentTime);
   } else if (eventType === 'cinesrc:loadedmetadata' || eventType === 'loadedmetadata') {
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
     updateOwnControls();
+    updateSubtitleDisplay(ownCurrentTime);
     showResumeChoice();
   } else if (eventType === 'cinesrc:volumechange' || eventType === 'volumechange') {
     ownMuted = Boolean(payload.muted);
