@@ -6,6 +6,12 @@
   <title>Cinema Library — Filme și seriale</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cinesrc.st">
+  <link rel="dns-prefetch" href="//cinesrc.st">
+  <link rel="preconnect" href="https://api.themoviedb.org">
+  <link rel="dns-prefetch" href="//api.themoviedb.org">
+  <link rel="preconnect" href="https://image.tmdb.org">
+  <link rel="dns-prefetch" href="//image.tmdb.org">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="./assets/icons/cinema-library-favicon.png" type="image/png">
   <link rel="manifest" href="./manifest.webmanifest">
@@ -976,7 +982,7 @@ const FRANCHISE_ROWS = [
   { title: 'The Walking Dead Universe — ordinea cronologică', subtitle: 'Serialele care fac parte din aceeași poveste', allowed: ['tv-62286','tv-1402','tv-94305','tv-130392','tv-206586','tv-194764','tv-211684'], items: [['tv',62286],['tv',1402],['tv',94305],['tv',130392],['tv',206586],['tv',194764],['tv',211684]] },
   { title: 'Harry Potter și Wizarding World', subtitle: 'Colecția oficială și seria Fantastic Beasts', collections: [1241], items: [['movie',259316],['movie',338952],['movie',338953]] },
   { title: 'Middle-earth — The Lord of the Rings', subtitle: 'The Hobbit și The Lord of the Rings', collections: [119,121] },
-  { title: 'Star Wars Universe', subtitle: 'Filme și seriale din galaxia Star Wars', items: [['movie',11],['movie',1891],['movie',1892],['movie',1893],['movie',140607],['movie',181808],['movie',181812],['movie',181813],['movie',181809],['movie',330459],['movie',438631],['tv',4194],['tv',60554],['tv',82856],['tv',92749],['tv',114479]] },
+  { title: 'Star Wars Universe', subtitle: 'Filme și seriale din galaxia Star Wars', items: [['movie',11],['movie',1891],['movie',1892],['movie',1893],['movie',140607],['movie',181808],['movie',181812],['movie',181813],['movie',181809],['movie',330459],['movie',330459],['movie',438631],['tv',4194],['tv',60554],['tv',82856],['tv',92749],['tv',114479]] },
   { title: 'Jurassic World', subtitle: 'Toate filmele din universul Jurassic', collections: [328] },
   { title: 'Fast & Furious', subtitle: 'Familia Fast în ordinea seriei', collections: [9485] },
   { title: 'Mission: Impossible', subtitle: 'Filmele oficiale ale seriei', collections: [87359] },
@@ -1021,13 +1027,14 @@ const digitalCache = {};
 
 /* ─── UTILS ─── */
 const $ = id => document.getElementById(id);
-const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v1';
-const TMDB_CACHE_TTL = 5 * 60 * 1000;
+const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v2';
+const TMDB_CACHE_TTL = document.documentElement.classList.contains('tv-mode') ? 30 * 60 * 1000 : 5 * 60 * 1000;
+const TMDB_CACHE_STORE = document.documentElement.classList.contains('tv-mode') ? localStorage : sessionStorage;
 function readTmdbCache() {
-  try { return JSON.parse(sessionStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
+  try { return JSON.parse(TMDB_CACHE_STORE.getItem(TMDB_CACHE_KEY) || '{}'); } catch { return {}; }
 }
 function writeTmdbCache(cache) {
-  try { sessionStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(cache)); } catch {}
+  try { TMDB_CACHE_STORE.setItem(TMDB_CACHE_KEY, JSON.stringify(cache)); } catch {}
 }
 const tmdb = async path => {
   const localizedPath = `${path}${path.includes('?') ? '&' : '?'}language=ro-RO`;
@@ -1477,11 +1484,11 @@ function renderLibraryRows() {
   });
 }
 
-
 async function loadPersonalizedRow() {
   document.querySelector('.personalized-row')?.remove();
   const history = libraryRead(LIBRARY_KEYS.history);
   if (!history.length) return;
+
   const counts = new Map();
   history.forEach(item => (item.genre_ids || []).forEach(id => {
     const genreId = Number(id);
@@ -1489,6 +1496,7 @@ async function loadPersonalizedRow() {
   }));
   const genres = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id]) => id);
   if (!genres.length) return;
+
   const requests = ['movie', 'tv'].map(type => {
     const query = `with_genres=${genres.join('|')}&sort_by=popularity.desc&vote_count.gte=20&include_adult=false&page=1`;
     return tmdb(`/discover/${type}?${query}`);
@@ -1507,6 +1515,7 @@ async function loadPersonalizedRow() {
     .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
     .slice(0, 25);
   if (!items.length) return;
+
   const scroller = buildRow({ title: 'S-ar putea să-ți placă', subtitle: 'Bazat pe ceea ce ai vizionat' });
   const row = scroller.closest('.row');
   row.classList.add('personalized-row');
@@ -1969,6 +1978,10 @@ function closeRiomaOverlay() {
   const overlay = $('rioma-overlay');
   const frame = $('rioma-overlay-frame');
   if (!overlay) return;
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if ((document.fullscreenElement === overlay || document.webkitFullscreenElement === overlay) && exit) {
+    try { exit.call(document); } catch {}
+  }
   overlay.hidden = true;
   overlay.classList.remove('open');
   if (frame) frame.src = 'about:blank';
@@ -1988,7 +2001,8 @@ function openRiomaOverlay(url) {
   if (request) {
     try { Promise.resolve(request.call(overlay)).catch(() => {}); } catch {}
   }
-  // Transfer the TV remote focus into Rioma after Redă.
+  // Transfer the TV remote focus into Rioma. Without this, the parent page
+  // keeps the focus after Redă and arrow/OK events never reach the player.
   const focusRioma = () => { try { frame.focus(); } catch {} };
   focusRioma();
   window.setTimeout(focusRioma, 120);
@@ -2002,7 +2016,7 @@ function openRiomaOverlay(url) {
 });
 window.addEventListener('message', event => {
   const frame = $('rioma-overlay-frame');
-  if (event.data?.type === 'rioma:close' && frame && event.source === frame.contentWindow) closeRiomaOverlay();
+  if (event.data?.type === 'rioma:close' && frame) closeRiomaOverlay();
   if (event.data?.type === 'cinema:remote-key') {
     const key = String(event.data.key || '');
     const overlay = $('rioma-overlay');
