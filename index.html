@@ -1933,6 +1933,10 @@ function openRiomaOverlay(url) {
     if (overlay?.classList.contains('open') && !document.fullscreenElement && !document.webkitFullscreenElement) closeRiomaOverlay();
   });
 });
+window.addEventListener('message', event => {
+  const frame = $('rioma-overlay-frame');
+  if (event.data?.type === 'rioma:close' && frame && event.source === frame.contentWindow) closeRiomaOverlay();
+});
 
 $('modal-watch-btn').addEventListener('click', () => {
   if (!currentModalItem) return;
