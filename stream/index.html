@@ -776,11 +776,18 @@ function setupPlayerFullscreenAutoHide() {
     clearTimeout(timer);
     timer = window.setTimeout(() => wrap.classList.add('controls-idle'), 2600);
   };
+  // The Samsung TV virtual pointer moves with remote key events. Those
+  // events do not always produce pointer/mouse events while the player is
+  // fullscreen, so expose the same show routine to the pointer layer.
+  window.__cinemaShowPlayerControls = show;
   ['pointermove', 'mousemove', 'mousedown', 'touchstart', 'keydown'].forEach(eventName => {
     document.addEventListener(eventName, show, { passive: eventName !== 'keydown' });
   });
   button.addEventListener('mouseenter', show, { passive: true });
   wrap.addEventListener('mouseenter', show, { passive: true });
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(eventName => {
+    document.addEventListener(eventName, show, { passive: true });
+  });
   show();
 }
 
@@ -1300,7 +1307,9 @@ $('back-btn').addEventListener('click', () => {
       document.documentElement.classList.add('free-pointer');
       x = Math.max(4, Math.min(innerWidth - 38, x + dx * speed));
       y = Math.max(4, Math.min(innerHeight - 38, y + dy * speed));
-      cursor.style.left = x + 'px'; cursor.style.top = y + 'px'; updateTarget(); return;
+      cursor.style.left = x + 'px'; cursor.style.top = y + 'px'; updateTarget();
+      if (typeof window.__cinemaShowPlayerControls === 'function') window.__cinemaShowPlayerControls();
+      return;
     }
     if ((key === 'Enter' || event.keyCode === 13) && target) { event.preventDefault(); event.stopImmediatePropagation(); target.click(); }
   }, true);
