@@ -623,13 +623,10 @@ const serverUrlResolvers = {
     : `https://cinesrc.st/embed/tv/${p.id}?controls=false&season=${p.season}&episode=${p.episode}&autonext=false&autoplay=true&color=%23e50914${subtitleParam(p, 'sub')}`
 };
 function subtitleParam(p, key) {
-  if (!p.subtitle || p.subtitle === 'auto') return '';
-  // The source accepts up to three language codes and uses the first
-  // available track. Romanian subtitles are published with several codes;
-  // keep all of them as a priority list so a broken `ro` track does not win
-  // over a valid `rum`/`ron` track.
-  const languagePriority = p.subtitle === 'ro' ? 'ro,rum,ron' : p.subtitle;
-  return `&${key}=${encodeURIComponent(languagePriority)}`;
+  // Rioma expects a single language code. Romanian is the default for both
+  // web and TV; the local subtitle loader remains available as a fallback.
+  const language = p.subtitle === 'en' ? 'en' : 'ro';
+  return `&${key}=${language}`;
 }
 function resumeParam(p) {
   return Number.isFinite(p.resumeAt) && p.resumeAt > 15 ? `&startAt=${Math.floor(p.resumeAt)}` : '';
