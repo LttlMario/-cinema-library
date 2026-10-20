@@ -566,8 +566,8 @@ const SERVERS = [
 /* Single source used by Rioma. */
 const serverUrlResolvers = {
   3: (p) => p.type === 'movie'
-    ? `https://cinesrc.st/embed/movie/${p.id}?controls=false&autoplay=true&color=%23e50914${subtitleParam(p, 'sub')}${resumeParam(p)}`
-    : `https://cinesrc.st/embed/tv/${p.id}?controls=false&season=${p.season}&episode=${p.episode}&autonext=false&autoplay=true&color=%23e50914${subtitleParam(p, 'sub')}${resumeParam(p)}`
+    ? `https://cinesrc.st/embed/movie/${p.id}?controls=false&autoplay=true&color=%23e50914${subtitleParam(p, 'sub')}`
+    : `https://cinesrc.st/embed/tv/${p.id}?controls=false&season=${p.season}&episode=${p.episode}&autonext=false&autoplay=true&color=%23e50914${subtitleParam(p, 'sub')}`
 };
 function subtitleParam(p, key) {
   if (!p.subtitle || p.subtitle === 'auto') return '';
@@ -636,6 +636,7 @@ let selectedSubtitleFileId = null;
 let subtitleAutoToken = 0;
 let subtitleFallbackTimer = 0;
 let providerTimeSignals = 0;
+let resumePromptShown = false;
 const OWN_QUALITY_KEY = 'cinemalibrary_player_quality_v1';
 const OWN_PICTURE_KEY = 'cinemalibrary_player_picture_v1';
 
@@ -907,6 +908,7 @@ function loadPlayer() {
   frame.src = src;
   old.replaceWith(frame);
   ownPaused = true;
+  resumePromptShown = false;
   providerTimeSignals = 0;
   stopSubtitleFallbackClock();
   ownMuted = false;
@@ -1017,6 +1019,7 @@ window.addEventListener('message', event => {
   } else if (eventType === 'cinesrc:loadedmetadata' || eventType === 'loadedmetadata') {
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
     updateOwnControls();
+    showResumeChoice();
   } else if (eventType === 'cinesrc:volumechange' || eventType === 'volumechange') {
     ownMuted = Boolean(payload.muted);
     const volume = Number(payload.volume);
@@ -1370,20 +1373,28 @@ function showFatal() {
 }
 
 function startPlayback() {
+  // Same flow as the lab: load first, pause at metadata, then seek only
+  // after the viewer explicitly chooses Continue.
+  loadPlayer();
+}
+function showResumeChoice() {
   const prompt = $('resume-prompt');
-  if (!state.resumeAt || state.resumeAt <= 15) {
-    loadPlayer();
-    return;
-  }
-  const minutes = Math.floor(state.resumeAt / 60);
-  $('resume-prompt-text').textContent = `Ai ajuns aproximativ la minutul ${minutes}.`;
+  if (resumePromptShown || !prompt || !state?.resumeAt || state.resumeAt < 10 || !ownDuration || state.resumeAt >= ownDuration - 30) return;
+  resumePromptShown = true;
+  ownCommand('pause');
+  $('resume-prompt-text').textContent = `Ai ajuns aproximativ la minutul ${Math.floor(state.resumeAt / 60)}.`;
   prompt.hidden = false;
-  $('resume-continue').onclick = () => { prompt.hidden = true; loadPlayer(); };
+  $('resume-continue').onclick = () => {
+    prompt.hidden = true;
+    ownCommand('seek', [Math.floor(state.resumeAt)]);
+    ownCommand('play');
+  };
   $('resume-restart').onclick = () => {
     state.resumeAt = 0;
     clearPlaybackProgress();
     prompt.hidden = true;
-    loadPlayer();
+    ownCommand('seek', [0]);
+    ownCommand('play');
   };
 }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1481,10 +1492,16 @@ $('back-btn').addEventListener('click', () => {
       const next = $('nextep-btn');
       if (vis(next)) secs.push({ items: [next] });
     }
-    const playerControls = [...document.querySelectorAll('#player-wrap button, #player-wrap input, #player-wrap select'),
-      $('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')
-    ].filter((el, index, list) => vis(el) && list.indexOf(el) === index);
-    if (playerControls.length) secs.push({ items: playerControls });
+    // Rioma controls are laid out in rows. Keep the timeline as its own
+    // focus row so ArrowDown from it reaches every control underneath it.
+    const playerTop = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture')].filter(vis);
+    const playerTimeline = [$('own-timeline')].filter(vis);
+    const playerBottom = [$('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
+    if (playerTop.length) secs.push({ items: playerTop });
+    if (playerTimeline.length) secs.push({ items: playerTimeline });
+    if (playerBottom.length) secs.push({ items: playerBottom });
+    const playerExtras = [$('resume-continue'), $('resume-restart'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
+    if (playerExtras.length) secs.push({ items: playerExtras });
     const enhancerInputs = ['enhancer-brightness', 'enhancer-contrast', 'enhancer-saturation', 'enhancer-warmth', 'enhancer-clarity']
       .map(id => $(id)).filter(vis);
     if (enhancerInputs.length) secs.push({ items: enhancerInputs });
@@ -1557,7 +1574,7 @@ $('back-btn').addEventListener('click', () => {
     // The navigation engine must not steal those keys while a range control
     // is focused.
     const ae = document.activeElement;
-    if (ae && ae.tagName === 'INPUT' && ae.type === 'range' && arrows[k]) return;
+    if (ae && ae.tagName === 'INPUT' && ae.type === 'range' && (k === 'ArrowLeft' || k === 'ArrowRight')) return;
 
     if (arrows[k]) { e.preventDefault(); move(arrows[k][0], arrows[k][1]); }
   });
