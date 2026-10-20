@@ -2096,7 +2096,6 @@ $('modal-watch-btn').addEventListener('click', () => {
     const tflix = new URL('https://lttlmario.github.io/cinema-library/tflix/');
     tflix.searchParams.set('app', 'tv');
     tflix.searchParams.set('play', '1');
-    tflix.searchParams.set('fullscreen', '1');
     tflix.searchParams.set('type', mediaOf(currentModalItem));
     tflix.searchParams.set('id', String(currentModalItem.id));
     tflix.searchParams.set('season', String(s));
