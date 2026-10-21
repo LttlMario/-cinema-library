@@ -1,24 +1,33 @@
 (function () {
   function centerSearch() {
+    const wrap = document.querySelector('#search-wrap');
     const input = document.querySelector('#search');
     const clear = document.querySelector('#search-clear');
     const suggestions = document.querySelector('#search-suggestions');
-    if (!input) return;
+    if (!wrap || !input) return;
 
-    // The shell header is the fixed sidebar. Move the floating search layer
-    // to body so fixed coordinates are relative to the actual viewport.
-    [input, clear, suggestions].forEach((element) => {
-      if (element && element.parentElement !== document.body) document.body.appendChild(element);
-    });
+    // The shell header is the fixed sidebar. Move the whole open search
+    // container to body so its coordinates are relative to the viewport.
+    if (wrap.parentElement !== document.body) document.body.appendChild(wrap);
 
     const width = Math.min(420, Math.max(240, window.innerWidth * 0.6));
     const left = Math.round(window.innerWidth / 2);
+    wrap.style.setProperty('position', 'fixed', 'important');
+    wrap.style.setProperty('left', `${left}px`, 'important');
+    wrap.style.setProperty('top', '14px', 'important');
+    wrap.style.setProperty('right', 'auto', 'important');
+    wrap.style.setProperty('bottom', 'auto', 'important');
+    wrap.style.setProperty('transform', 'translateX(-50%)', 'important');
+    wrap.style.setProperty('width', `${width}px`, 'important');
+    wrap.style.setProperty('height', '42px', 'important');
+    wrap.style.setProperty('z-index', '600', 'important');
+    wrap.style.setProperty('margin', '0', 'important');
     input.style.position = 'fixed';
-    input.style.left = `${left}px`;
-    input.style.top = '14px';
+    input.style.left = '0';
+    input.style.top = '0';
     input.style.right = 'auto';
     input.style.bottom = 'auto';
-    input.style.transform = 'translateX(-50%)';
+    input.style.transform = 'none';
     input.style.width = `${width}px`;
     input.style.height = '42px';
     input.style.display = 'block';
