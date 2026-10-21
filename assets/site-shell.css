@@ -77,6 +77,7 @@ body.cinema-shell-page{padding-top:0;background:#09090b;font-family:'Inter','Han
 .cinema-shell-header .logo{font-size:22px!important;font-weight:900!important;letter-spacing:-.5px!important;text-transform:none;line-height:1.05!important;margin-bottom:20px!important;padding:0 10px}
 .cinema-shell-header .logo::after{content:'TV';display:block;font:700 10px/1 'Inter','Hanken Grotesk',system-ui,sans-serif;letter-spacing:1px;background:rgba(229,9,20,.2);border:1px solid var(--shell-accent);color:var(--shell-accent);padding:1px 6px;border-radius:4px;width:max-content;margin:4px auto 0}
 .cinema-shell-header .nav-links{flex:1;justify-content:space-evenly;padding:0 14px;gap:0}
+.cinema-shell-header .nav-links{align-items:center}
 .cinema-shell-header .nav-link,.cinema-shell-header .library-nav-btn{width:84px;height:84px;min-height:84px;flex:0 0 84px;margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:4px;border:0;border-radius:14px;background:transparent;color:#a1a1aa;font-size:11px;font-weight:600;line-height:1.1}
 .cinema-shell-header .nav-link::before{font-size:24px;line-height:1;font-weight:400;color:currentColor}
 .cinema-shell-header .nav-links>.nav-link:nth-child(1)::before{content:'⌂'}
@@ -88,6 +89,9 @@ body.cinema-shell-page{padding-top:0;background:#09090b;font-family:'Inter','Han
 .cinema-shell-header .library-nav-btn:first-letter{font-size:24px}
 .cinema-shell-header .nav-dropdown{width:84px;height:84px;flex:0 0 84px;margin:0 auto}
 .cinema-shell-header .nav-dropdown>.nav-link{width:84px;height:84px}
+.cinema-shell-header .nav-links>.search-wrap{width:84px;height:84px;min-width:84px;flex:0 0 84px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.cinema-shell-header .nav-links>.search-wrap .search-toggle{width:84px;height:84px}
+.cinema-shell-header .nav-links>.theme-toggle{width:84px;height:84px;min-height:84px;flex:0 0 84px;margin:0 auto}
 .cinema-shell-header .nav-right{flex:0 0 auto;width:100%;height:168px;margin:0;padding:0 14px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:0}
 .cinema-shell-header .search-wrap{width:84px;height:84px;flex:0 0 84px;display:flex;align-items:center;justify-content:center}
 .cinema-shell-header .search-toggle,.cinema-shell-header .theme-toggle{width:84px;height:84px;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;border-radius:14px;background:transparent;color:#a1a1aa;font-size:24px;line-height:1}
