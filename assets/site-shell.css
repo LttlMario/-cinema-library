@@ -39,3 +39,8 @@ body.cinema-shell-page{padding-top:0;background:#09090b;font-family:'Inter','Han
 .cinema-shell-page>.shell-hero{width:calc(100% - 116px)}
 .cinema-shell-page>.shell-hero .shell-hero-copy{left:clamp(2rem,4vw,4rem)}
 }
+
+/* Keep the TFlix brand treatment consistent on narrow and wide screens. */
+.cinema-shell-header .logo{font-size:0!important;font-family:'Bebas Neue',sans-serif!important;letter-spacing:.08em!important}
+.cinema-shell-header .logo::after{content:'TFLIX';display:block;font-size:1.72rem;line-height:1}
+@media(max-width:560px){.cinema-shell-header .logo::after{font-size:1.38rem}}
