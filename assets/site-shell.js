@@ -6,13 +6,13 @@
   const appUrl = (value) => new URL(value, base).href;
   const page = (path.split('/').pop() || 'index.html').toLowerCase();
   const isHome = page === 'index.html' || page === '';
-  const active = page === 'genres.html' ? 'genres' : page === 'watch-together.html' ? 'together' : 'home';
+  const active = page === 'catalog.html' ? 'catalog' : 'home';
   const menus = {
     movies: [['Toate filmele', 'catalog.html?type=movie'], ['Lansări recente', 'catalog.html?type=movie&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=movie&sort=top']],
     series: [['Toate serialele', 'catalog.html?type=tv'], ['Seriale recente', 'catalog.html?type=tv&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=tv&sort=top']],
     top: [['Top filme', 'catalog.html?mode=top&type=movie'], ['Top seriale', 'catalog.html?mode=top&type=tv']]
   };
-  const nav = [['Acasă', 'index.html', 'home'], ['Genuri', 'genres.html', 'genres'], ['Filme', '', 'movies'], ['Seriale', '', 'series'], ['Vezi împreună', 'watch-together.html', 'together'], ['Top IMDb', '', 'top']];
+  const nav = [['Acasă', 'index.html', 'home'], ['Filme', '', 'movies'], ['Seriale', '', 'series']];
   document.documentElement.classList.add('cinema-shell-page');
   document.body.classList.add('cinema-shell-page');
   const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin2'); document.head.append(css);
@@ -24,7 +24,7 @@
   const header = document.createElement('header');
   header.className = 'cinema-shell-header';
   header.id = 'header';
-  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Navigație principală">${navHtml}</nav><button class="library-nav-btn" id="favorites-nav" type="button" title="Deschide favoritele">♥ Favorite</button><div class="nav-right"><div class="search-wrap open" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Caută filme și seriale">⌕</button><input id="search" type="text" placeholder="Caută filme și seriale…" autocomplete="off"><button id="search-clear" type="button" aria-label="Șterge">✕</button></div><a class="contribute-btn" id="contribute-btn" href="contribute.html"><span aria-hidden="true">♥</span><span class="s-name">Contribuie</span></a><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Schimbă tema">☼</button></div>`;
+  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Navigație principală">${navHtml}</nav><button class="library-nav-btn" id="favorites-nav" type="button" title="Deschide lista de vizionare">▣ Watchlist</button><div class="nav-right"><div class="search-wrap open" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Caută filme și seriale">⌕</button><input id="search" type="text" placeholder="Caută filme și seriale…" autocomplete="off"><button id="search-clear" type="button" aria-label="Șterge">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Setări">⚙</button></div>`;
   document.body.prepend(header);
   if (!isHome && main && !document.querySelector('.shell-hero')) {
     const hero = document.createElement('section'); hero.className = 'shell-hero'; hero.setAttribute('aria-label', 'Titluri populare');
