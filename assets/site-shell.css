@@ -68,3 +68,7 @@ body.cinema-shell-page{padding-top:0;background:#09090b;font-family:'Inter','Han
 .cinema-shell-page>main,.cinema-shell-page>.shell-hero,.cinema-shell-page>footer.site-footer,#hero,#main,#search-results-section,.site-footer{margin-left:116px}
 .cinema-shell-page>.shell-hero,#hero{width:calc(100% - 116px)}
 .cinema-shell-page>.shell-hero .shell-hero-copy,.hero-content{left:clamp(2rem,4vw,4rem)}
+.cinema-shell-header .library-nav-btn,.cinema-shell-header .search-toggle,.cinema-shell-header .theme-toggle{flex-direction:column;gap:3px;font-size:.67rem;line-height:1.05}
+.cinema-shell-header .library-nav-btn span,.cinema-shell-header .search-toggle span,.cinema-shell-header .theme-toggle span{font:600 .67rem 'Inter','Hanken Grotesk',system-ui,sans-serif}
+.cinema-shell-header .search-wrap input{display:none}
+.cinema-shell-header .search-wrap.search-open input{display:block}
