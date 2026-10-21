@@ -6,7 +6,11 @@
   const appUrl = (value) => new URL(value, base).href;
   const page = (path.split('/').pop() || 'index.html').toLowerCase();
   const isHome = page === 'index.html' || page === '';
-  const active = page === 'catalog.html' ? 'catalog' : 'home';
+  const query = new URLSearchParams(location.search);
+  const catalogType = query.get('type');
+  const active = page === 'catalog.html' && catalogType === 'movie' ? 'movies'
+    : page === 'catalog.html' && catalogType === 'tv' ? 'series'
+    : isHome ? 'home' : '';
   const menus = {
     movies: [['Toate filmele', 'catalog.html?type=movie'], ['Lansări recente', 'catalog.html?type=movie&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=movie&sort=top']],
     series: [['Toate serialele', 'catalog.html?type=tv'], ['Seriale recente', 'catalog.html?type=tv&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=tv&sort=top']],
@@ -19,7 +23,7 @@
   const main = document.querySelector('body>main');
   document.querySelectorAll('body>header,body>.top,body>footer').forEach((node) => node.remove());
   const navHtml = nav.map(([label, href, key]) => menus[key]
-    ? `<div class="nav-dropdown"><button class="nav-link" type="button" data-shell-menu="${key}" data-menu="shell-${key}">${label}</button><div class="nav-submenu" id="shell-${key}">${menus[key].map(([text, target]) => `<a href="${target}">${text}</a>`).join('')}</div></div>`
+    ? `<div class="nav-dropdown"><button class="nav-link ${active === key ? 'active' : ''}" type="button" data-shell-menu="${key}" data-menu="shell-${key}">${label}</button><div class="nav-submenu" id="shell-${key}">${menus[key].map(([text, target]) => `<a href="${target}">${text}</a>`).join('')}</div></div>`
     : `<a class="nav-link ${active === key ? 'active' : ''}" href="${href}">${label}</a>`).join('');
   const header = document.createElement('header');
   header.className = 'cinema-shell-header';
