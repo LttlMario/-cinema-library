@@ -11,9 +11,8 @@
     if (wrap.parentElement !== document.body) document.body.appendChild(wrap);
 
     const width = Math.min(420, Math.max(240, window.innerWidth * 0.6));
-    const left = Math.round(window.innerWidth / 2);
     wrap.style.setProperty('position', 'fixed', 'important');
-    wrap.style.setProperty('left', `${left}px`, 'important');
+    wrap.style.setProperty('left', '50%', 'important');
     wrap.style.setProperty('top', '14px', 'important');
     wrap.style.setProperty('right', 'auto', 'important');
     wrap.style.setProperty('bottom', 'auto', 'important');
