@@ -63,7 +63,7 @@ html.keynav :is(#header, .cinema-shell-header) .kf {
   height: 42px !important;
   z-index: 600 !important;
 }
-:is(#header, .cinema-shell-header) .search-wrap.search-open > button:last-child {
+:is(#header, .cinema-shell-header) #search-clear {
   position: fixed !important;
   top: 25px !important;
   bottom: auto !important;
