@@ -12,10 +12,10 @@
     series: [['Toate serialele', 'catalog.html?type=tv'], ['Seriale recente', 'catalog.html?type=tv&sort=latest'], ['Cele mai apreciate', 'catalog.html?type=tv&sort=top']],
     top: [['Top filme', 'catalog.html?mode=top&type=movie'], ['Top seriale', 'catalog.html?mode=top&type=tv']]
   };
-  const nav = [['Acasă', 'index.html', 'home'], ['Filme', '', 'movies'], ['Seriale', '', 'series']];
+  const nav = [['Home', 'index.html', 'home'], ['Movies', '', 'movies'], ['TV Shows', '', 'series']];
   document.documentElement.classList.add('cinema-shell-page');
   document.body.classList.add('cinema-shell-page');
-  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin3'); document.head.append(css);
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin4'); document.head.append(css);
   const main = document.querySelector('body>main');
   document.querySelectorAll('body>header,body>.top,body>footer').forEach((node) => node.remove());
   const navHtml = nav.map(([label, href, key]) => menus[key]
@@ -24,7 +24,7 @@
   const header = document.createElement('header');
   header.className = 'cinema-shell-header';
   header.id = 'header';
-  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Navigație principală">${navHtml}</nav><button class="library-nav-btn" id="favorites-nav" type="button" title="Deschide lista de vizionare">▣ Watchlist</button><div class="nav-right"><div class="search-wrap open" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Caută filme și seriale">⌕</button><input id="search" type="text" placeholder="Caută filme și seriale…" autocomplete="off"><button id="search-clear" type="button" aria-label="Șterge">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Setări">⚙</button></div>`;
+  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Main navigation">${navHtml}</nav><button class="library-nav-btn" id="favorites-nav" type="button" title="Open watchlist">▣<span>Watchlist</span></button><div class="nav-right"><div class="search-wrap" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Search">⌕<span>Search</span></button><input id="search" type="text" placeholder="Search movies and series…" autocomplete="off"><button id="search-clear" type="button" aria-label="Clear">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Settings">⚙<span>Settings</span></button></div>`;
   document.body.prepend(header);
   if (!isHome && main && !document.querySelector('.shell-hero')) {
     const hero = document.createElement('section'); hero.className = 'shell-hero'; hero.setAttribute('aria-label', 'Titluri populare');
@@ -43,7 +43,10 @@
   if (localStorage.getItem('cinemalibrary_theme') === 'light') document.documentElement.dataset.theme = 'light';
   theme.onclick = () => { const light = document.documentElement.dataset.theme === 'light'; document.documentElement.dataset.theme = light ? '' : 'light'; localStorage.setItem('cinemalibrary_theme', light ? 'dark' : 'light'); };
   document.getElementById('favorites-nav').onclick = () => { location.href = appUrl('index.html#favorites'); };
-  const search = document.getElementById('search'); search.onkeydown = (event) => { if (event.key === 'Enter' && search.value.trim()) location.href = appUrl(`index.html?search=${encodeURIComponent(search.value.trim())}`); };
+  const search = document.getElementById('search');
+  const searchWrap = document.getElementById('search-wrap');
+  document.getElementById('search-toggle').onclick = () => { searchWrap.classList.add('search-open'); search.focus(); };
+  search.onkeydown = (event) => { if (event.key === 'Enter' && search.value.trim()) location.href = appUrl(`index.html?search=${encodeURIComponent(search.value.trim())}`); };
   document.getElementById('search-clear').onclick = () => { search.value = ''; search.focus(); };
   document.querySelectorAll('[data-shell-menu]').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); const menu = document.getElementById(`shell-${button.dataset.shellMenu}`); document.querySelectorAll('.nav-submenu.open').forEach((item) => { if (item !== menu) item.classList.remove('open'); }); menu.classList.toggle('open'); }));
   document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach((item) => item.classList.remove('open')));
