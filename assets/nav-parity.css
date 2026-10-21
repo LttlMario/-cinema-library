@@ -150,3 +150,31 @@ html.keynav :is(#header, .cinema-shell-header) .kf {
   top: 25px !important;
   bottom: auto !important;
 }
+
+/* The rail Search control is always its own visible navigation tile.  The
+   field is portalled to the page center when opened, so the tile must not
+   participate in the old expanding-input layout. */
+@media (min-width: 861px) {
+  .cinema-shell-header #search-wrap {
+    position: fixed !important;
+    left: 16px !important;
+    right: auto !important;
+    bottom: 14px !important;
+    top: auto !important;
+    width: 84px !important;
+    height: 84px !important;
+    min-width: 84px !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 350 !important;
+  }
+  .cinema-shell-header #search-wrap .search-toggle {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 84px !important;
+    height: 84px !important;
+    margin: 0 !important;
+  }
+}
