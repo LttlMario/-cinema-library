@@ -23,6 +23,8 @@
     };
     restoreActive();
     [0, 250, 1000].forEach((delay) => setTimeout(restoreActive, delay));
+    const activeObserver = new MutationObserver(restoreActive);
+    activeObserver.observe(header, { subtree: true, attributes: true, attributeFilter: ['class'] });
 
     const pageBase = new URL('./', location.href);
     const go = (path) => { location.href = new URL(path, pageBase).href; };
