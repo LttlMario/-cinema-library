@@ -1,0 +1,9 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Actualizare Cinema Library</title>
+<script>
+  Promise.all([
+    navigator.serviceWorker?.getRegistrations?.().then(registrations => Promise.all(registrations.map(registration => registration.unregister()))) || Promise.resolve(),
+    caches?.keys?.().then(keys => Promise.all(keys.map(key => caches.delete(key)))) || Promise.resolve()
+  ]).finally(() => location.replace('./index.html?skin=20261021-v9'));
+</script>
