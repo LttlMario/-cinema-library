@@ -2619,7 +2619,11 @@ $('clear-filters').addEventListener('click', () => {
     // TV keyboard doesn't pop up just from navigating past the search box.
     if (el.tagName === 'SELECT' || el.tagName === 'BUTTON' || el.tagName === 'INPUT') el.focus({ preventScroll: true });
     else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
-    if (scroll) el.scrollIntoView({ behavior: document.documentElement.classList.contains('tv-mode') ? 'auto' : 'smooth', block: 'center', inline: 'center' });
+    // The fixed rail must never scroll the page while the remote moves
+    // between Home, Movies, TV Shows, Watchlist and Search.
+    if (scroll && !el.closest('.cinema-shell-header, #header')) {
+      el.scrollIntoView({ behavior: document.documentElement.classList.contains('tv-mode') ? 'auto' : 'smooth', block: 'center', inline: 'center' });
+    }
   }
 
   function getSections() {
@@ -2672,8 +2676,10 @@ $('clear-filters').addEventListener('click', () => {
     if ($('modal-backdrop').classList.contains('open')) { setFocus($('modal-watch-btn'), false); return; }
     const secs = getSections();
     if (!secs.length) return;
-    const content = secs.find(s => s.key !== 'header' && s.key !== 'tabs');
-    setFocus((content || secs[0]).items[0]);
+    // Start where the PC layout starts: Home is the first selected item in
+    // the fixed rail.  Content is reached explicitly with Right.
+    const header = secs.find(s => s.key === 'header');
+    setFocus((header || secs[0]).items[0]);
   }
 
   function move(dx, dy) {
