@@ -15,7 +15,7 @@
   const nav = [['Home', 'index.html', 'home'], ['Movies', '', 'movies'], ['TV Shows', '', 'series']];
   document.documentElement.classList.add('cinema-shell-page');
   document.body.classList.add('cinema-shell-page');
-  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin7'); document.head.append(css);
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin8'); document.head.append(css);
   const main = document.querySelector('body>main');
   document.querySelectorAll('body>header,body>.top,body>footer').forEach((node) => node.remove());
   const navHtml = nav.map(([label, href, key]) => menus[key]
@@ -24,7 +24,7 @@
   const header = document.createElement('header');
   header.className = 'cinema-shell-header';
   header.id = 'header';
-  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Main navigation">${navHtml}<button class="library-nav-btn" id="favorites-nav" type="button" title="Open watchlist">▣<span>Watchlist</span></button><div class="search-wrap" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Search">⌕<span>Search</span></button><input id="search" type="text" placeholder="Search movies and series…" autocomplete="off"><button id="search-clear" type="button" aria-label="Clear">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Settings">⚙<span>Settings</span></button></nav>`;
+  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Main navigation">${navHtml}<button class="library-nav-btn" id="favorites-nav" type="button" title="Open watchlist">▣<span>Watchlist</span></button><div class="search-wrap" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Search">⌕<span>Search</span></button><input id="search" type="text" placeholder="Search movies and series…" autocomplete="off"><button id="search-clear" type="button" aria-label="Clear">✕</button></div></nav>`;
   document.body.prepend(header);
   if (!isHome && main && !document.querySelector('.shell-hero')) {
     const hero = document.createElement('section'); hero.className = 'shell-hero'; hero.setAttribute('aria-label', 'Titluri populare');
@@ -41,7 +41,7 @@
   if (!isHome) {
   const theme = document.getElementById('theme-toggle');
   if (localStorage.getItem('cinemalibrary_theme') === 'light') document.documentElement.dataset.theme = 'light';
-  theme.onclick = () => { const light = document.documentElement.dataset.theme === 'light'; document.documentElement.dataset.theme = light ? '' : 'light'; localStorage.setItem('cinemalibrary_theme', light ? 'dark' : 'light'); };
+  if (theme) theme.onclick = () => { const light = document.documentElement.dataset.theme === 'light'; document.documentElement.dataset.theme = light ? '' : 'light'; localStorage.setItem('cinemalibrary_theme', light ? 'dark' : 'light'); };
   document.getElementById('favorites-nav').onclick = () => { location.href = appUrl('index.html#favorites'); };
   const search = document.getElementById('search');
   const searchWrap = document.getElementById('search-wrap');
