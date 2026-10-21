@@ -33,6 +33,8 @@
     input.style.width = `${width}px`;
     input.style.height = '42px';
     input.style.setProperty('display', 'block', 'important');
+    input.style.setProperty('opacity', '1', 'important');
+    input.style.setProperty('pointer-events', 'auto', 'important');
     input.style.zIndex = '600';
     input.style.background = '#141419';
     input.style.color = '#f4f4f5';
