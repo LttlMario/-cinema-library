@@ -2,6 +2,10 @@
 #header .nav-link,
 #header .library-nav-btn,
 #header .search-toggle {
+  width: calc(100% - 28px) !important;
+  min-width: 0 !important;
+  margin-left: 14px !important;
+  margin-right: 14px !important;
   background: transparent !important;
   border: 0 !important;
   border-radius: 14px !important;
@@ -20,3 +24,7 @@
 }
 
 #header .theme-toggle { display: none !important; }
+#header .nav-dropdown { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
+#header .nav-dropdown > .nav-link { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+#header .search-wrap { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
+#header .search-wrap .search-toggle { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
