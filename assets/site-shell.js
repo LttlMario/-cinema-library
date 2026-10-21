@@ -20,7 +20,7 @@
   document.documentElement.classList.add('cinema-shell-page');
   document.body.classList.add('cinema-shell-page');
   const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin11'); document.head.append(css);
-  const parityCss = document.createElement('link'); parityCss.rel = 'stylesheet'; parityCss.href = appUrl('assets/nav-parity.css?v=20261021-7'); document.head.append(parityCss);
+  const parityCss = document.createElement('link'); parityCss.rel = 'stylesheet'; parityCss.href = appUrl('assets/nav-parity.css?v=20261021-8'); document.head.append(parityCss);
   const main = document.querySelector('body>main');
   document.querySelectorAll('body>header,body>.top,body>footer').forEach((node) => node.remove());
   const navHtml = nav.map(([label, href, key]) => menus[key]
