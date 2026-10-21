@@ -47,6 +47,9 @@
   }
 
   function bind() {
+    // Remove the legacy auxiliary control if it was left in the DOM by a
+    // cached/older navigation script. The sidebar keeps only the real toggle.
+    document.querySelectorAll('#search-toggle-proxy').forEach((element) => element.remove());
     const header = document.querySelector('.cinema-shell-header, #header');
     if (!header || header.dataset.homeNavFix === '1') return;
     header.dataset.homeNavFix = '1';
