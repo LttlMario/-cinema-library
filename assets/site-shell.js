@@ -15,7 +15,7 @@
   const nav = [['Home', 'index.html', 'home'], ['Movies', '', 'movies'], ['TV Shows', '', 'series']];
   document.documentElement.classList.add('cinema-shell-page');
   document.body.classList.add('cinema-shell-page');
-  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin5'); document.head.append(css);
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin6'); document.head.append(css);
   const main = document.querySelector('body>main');
   document.querySelectorAll('body>header,body>.top,body>footer').forEach((node) => node.remove());
   const navHtml = nav.map(([label, href, key]) => menus[key]
@@ -24,7 +24,7 @@
   const header = document.createElement('header');
   header.className = 'cinema-shell-header';
   header.id = 'header';
-  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Main navigation">${navHtml}<button class="library-nav-btn" id="favorites-nav" type="button" title="Open watchlist">▣<span>Watchlist</span></button></nav><div class="nav-right"><div class="search-wrap" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Search">⌕<span>Search</span></button><input id="search" type="text" placeholder="Search movies and series…" autocomplete="off"><button id="search-clear" type="button" aria-label="Clear">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Settings">⚙<span>Settings</span></button></div>`;
+  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Main navigation">${navHtml}<button class="library-nav-btn" id="favorites-nav" type="button" title="Open watchlist">▣<span>Watchlist</span></button><div class="search-wrap" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Search">⌕<span>Search</span></button><input id="search" type="text" placeholder="Search movies and series…" autocomplete="off"><button id="search-clear" type="button" aria-label="Clear">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Settings">⚙<span>Settings</span></button></nav>`;
   document.body.prepend(header);
   if (!isHome && main && !document.querySelector('.shell-hero')) {
     const hero = document.createElement('section'); hero.className = 'shell-hero'; hero.setAttribute('aria-label', 'Titluri populare');
@@ -51,6 +51,18 @@
   document.querySelectorAll('[data-shell-menu]').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); const menu = document.getElementById(`shell-${button.dataset.shellMenu}`); document.querySelectorAll('.nav-submenu.open').forEach((item) => { if (item !== menu) item.classList.remove('open'); }); menu.classList.toggle('open'); }));
   document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach((item) => item.classList.remove('open')));
   const mobileToggle = document.getElementById('home-mobile-menu'), navElement = document.getElementById('home-nav'); mobileToggle.onclick = (event) => { event.stopPropagation(); const open = navElement.classList.toggle('mobile-open'); mobileToggle.setAttribute('aria-expanded', String(open)); }; navElement.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => navElement.classList.remove('mobile-open')));
+  }
+
+  // Search is part of the TFlix rail on every page, including the home page.
+  // Bind it outside the non-home block so the visual rail remains functional.
+  const shellSearch = document.getElementById('search');
+  const shellSearchWrap = document.getElementById('search-wrap');
+  const shellSearchToggle = document.getElementById('search-toggle');
+  if (shellSearch && shellSearchWrap && shellSearchToggle && !shellSearchToggle.dataset.bound) {
+    shellSearchToggle.dataset.bound = '1';
+    shellSearchToggle.onclick = () => { shellSearchWrap.classList.add('search-open'); shellSearch.focus(); };
+    shellSearch.onkeydown = (event) => { if (event.key === 'Enter' && shellSearch.value.trim()) location.href = appUrl(`index.html?search=${encodeURIComponent(shellSearch.value.trim())}`); };
+    document.getElementById('search-clear')?.addEventListener('click', () => { shellSearch.value = ''; shellSearch.focus(); });
   }
 
   // Launch every direct stream link in the same Rioma fullscreen surface.
