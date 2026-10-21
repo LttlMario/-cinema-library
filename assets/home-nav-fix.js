@@ -82,6 +82,21 @@
   }
 
   bind();
+  if (!document.documentElement.dataset.globalSearchFix) {
+    document.documentElement.dataset.globalSearchFix = '1';
+    document.addEventListener('click', (event) => {
+      const toggle = event.target.closest?.('#search-toggle');
+      if (!toggle) return;
+      const wrap = document.querySelector('#search-wrap');
+      const input = document.querySelector('#search');
+      if (!wrap || !input) return;
+      event.preventDefault();
+      event.stopPropagation();
+      wrap.classList.add('search-open');
+      wrap.classList.remove('open');
+      input.focus();
+    }, true);
+  }
   document.addEventListener('DOMContentLoaded', bind, { once: true });
   new MutationObserver(bind).observe(document.documentElement, { childList: true, subtree: true });
 })();
