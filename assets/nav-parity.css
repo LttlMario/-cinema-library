@@ -1,7 +1,7 @@
 /* Fresh, cache-independent TFlix navigation overrides. */
-#header .nav-link,
-#header .library-nav-btn,
-#header .search-toggle {
+:is(#header, .cinema-shell-header) .nav-link,
+:is(#header, .cinema-shell-header) .library-nav-btn,
+:is(#header, .cinema-shell-header) .search-toggle {
   width: calc(100% - 28px) !important;
   min-width: 0 !important;
   margin-left: 14px !important;
@@ -13,16 +13,16 @@
   color: #a1a1aa !important;
 }
 
-#header .nav-link:hover,
-#header .library-nav-btn:hover,
- #header .search-toggle:hover {
+:is(#header, .cinema-shell-header) .nav-link:hover,
+:is(#header, .cinema-shell-header) .library-nav-btn:hover,
+ :is(#header, .cinema-shell-header) .search-toggle:hover {
   background: rgba(255,255,255,.08) !important;
   border: 0 !important;
   color: #f4f4f5 !important;
   box-shadow: none !important;
 }
 
-#header .nav-link.active {
+:is(#header, .cinema-shell-header) .nav-link.active {
   background: #e50914 !important;
   border: 0 !important;
   color: #fff !important;
@@ -30,29 +30,29 @@
 }
 
 /* Remote/keyboard focus is the pressed-looking state on TV. */
-#header .nav-link:focus,
-#header .library-nav-btn:focus,
-#header .search-toggle:focus,
-html.keynav #header .kf {
+:is(#header, .cinema-shell-header) .nav-link:focus,
+:is(#header, .cinema-shell-header) .library-nav-btn:focus,
+:is(#header, .cinema-shell-header) .search-toggle:focus,
+html.keynav :is(#header, .cinema-shell-header) .kf {
   background: #e50914 !important;
   color: #fff !important;
   outline: 0 !important;
   box-shadow: 0 4px 18px rgba(229,9,20,.28) !important;
 }
 
-#header .theme-toggle { display: none !important; }
-#header .nav-dropdown { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
-#header .nav-dropdown > .nav-link { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
-#header .search-wrap { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
-#header .search-wrap .search-toggle { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
-#header .nav-link,
-#header .library-nav-btn { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
-#header .nav-dropdown,
-#header .search-wrap { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+:is(#header, .cinema-shell-header) .theme-toggle { display: none !important; }
+:is(#header, .cinema-shell-header) .nav-dropdown { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
+:is(#header, .cinema-shell-header) .nav-dropdown > .nav-link { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+:is(#header, .cinema-shell-header) .search-wrap { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
+:is(#header, .cinema-shell-header) .search-wrap .search-toggle { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+:is(#header, .cinema-shell-header) .nav-link,
+:is(#header, .cinema-shell-header) .library-nav-btn { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+:is(#header, .cinema-shell-header) .nav-dropdown,
+:is(#header, .cinema-shell-header) .search-wrap { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
 
 /* Search opens across the top of the content area, aligned like a desktop
    search field instead of appearing at the bottom of the TV rail. */
-#header .search-wrap.search-open input {
+:is(#header, .cinema-shell-header) .search-wrap.search-open input {
   display: block !important;
   position: fixed !important;
   top: 14px !important;
@@ -63,7 +63,7 @@ html.keynav #header .kf {
   height: 42px !important;
   z-index: 600 !important;
 }
-#header .search-wrap.search-open > button:last-child {
+:is(#header, .cinema-shell-header) .search-wrap.search-open > button:last-child {
   position: fixed !important;
   top: 25px !important;
   bottom: auto !important;
@@ -72,7 +72,7 @@ html.keynav #header .kf {
   z-index: 601 !important;
 }
 
-#header .search-wrap:focus-within input {
+:is(#header, .cinema-shell-header) .search-wrap:focus-within input {
   display: block !important;
   position: fixed !important;
   top: 14px !important;
@@ -85,8 +85,8 @@ html.keynav #header .kf {
   z-index: 600 !important;
 }
 
-#header .search-wrap:hover input,
-#header .search-wrap:has(#search-toggle:focus) input {
+:is(#header, .cinema-shell-header) .search-wrap:hover input,
+:is(#header, .cinema-shell-header) .search-wrap:has(#search-toggle:focus) input {
   display: block !important;
   position: fixed !important;
   top: 14px !important;
@@ -100,7 +100,7 @@ html.keynav #header .kf {
 }
 
 /* Final active state: only the item for the current page is red. */
-#header .nav-link.active {
+:is(#header, .cinema-shell-header) .nav-link.active {
   background: #e50914 !important;
   border-color: #e50914 !important;
   color: #fff !important;
