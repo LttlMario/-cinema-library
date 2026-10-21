@@ -28,3 +28,7 @@
 #header .nav-dropdown > .nav-link { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
 #header .search-wrap { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
 #header .search-wrap .search-toggle { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+#header .nav-link,
+#header .library-nav-btn { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+#header .nav-dropdown,
+#header .search-wrap { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
