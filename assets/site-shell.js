@@ -15,16 +15,16 @@
   const nav = [['Home', 'index.html', 'home'], ['Movies', '', 'movies'], ['TV Shows', '', 'series']];
   document.documentElement.classList.add('cinema-shell-page');
   document.body.classList.add('cinema-shell-page');
-  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin4'); document.head.append(css);
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = appUrl('assets/site-shell.css?v=20261021-tflix-skin5'); document.head.append(css);
   const main = document.querySelector('body>main');
   document.querySelectorAll('body>header,body>.top,body>footer').forEach((node) => node.remove());
   const navHtml = nav.map(([label, href, key]) => menus[key]
-    ? `<div class="nav-dropdown"><button class="nav-link" type="button" data-shell-menu="${key}" data-menu="shell-${key}">${label}⌄</button><div class="nav-submenu" id="shell-${key}">${menus[key].map(([text, target]) => `<a href="${target}">${text}</a>`).join('')}</div></div>`
+    ? `<div class="nav-dropdown"><button class="nav-link" type="button" data-shell-menu="${key}" data-menu="shell-${key}">${label}</button><div class="nav-submenu" id="shell-${key}">${menus[key].map(([text, target]) => `<a href="${target}">${text}</a>`).join('')}</div></div>`
     : `<a class="nav-link ${active === key ? 'active' : ''}" href="${href}">${label}</a>`).join('');
   const header = document.createElement('header');
   header.className = 'cinema-shell-header';
   header.id = 'header';
-  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Main navigation">${navHtml}</nav><button class="library-nav-btn" id="favorites-nav" type="button" title="Open watchlist">▣<span>Watchlist</span></button><div class="nav-right"><div class="search-wrap" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Search">⌕<span>Search</span></button><input id="search" type="text" placeholder="Search movies and series…" autocomplete="off"><button id="search-clear" type="button" aria-label="Clear">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Settings">⚙<span>Settings</span></button></div>`;
+  header.innerHTML = `<div class="logo" id="logo">Cinema Library</div><button class="home-mobile-menu mobile-nav-toggle" id="home-mobile-menu" type="button" aria-expanded="false" aria-controls="home-nav" aria-label="Deschide meniul">☰</button><nav class="nav-links" id="home-nav" aria-label="Main navigation">${navHtml}<button class="library-nav-btn" id="favorites-nav" type="button" title="Open watchlist">▣<span>Watchlist</span></button></nav><div class="nav-right"><div class="search-wrap" id="search-wrap"><button class="search-toggle" id="search-toggle" type="button" aria-label="Search">⌕<span>Search</span></button><input id="search" type="text" placeholder="Search movies and series…" autocomplete="off"><button id="search-clear" type="button" aria-label="Clear">✕</button></div><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Settings">⚙<span>Settings</span></button></div>`;
   document.body.prepend(header);
   if (!isHome && main && !document.querySelector('.shell-hero')) {
     const hero = document.createElement('section'); hero.className = 'shell-hero'; hero.setAttribute('aria-label', 'Titluri populare');
