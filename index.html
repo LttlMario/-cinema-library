@@ -2163,6 +2163,7 @@ function closeRiomaOverlay() {
   overlay.hidden = true;
   overlay.classList.remove('open');
   if (frame) frame.src = 'about:blank';
+  if (window.parent !== window) window.parent.postMessage({ type: 'cinema:player-closed' }, '*');
 }
 
 function openRiomaOverlay(url) {
