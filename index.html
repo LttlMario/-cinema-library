@@ -2687,6 +2687,13 @@ $('clear-filters').addEventListener('click', () => {
     const ii = sec.items.indexOf(cur);
 
     if (dx) {
+      // At the left edge of content, Left enters the fixed sidebar instead
+      // of stopping on the first card. The next Up/Down moves through Home,
+      // Movies, TV Shows, Watchlist and the working Search button.
+      if (dx < 0 && sec.key !== 'header' && ii === 0) {
+        const headerSec = secs.find(section => section.key === 'header');
+        if (headerSec?.items.length) { setFocus(headerSec.items[0]); return; }
+      }
       if (sec.key === 'hero') {            // ←/→ on the hero switch slides
         goToHero(heroIndex + dx);
         const p = document.querySelector('.hero-slide.active .hero-play');
