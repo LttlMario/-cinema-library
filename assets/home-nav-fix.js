@@ -92,8 +92,7 @@
       if (!wrap || !input) return;
       event.preventDefault();
       event.stopPropagation();
-      wrap.classList.add('search-open');
-      wrap.classList.remove('open');
+      wrap.classList.add('search-open', 'open');
       input.focus();
     }, true);
   }
