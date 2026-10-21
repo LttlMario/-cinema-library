@@ -29,15 +29,6 @@
   box-shadow: 0 4px 18px rgba(229,9,20,.28) !important;
 }
 
-/* Home is the first navigation item on the landing page; keep it visibly active
-   even when the legacy home script rewrites the navigation classes. */
-#header .nav-links > .nav-link:first-child {
-  background: #e50914 !important;
-  border: 0 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 18px rgba(229,9,20,.28) !important;
-}
-
 /* Remote/keyboard focus is the pressed-looking state on TV. */
 #header .nav-link:focus,
 #header .library-nav-btn:focus,
@@ -79,4 +70,12 @@ html.keynav #header .kf {
   left: calc(50% + min(210px, 30vw) - 30px) !important;
   right: auto !important;
   z-index: 601 !important;
+}
+
+/* Final active state: only the item for the current page is red. */
+#header .nav-link.active {
+  background: #e50914 !important;
+  border-color: #e50914 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 18px rgba(229,9,20,.28) !important;
 }
