@@ -1,4 +1,4 @@
-const CACHE = 'cinema-library-shell-v12-tflix-nav';
+const CACHE = 'cinema-library-shell-v13-tflix-rail';
 const SHELL = [
   './', './index.html', './catalog.html', './genres.html', './stream/index.html',
   './404.html', './contribute.html', './manifest.webmanifest',
