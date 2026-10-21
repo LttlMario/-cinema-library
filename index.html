@@ -2361,6 +2361,7 @@ function renderSearchSuggestions(items) {
 }
 
 $('search-toggle').addEventListener('click', () => {
+  searchWrap.classList.add('open', 'search-open');
   const q = searchInput.value.trim();
   if (q) { clearTimeout(searchTimer); doSearch(q); }
   else searchInput.focus();
