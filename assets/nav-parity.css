@@ -106,3 +106,29 @@ html.keynav :is(#header, .cinema-shell-header) .kf {
   color: #fff !important;
   box-shadow: 0 4px 18px rgba(229,9,20,.28) !important;
 }
+
+/* Universal search fallback: the shell may be injected without the legacy #header id. */
+#search {
+  display: block !important;
+  position: fixed !important;
+  top: 14px !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(420px, 60vw) !important;
+  min-width: 0 !important;
+  height: 42px !important;
+  padding: 0 2.4rem 0 1rem !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: 600 !important;
+}
+#search-wrap.search-open #search,
+#search-wrap.open #search,
+#search-wrap:focus-within #search,
+#search-wrap:hover #search {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+#search-clear { z-index: 601 !important; }
