@@ -65,6 +65,26 @@
     document.getElementById('search-clear')?.addEventListener('click', () => { shellSearch.value = ''; shellSearch.focus(); });
   }
 
+  // The home page uses the same injected rail, so its dropdowns and watchlist
+  // must receive handlers too (the old code only wired secondary pages).
+  if (isHome) {
+    document.getElementById('favorites-nav')?.addEventListener('click', () => { location.href = appUrl('index.html#favorites'); });
+    document.querySelectorAll('[data-shell-menu]').forEach((button) => {
+      if (button.dataset.bound) return;
+      button.dataset.bound = '1';
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const menu = document.getElementById(`shell-${button.dataset.shellMenu}`);
+        document.querySelectorAll('.nav-submenu.open').forEach((item) => { if (item !== menu) item.classList.remove('open'); });
+        menu?.classList.toggle('open');
+      });
+    });
+    if (!document.body.dataset.shellMenuCloseBound) {
+      document.body.dataset.shellMenuCloseBound = '1';
+      document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach((item) => item.classList.remove('open')));
+    }
+  }
+
   // Launch every direct stream link in the same Rioma fullscreen surface.
   // This keeps catalog, genres and watch-together consistent with the home
   // modal without navigating to a separate details/player page.
