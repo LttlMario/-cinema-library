@@ -4,6 +4,25 @@
     if (!header || header.dataset.homeNavFix === '1') return;
     header.dataset.homeNavFix = '1';
 
+    // The legacy home script also touches .nav-link.active. Restore the
+    // page-level active state after it finishes, so it stays red.
+    const currentPage = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    const currentType = new URLSearchParams(location.search).get('type');
+    const activeKey = currentPage === 'catalog.html' && currentType === 'movie' ? 'movies'
+      : currentPage === 'catalog.html' && currentType === 'tv' ? 'series'
+      : currentPage === 'index.html' || currentPage === '' ? 'home' : '';
+    const restoreActive = () => {
+      header.querySelectorAll('.nav-link').forEach((item) => {
+        const key = item.dataset.shellMenu || (item.getAttribute('href') || '').endsWith('index.html') ? 'home' : '';
+        const shouldBeActive = activeKey === 'home'
+          ? item.tagName === 'A' && (item.getAttribute('href') || '').endsWith('index.html')
+          : item.dataset.shellMenu === activeKey;
+        item.classList.toggle('active', shouldBeActive);
+      });
+    };
+    restoreActive();
+    setTimeout(restoreActive, 250);
+
     const pageBase = new URL('./', location.href);
     const go = (path) => { location.href = new URL(path, pageBase).href; };
 
