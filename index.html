@@ -2635,10 +2635,13 @@ $('clear-filters').addEventListener('click', () => {
       return [...genreMenu.querySelectorAll('.genre-option')].map(i => ({ key: null, items: [i] }));
 
     const secs = [];
+    // The sidebar is one independent vertical rail.  Keep only its visible
+    // controls here, in the same order as the PC layout.  The search field
+    // itself is not a sidebar item: it is opened by the final Search tile
+    // and then receives native text focus.
     const header = [
       ...document.querySelectorAll('.nav-link'),
-      $('favorites-nav'), genreBtn, $('search-toggle'), searchInput, $('search-clear'),
-      $('contribute-btn'), $('theme-toggle')
+      $('favorites-nav'), $('search-toggle')
     ].filter(vis);
     if (header.length) secs.push({ key: 'header', items: header, axis: 'vertical' });
 
@@ -2687,10 +2690,18 @@ $('clear-filters').addEventListener('click', () => {
     const ii = sec.items.indexOf(cur);
 
     if (dx) {
-      // At the left edge of content, Left enters the fixed sidebar instead
-      // of stopping on the first card. The next Up/Down moves through Home,
-      // Movies, TV Shows, Watchlist and the working Search button.
-      if (dx < 0 && sec.key !== 'header' && ii === 0) {
+      // The sidebar and the content are separate navigation zones.  Right
+      // leaves the sidebar for the content; Left enters the sidebar only at
+      // the left edge of a row.  This prevents horizontal presses from
+      // mixing sidebar buttons with cards.
+      if (sec.key === 'header') {
+        if (dx > 0) {
+          const content = secs.find(section => section.key !== 'header' && section.key !== 'tabs');
+          if (content?.items.length) setFocus(content.items[mem.get(content.key) ?? 0]);
+        }
+        return;
+      }
+      if (dx < 0 && sec.key !== 'header' && sec.key !== 'tabs' && ii === 0) {
         const headerSec = secs.find(section => section.key === 'header');
         if (headerSec?.items.length) { setFocus(headerSec.items[0]); return; }
       }
@@ -2714,8 +2725,9 @@ $('clear-filters').addEventListener('click', () => {
           setFocus(sec.items[ni]);
           return;
         }
-        const ns = secs[si + dy];
-        if (ns) setFocus(ns.items[Math.max(0, Math.min(ii, ns.items.length - 1))]);
+        // Reaching the end of the sidebar does not jump into cards.  The
+        // content zone is entered explicitly with Right, just like on the
+        // PC layout where the rail is independent from the media rows.
         return;
       }
       const ns = secs[si + dy];
