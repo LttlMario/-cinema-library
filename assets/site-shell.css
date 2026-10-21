@@ -119,3 +119,4 @@ html.cinema-shell-page,body.cinema-shell-page{background:#09090b!important;color
 .cinema-shell-header .nav-link,.cinema-shell-header .library-nav-btn,.cinema-shell-header .search-toggle{background:transparent!important;border:0!important;border-radius:14px!important;box-shadow:none!important;color:#a1a1aa!important}
 .cinema-shell-header .nav-link:hover,.cinema-shell-header .library-nav-btn:hover,.cinema-shell-header .search-toggle:hover{background:rgba(255,255,255,.08)!important;border:0!important;color:#f4f4f5!important}
 .cinema-shell-header .nav-link.active{background:rgba(255,255,255,.08)!important;border:0!important;color:#f4f4f5!important;box-shadow:none!important}
+.cinema-shell-header .nav-link,.cinema-shell-header .library-nav-btn,.cinema-shell-header .search-toggle{width:calc(100% - 28px)!important;min-width:0!important;margin-left:14px!important;margin-right:14px!important}
