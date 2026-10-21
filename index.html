@@ -946,12 +946,10 @@
     <a class="contribute-btn" id="contribute-btn" href="contribute.html" title="Contribuie la Cinema Library" aria-label="Contribuie la Cinema Library">
       <span aria-hidden="true">♥</span><span class="s-name">Contribuie</span>
     </a>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activează tema deschisă" title="Schimbă tema">☼</button>
-
   </div>
 </header>
 
-<script src="assets/site-shell.js?v=20261021-tflix-nav5"></script>
+<script src="assets/site-shell.js?v=20261021-tflix-nav6"></script>
 
 <!-- ─────────────── HERO ─────────────── -->
 <section id="hero" class="empty"></section>
@@ -1077,17 +1075,18 @@ document.documentElement.dataset.theme = localStorage.getItem(THEME_KEY) || 'dar
 const themeToggle = document.getElementById('theme-toggle');
 function updateThemeButton() {
   const light = document.documentElement.dataset.theme === 'light';
+  if (!themeToggle) return;
   themeToggle.textContent = light ? '☾' : '☼';
   themeToggle.setAttribute('aria-label', light ? 'Activează tema întunecată' : 'Activează tema deschisă');
 }
-themeToggle.addEventListener('click', () => {
+themeToggle?.addEventListener('click', () => {
   const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
   document.documentElement.dataset.theme = next;
   localStorage.setItem(THEME_KEY, next);
   updateThemeButton();
 });
 updateThemeButton();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=20261021-v17').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=20261021-v18').catch(() => {});
 
 /* ─── CONFIG ─── */
 const API_BASE = "https://api.themoviedb.org/3";
