@@ -22,7 +22,9 @@
     wrap.style.setProperty('height', '42px', 'important');
     wrap.style.setProperty('z-index', '600', 'important');
     wrap.style.setProperty('margin', '0', 'important');
-    input.style.position = 'fixed';
+    const toggle = wrap.querySelector('#search-toggle');
+    if (toggle) toggle.style.setProperty('display', 'none', 'important');
+    input.style.position = 'absolute';
     input.style.left = '0';
     input.style.top = '0';
     input.style.right = 'auto';
@@ -30,24 +32,24 @@
     input.style.transform = 'none';
     input.style.width = `${width}px`;
     input.style.height = '42px';
-    input.style.display = 'block';
+    input.style.setProperty('display', 'block', 'important');
     input.style.zIndex = '600';
     input.style.background = '#141419';
     input.style.color = '#f4f4f5';
 
     if (clear) {
-      clear.style.position = 'fixed';
-      clear.style.left = `${left + width / 2 - 30}px`;
-      clear.style.right = 'auto';
-      clear.style.top = '25px';
+      clear.style.position = 'absolute';
+      clear.style.left = 'auto';
+      clear.style.right = '10px';
+      clear.style.top = '12px';
       clear.style.bottom = 'auto';
       clear.style.zIndex = '601';
     }
     if (suggestions) {
-      suggestions.style.position = 'fixed';
-      suggestions.style.left = `${left}px`;
-      suggestions.style.top = '64px';
-      suggestions.style.transform = 'translateX(-50%)';
+      suggestions.style.position = 'absolute';
+      suggestions.style.left = '0';
+      suggestions.style.top = '50px';
+      suggestions.style.transform = 'none';
       suggestions.style.width = `${width}px`;
       suggestions.style.zIndex = '610';
     }
