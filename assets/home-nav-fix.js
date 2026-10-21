@@ -6,30 +6,20 @@
     const suggestions = document.querySelector('#search-suggestions');
     if (!wrap || !input) return;
 
-    // The shell header is the fixed sidebar. Move the whole open search
-    // container to body so its coordinates are relative to the viewport.
-    if (wrap.parentElement !== document.body) document.body.appendChild(wrap);
+    // Keep the Search button in the sidebar. Only the floating field and its
+    // related controls are moved to body, where they can use page coordinates.
+    [input, clear, suggestions].forEach((element) => {
+      if (element && element.parentElement !== document.body) document.body.appendChild(element);
+    });
 
     const width = Math.min(420, Math.max(240, window.innerWidth * 0.6));
-    wrap.style.setProperty('position', 'fixed', 'important');
-    wrap.style.setProperty('left', '50%', 'important');
-    wrap.style.setProperty('top', '14px', 'important');
-    wrap.style.setProperty('right', 'auto', 'important');
-    wrap.style.setProperty('bottom', 'auto', 'important');
-    wrap.style.setProperty('transform', 'translateX(-50%)', 'important');
-    wrap.style.setProperty('width', `${width}px`, 'important');
-    wrap.style.setProperty('height', '42px', 'important');
-    wrap.style.setProperty('z-index', '600', 'important');
-    wrap.style.setProperty('margin', '0', 'important');
-    const toggle = wrap.querySelector('#search-toggle');
-    if (toggle) toggle.style.setProperty('display', 'none', 'important');
-    input.style.position = 'absolute';
-    input.style.left = '0';
-    input.style.top = '0';
-    input.style.right = 'auto';
-    input.style.bottom = 'auto';
-    input.style.transform = 'none';
-    input.style.width = `${width}px`;
+    input.style.setProperty('position', 'fixed', 'important');
+    input.style.setProperty('left', '50%', 'important');
+    input.style.setProperty('top', '14px', 'important');
+    input.style.setProperty('right', 'auto', 'important');
+    input.style.setProperty('bottom', 'auto', 'important');
+    input.style.setProperty('transform', 'translateX(-50%)', 'important');
+    input.style.setProperty('width', `${width}px`, 'important');
     input.style.height = '42px';
     input.style.setProperty('display', 'block', 'important');
     input.style.setProperty('opacity', '1', 'important');
@@ -39,19 +29,19 @@
     input.style.color = '#f4f4f5';
 
     if (clear) {
-      clear.style.position = 'absolute';
-      clear.style.left = 'auto';
-      clear.style.right = '10px';
-      clear.style.top = '12px';
-      clear.style.bottom = 'auto';
+      clear.style.setProperty('position', 'fixed', 'important');
+      clear.style.setProperty('left', `calc(50% + ${width / 2 - 30}px)`, 'important');
+      clear.style.setProperty('right', 'auto', 'important');
+      clear.style.setProperty('top', '25px', 'important');
+      clear.style.setProperty('bottom', 'auto', 'important');
       clear.style.zIndex = '601';
     }
     if (suggestions) {
-      suggestions.style.position = 'absolute';
-      suggestions.style.left = '0';
-      suggestions.style.top = '50px';
-      suggestions.style.transform = 'none';
-      suggestions.style.width = `${width}px`;
+      suggestions.style.setProperty('position', 'fixed', 'important');
+      suggestions.style.setProperty('left', '50%', 'important');
+      suggestions.style.setProperty('top', '64px', 'important');
+      suggestions.style.setProperty('transform', 'translateX(-50%)', 'important');
+      suggestions.style.setProperty('width', `${width}px`, 'important');
       suggestions.style.zIndex = '610';
     }
   }
