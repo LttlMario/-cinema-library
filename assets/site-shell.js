@@ -1,4 +1,49 @@
 (function () {
+  const tvMode = new URLSearchParams(location.search).get('tv') === '1';
+  if (tvMode) {
+    document.documentElement.classList.add('tv-mode');
+    if (!window.__cinemaTvRemoteBridge) {
+      window.__cinemaTvRemoteBridge = true;
+      const keyCodes = { ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40, Enter: 13 };
+      const visible = (el) => !!(el && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden' && getComputedStyle(el).display !== 'none');
+      const focusables = () => [...document.querySelectorAll('button,a,input,select,textarea,[tabindex="0"]')].filter(el => visible(el) && !el.disabled && el.getAttribute('tabindex') !== '-1');
+      const moveFocus = (key) => {
+        // The home page already has its own row-aware navigator.
+        if (document.querySelector('#rows-container')) return;
+        const items = focusables();
+        if (!items.length) return;
+        const current = document.activeElement;
+        if (!items.includes(current)) { items[0].focus(); return; }
+        if (key === 'Enter') { current.click(); return; }
+        const from = current.getBoundingClientRect();
+        const vertical = key === 'ArrowUp' || key === 'ArrowDown';
+        const direction = key === 'ArrowUp' || key === 'ArrowLeft' ? -1 : 1;
+        const candidates = items.filter(el => el !== current).map(el => ({ el, rect: el.getBoundingClientRect() })).filter(({ rect }) => {
+          const dx = rect.left + rect.width / 2 - (from.left + from.width / 2);
+          const dy = rect.top + rect.height / 2 - (from.top + from.height / 2);
+          return vertical ? (direction < 0 ? dy < -8 : dy > 8) : (direction < 0 ? dx < -8 : dx > 8);
+        });
+        candidates.sort((a, b) => {
+          const ac = vertical ? Math.abs(a.rect.top - from.top) + Math.abs(a.rect.left - from.left) * 2 : Math.abs(a.rect.left - from.left) + Math.abs(a.rect.top - from.top) * 2;
+          const bc = vertical ? Math.abs(b.rect.top - from.top) + Math.abs(b.rect.left - from.left) * 2 : Math.abs(b.rect.left - from.left) + Math.abs(b.rect.top - from.top) * 2;
+          return ac - bc;
+        });
+        candidates[0]?.el.focus({ preventScroll: true });
+        candidates[0]?.el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      };
+      window.addEventListener('message', (event) => {
+        const key = String(event.data?.type === 'cinema:remote-key' ? event.data.key : '');
+        if (!keyCodes[key]) return;
+        const target = document.activeElement || document.body;
+        target.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, keyCode: keyCodes[key], which: keyCodes[key], bubbles: true, cancelable: true }));
+      });
+      document.addEventListener('keydown', (event) => {
+        if (!keyCodes[event.key] || document.querySelector('#rows-container')) return;
+        event.preventDefault();
+        moveFocus(event.key);
+      }, true);
+    }
+  }
   if (document.querySelector('.cinema-shell-header')) return;
   const path = location.pathname;
   const match = path.match(/^(.*\/cinema-library)(?:\/|$)/i);
