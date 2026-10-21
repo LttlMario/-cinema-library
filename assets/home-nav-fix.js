@@ -104,23 +104,6 @@
     const searchToggle = header.querySelector('#search-toggle');
     const searchWrap = header.querySelector('#search-wrap');
     const search = header.querySelector('#search');
-    let searchProxy = header.querySelector('#search-toggle-proxy');
-    if (!searchProxy) {
-      searchProxy = document.createElement('button');
-      searchProxy.id = 'search-toggle-proxy';
-      searchProxy.className = 'search-toggle';
-      searchProxy.type = 'button';
-      searchProxy.setAttribute('aria-label', 'Search');
-      searchProxy.innerHTML = '⌕<span>Search</span>';
-      header.appendChild(searchProxy);
-    }
-    searchProxy.onclick = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      searchWrap?.classList.add('search-open', 'open');
-      centerSearch();
-      document.querySelector('#search')?.focus();
-    };
     if (searchToggle && searchWrap && search && !searchToggle.dataset.homeNavFixBound) {
       searchToggle.dataset.homeNavFixBound = '1';
       searchToggle.addEventListener('click', (event) => {
