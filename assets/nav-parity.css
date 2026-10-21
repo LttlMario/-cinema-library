@@ -155,40 +155,6 @@ html.keynav :is(#header, .cinema-shell-header) .kf {
    field is portalled to the page center when opened, so the tile must not
    participate in the old expanding-input layout. */
 @media (min-width: 861px) {
-  .cinema-shell-header #search-toggle-proxy {
-    position: fixed !important;
-    left: 16px !important;
-    right: auto !important;
-    bottom: 14px !important;
-    top: auto !important;
-    width: 84px !important;
-    height: 84px !important;
-    min-width: 84px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 4px !important;
-    border: 0 !important;
-    border-radius: 14px !important;
-    background: transparent !important;
-    color: #a1a1aa !important;
-    font-size: 24px !important;
-    line-height: 1 !important;
-    z-index: 351 !important;
-  }
-  .cinema-shell-header #search-toggle-proxy span {
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    line-height: 1.1 !important;
-  }
-  .cinema-shell-header #search-toggle-proxy:hover,
-  .cinema-shell-header #search-toggle-proxy:focus {
-    background: rgba(255,255,255,.08) !important;
-    color: #f4f4f5 !important;
-    outline: 0 !important;
-  }
   .cinema-shell-header #search-wrap {
     position: fixed !important;
     left: 16px !important;
