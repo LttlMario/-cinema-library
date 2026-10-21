@@ -29,6 +29,17 @@
   box-shadow: 0 4px 18px rgba(229,9,20,.28) !important;
 }
 
+/* Remote/keyboard focus is the pressed-looking state on TV. */
+#header .nav-link:focus,
+#header .library-nav-btn:focus,
+#header .search-toggle:focus,
+html.keynav #header .kf {
+  background: #e50914 !important;
+  color: #fff !important;
+  outline: 0 !important;
+  box-shadow: 0 4px 18px rgba(229,9,20,.28) !important;
+}
+
 #header .theme-toggle { display: none !important; }
 #header .nav-dropdown { width: calc(100% - 28px) !important; margin-left: 14px !important; margin-right: 14px !important; }
 #header .nav-dropdown > .nav-link { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
