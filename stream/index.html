@@ -659,6 +659,8 @@ function resumeParam(p) {
 /* ─── STATE ─── */
 const $ = id => document.getElementById(id);
 const TMDB_CACHE_KEY = 'cinemalibrary_tmdb_cache_v2';
+// TV mode is reserved for the Samsung wrapper. The TV's normal web browser
+// should use the same behavior as the desktop website.
 const tvUserAgent = '';
 const isTvClient = document.body.classList.contains('tv-mode') || new URLSearchParams(location.search).get('player-tv') === '1';
 const TMDB_CACHE_TTL = isTvClient ? 30 * 60 * 1000 : 5 * 60 * 1000;
@@ -794,7 +796,7 @@ function applyOwnPicture(value) {
   const wrap = $('player-wrap');
   // Tizen's WebView can render a filtered cross-origin iframe as a black
   // surface. Keep the TV player clean; desktop still gets the full effect.
-  const isTizenPlayback = document.body.classList.contains('tv-mode') || /Tizen/i.test(navigator.userAgent);
+  const isTizenPlayback = document.body.classList.contains('tv-mode');
   if (isTizenPlayback) {
     player.style.filter = 'none';
     wrap.style.filter = 'none';
@@ -1155,8 +1157,9 @@ function loadPlayer() {
   }, 12000);
   syncUrl();
   savePlaybackProgress();
-  // Give the external provider a head start on slower TV browsers before the
-  // optional automatic subtitle lookup starts competing for connections.
+  // Do not compete with the provider's first-server search on slower TV
+  // browsers. The provider gets a short head start; Romanian subtitles still
+  // load automatically in the background and remain cached for next time.
   window.setTimeout(() => {
     if (loadToken === playerLoadToken) autoLoadRomanianSubtitle(loadToken);
   }, 2500);
@@ -1352,13 +1355,14 @@ window.addEventListener('message', event => {
     applyResumeDecision();
   } else if (eventType === 'cinesrc:loadedmetadata' || eventType === 'loadedmetadata') {
     ownDuration = Number(payload.duration ?? payload.player_duration ?? payload.duration_seconds) || ownDuration;
-    if (Number(state?.resumeAt) > 10 && !resumePromptShown) {
+    if (hasResumeAvailable() && !resumeDecision) {
       ownPaused = true;
       ownCommand('pause');
+      prepareResumeChoice();
     }
     updateOwnControls();
     updateSubtitleDisplay(ownCurrentTime);
-    showResumeChoice();
+    applyResumeDecision();
   } else if (eventType === 'cinesrc:volumechange' || eventType === 'volumechange') {
     ownMuted = Boolean(payload.muted);
     const volume = Number(payload.volume);
@@ -1793,7 +1797,7 @@ window.addEventListener('beforeunload', persistCurrentPlayback);
 (async function init() {
   const initialParams = new URLSearchParams(location.search);
   if (initialParams.get('embedded') === '1') document.body.classList.add('embedded');
-  if (initialParams.get('player-tv') === '1') document.body.classList.add('tv-mode');
+  if (initialParams.get('player-tv') === '1' || initialParams.get('tv') === '1') document.body.classList.add('tv-mode');
   state = readParams();
   if (!state) {
     $('main').innerHTML = `
@@ -2080,4 +2084,3 @@ window.addEventListener('beforeunload', persistCurrentPlayback);
 <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
-
