@@ -1,4 +1,4 @@
-const CACHE = 'cinema-library-shell-v15-tflix-spacing';
+const CACHE = 'cinema-library-shell-v16-tflix-spacing';
 const SHELL = [
   './', './index.html', './catalog.html', './genres.html', './stream/index.html',
   './404.html', './contribute.html', './manifest.webmanifest',
