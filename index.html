@@ -2636,11 +2636,11 @@ $('clear-filters').addEventListener('click', () => {
 
     const secs = [];
     const header = [
-      $('home-mobile-menu'), $('logo'), ...document.querySelectorAll('.nav-link'),
+      ...document.querySelectorAll('.nav-link'),
       $('favorites-nav'), genreBtn, $('search-toggle'), searchInput, $('search-clear'),
       $('contribute-btn'), $('theme-toggle')
     ].filter(vis);
-    if (header.length) secs.push({ key: 'header', items: header });
+    if (header.length) secs.push({ key: 'header', items: header, axis: 'vertical' });
 
     if ($('search-results-section').classList.contains('visible')) {
       const tabs = [...document.querySelectorAll('.filter-tab'), $('genre-filter'), $('year-filter'), $('clear-filters')].filter(vis);
@@ -2708,6 +2708,16 @@ $('clear-filters').addEventListener('click', () => {
       return;
     }
     if (dy) {
+      if (sec.axis === 'vertical') {
+        const ni = ii + dy;
+        if (ni >= 0 && ni < sec.items.length) {
+          setFocus(sec.items[ni]);
+          return;
+        }
+        const ns = secs[si + dy];
+        if (ns) setFocus(ns.items[Math.max(0, Math.min(ii, ns.items.length - 1))]);
+        return;
+      }
       const ns = secs[si + dy];
       if (!ns) return;
       if (sec.key) mem.set(sec.key, ii);
