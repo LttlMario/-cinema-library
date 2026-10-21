@@ -107,3 +107,9 @@ html.cinema-shell-page,body.cinema-shell-page{background:#09090b!important;color
 .cinema-shell-header .nav-link:hover,.cinema-shell-header .library-nav-btn:hover,.cinema-shell-header .search-toggle:hover,.cinema-shell-header .theme-toggle:hover,.cinema-shell-header .nav-link.active{color:#f4f4f5!important;background:rgba(255,255,255,.08)!important;border-color:transparent!important}
 .cinema-shell-header .nav-link.active:after{display:none!important}
 .cinema-shell-header .logo::after{background:rgba(229,9,20,.2)!important;border-color:#e50914!important;color:#e50914!important}
+
+/* Visible navigation colors: inactive controls stay subdued, the active one
+   uses the Cinema Library red accent for clear TV navigation feedback. */
+.cinema-shell-header .nav-link,.cinema-shell-header .library-nav-btn,.cinema-shell-header .search-toggle{background:#141419!important;border:1px solid rgba(255,255,255,.08)!important;color:#a1a1aa!important}
+.cinema-shell-header .nav-link:hover,.cinema-shell-header .library-nav-btn:hover,.cinema-shell-header .search-toggle:hover{background:#24242b!important;border-color:rgba(229,9,20,.55)!important;color:#f4f4f5!important}
+.cinema-shell-header .nav-link.active{background:#e50914!important;border-color:#e50914!important;color:#fff!important;box-shadow:0 4px 18px rgba(229,9,20,.28)}
