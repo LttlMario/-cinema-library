@@ -1,4 +1,49 @@
 (function () {
+  function centerSearch() {
+    const input = document.querySelector('#search');
+    const clear = document.querySelector('#search-clear');
+    const suggestions = document.querySelector('#search-suggestions');
+    if (!input) return;
+
+    // The shell header is the fixed sidebar. Move the floating search layer
+    // to body so fixed coordinates are relative to the actual viewport.
+    [input, clear, suggestions].forEach((element) => {
+      if (element && element.parentElement !== document.body) document.body.appendChild(element);
+    });
+
+    const width = Math.min(420, Math.max(240, window.innerWidth * 0.6));
+    const left = Math.round(window.innerWidth / 2);
+    input.style.position = 'fixed';
+    input.style.left = `${left}px`;
+    input.style.top = '14px';
+    input.style.right = 'auto';
+    input.style.bottom = 'auto';
+    input.style.transform = 'translateX(-50%)';
+    input.style.width = `${width}px`;
+    input.style.height = '42px';
+    input.style.display = 'block';
+    input.style.zIndex = '600';
+    input.style.background = '#141419';
+    input.style.color = '#f4f4f5';
+
+    if (clear) {
+      clear.style.position = 'fixed';
+      clear.style.left = `${left + width / 2 - 30}px`;
+      clear.style.right = 'auto';
+      clear.style.top = '25px';
+      clear.style.bottom = 'auto';
+      clear.style.zIndex = '601';
+    }
+    if (suggestions) {
+      suggestions.style.position = 'fixed';
+      suggestions.style.left = `${left}px`;
+      suggestions.style.top = '64px';
+      suggestions.style.transform = 'translateX(-50%)';
+      suggestions.style.width = `${width}px`;
+      suggestions.style.zIndex = '610';
+    }
+  }
+
   function bind() {
     const header = document.querySelector('.cinema-shell-header, #header');
     if (!header || header.dataset.homeNavFix === '1') return;
@@ -64,6 +109,7 @@
         event.stopPropagation();
         searchWrap.classList.add('search-open');
         searchWrap.classList.remove('open');
+        centerSearch();
         search.focus();
       });
       search.addEventListener('keydown', (event) => {
@@ -93,6 +139,7 @@
       event.preventDefault();
       event.stopPropagation();
       wrap.classList.add('search-open', 'open');
+      centerSearch();
       input.focus();
     }, true);
   }
