@@ -49,3 +49,25 @@ html.keynav #header .kf {
 #header .library-nav-btn { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
 #header .nav-dropdown,
 #header .search-wrap { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+
+/* Search opens across the top of the content area, aligned like a desktop
+   search field instead of appearing at the bottom of the TV rail. */
+#header .search-wrap.search-open input {
+  display: block !important;
+  position: fixed !important;
+  top: 14px !important;
+  left: 50% !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(420px, 60vw) !important;
+  height: 42px !important;
+  z-index: 600 !important;
+}
+#header .search-wrap.search-open > button:last-child {
+  position: fixed !important;
+  top: 25px !important;
+  bottom: auto !important;
+  left: calc(50% + min(210px, 30vw) - 30px) !important;
+  right: auto !important;
+  z-index: 601 !important;
+}
