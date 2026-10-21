@@ -643,8 +643,8 @@ const SERVERS = [
 /* Single source used by Rioma. */
 const serverUrlResolvers = {
   3: (p) => p.type === 'movie'
-    ? `https://cinesrc.st/embed/movie/${p.id}?controls=false&autoplay=true&color=%23e50914${subtitleParam(p, 'sub')}`
-    : `https://cinesrc.st/embed/tv/${p.id}?controls=false&season=${p.season}&episode=${p.episode}&autonext=false&autoplay=true&color=%23e50914${subtitleParam(p, 'sub')}`
+    ? `https://cinesrc.st/embed/movie/${p.id}?controls=false&autoplay=false&color=%23e50914${subtitleParam(p, 'sub')}`
+    : `https://cinesrc.st/embed/tv/${p.id}?controls=false&season=${p.season}&episode=${p.episode}&autonext=false&autoplay=false&color=%23e50914${subtitleParam(p, 'sub')}`
 };
 function subtitleParam(p, key) {
   // Rioma expects a single language code. Romanian is the default for both
@@ -708,6 +708,7 @@ let ownPaused = true;
 let ownMuted = false;
 let ownCurrentTime = 0;
 let ownDuration = 0;
+let providerReady = false;
 let subtitleCues = [];
 let subtitleOffset = 0;
 let subtitleResults = [];
@@ -742,6 +743,7 @@ function updateOwnControls() {
   if (!play || !mute || !timeline || !time) return;
   play.textContent = ownPaused ? '▶' : '❚❚';
   play.setAttribute('aria-label', ownPaused ? 'Redare' : 'Pauză');
+  play.disabled = !providerReady;
   mute.textContent = ownMuted ? '🔇' : '🔊';
   timeline.value = ownDuration ? Math.min(100, (ownCurrentTime / ownDuration) * 100) : 0;
   time.textContent = `${ownFormatTime(ownCurrentTime)} / ${ownFormatTime(ownDuration)}`;
@@ -752,6 +754,7 @@ function seekOwn(seconds) {
   showOwnControls();
 }
 function toggleOwnPlayback() {
+  if (!providerReady) return;
   const shouldPause = !ownPaused;
   ownPaused = shouldPause;
   ownCommand(shouldPause ? 'pause' : 'play');
@@ -1069,6 +1072,7 @@ function loadPlayer() {
   if (recommendationPanel) recommendationPanel.hidden = true;
   const serverId = state.server;
   const loadToken = ++playerLoadToken;
+  providerReady = false;
   resumePlayerReady = false;
   resumeDecisionAppliedToken = 0;
   const src = serverUrlResolvers[state.server](state);
@@ -1100,8 +1104,6 @@ function loadPlayer() {
   frame.onload = () => {
     if (loadToken !== playerLoadToken) return;
     settled = true;
-    loader.classList.add('hide');
-    loader.setAttribute('aria-hidden', 'true');
     updateServerStatus(serverId, 'online');
   };
   frame.onerror = fail;
@@ -1127,26 +1129,6 @@ function loadPlayer() {
   applyEnhancer();
   applyOwnPicture(localStorage.getItem(OWN_PICTURE_KEY) || 'standard');
   showOwnControls();
-  // Samsung WebView may start the media but never fire iframe.onload. In
-  // that case the audio was audible while the loading layer covered the image.
-  window.setTimeout(() => {
-    if (loadToken === playerLoadToken) {
-      loader.classList.add('hide');
-      loader.setAttribute('aria-hidden', 'true');
-    }
-  }, 2500);
-  // Some TV WebViews play the cross-origin iframe without forwarding its
-  // play event. After a short grace period, treat the autoplay gesture as
-  // active so local controls and subtitles keep advancing.
-  window.setTimeout(() => {
-    if (loadToken === playerLoadToken && ownPaused && !providerTimeSignals) {
-      ownPaused = false;
-      startSubtitleFallbackClock(loadToken);
-      updateOwnControls();
-      updateSubtitleDisplay(ownCurrentTime);
-    }
-  }, 900);
-
   setTimeout(() => {
     if (loadToken !== playerLoadToken || settled) return;
     loader.classList.add('hide');
@@ -1302,6 +1284,10 @@ window.addEventListener('message', event => {
   const payload = normalizePlayerPayload(message);
   const eventType = String(message.type || message.event || payload.event || '').toLowerCase();
   if (eventType === 'cinesrc:ready' || eventType === 'ready') {
+    providerReady = true;
+    const readyLoader = $('player-loading');
+    readyLoader?.classList.add('hide');
+    readyLoader?.setAttribute('aria-hidden', 'true');
     ownPaused = true;
     resumePlayerReady = true;
     const waitingForResumeChoice = hasResumeAvailable() && !resumeDecision;
@@ -1310,17 +1296,17 @@ window.addEventListener('message', event => {
     showOwnControls();
     if (waitingForResumeChoice) prepareResumeChoice();
     applyResumeDecision();
-    // Samsung WebView may block autoplay on the newly-created cross-origin
-    // iframe. Retry only in TV mode; the popup Redă action is the user's
-    // gesture that should start playback, while the resume prompt can still
-    // pause it again once metadata and duration arrive.
-    if (document.body.classList.contains('tv-mode') && !waitingForResumeChoice && !resumeDecision) {
+    // Start only after the provider has finished its initial fetch. The
+    // iframe itself is loaded earlier, but autoplay is deliberately disabled
+    // in the URL so the Play control never changes to Pause during fetching.
+    if (!waitingForResumeChoice && !resumeDecision) {
       const readyToken = playerLoadToken;
       [0, 250, 800, 1600].forEach(delay => window.setTimeout(() => {
-        if (readyToken === playerLoadToken && ownPaused) ownCommand('play');
+        if (readyToken === playerLoadToken && ownPaused && providerReady) ownCommand('play');
       }, delay));
     }
   } else if (eventType === 'cinesrc:play' || eventType === 'play') {
+    if (!providerReady) return;
     if (hasResumeAvailable() && !resumeDecision) {
       ownPaused = true;
       ownCommand('pause');
@@ -1341,6 +1327,11 @@ window.addEventListener('message', event => {
     updateOwnControls();
     showOwnControls();
   } else if (eventType === 'cinesrc:timeupdate' || eventType === 'timeupdate') {
+    if (!providerReady) {
+      providerReady = true;
+      $('player-loading')?.classList.add('hide');
+      $('player-loading')?.setAttribute('aria-hidden', 'true');
+    }
     providerTimeSignals += 1;
     stopSubtitleFallbackClock();
     ownCurrentTime = Number(payload.currentTime ?? payload.player_progress) || 0;
