@@ -96,6 +96,7 @@
       input.focus();
     }, true);
   }
+  window.addEventListener('resize', centerSearch);
   document.addEventListener('DOMContentLoaded', bind, { once: true });
   new MutationObserver(bind).observe(document.documentElement, { childList: true, subtree: true });
 })();
