@@ -44,3 +44,27 @@ body.cinema-shell-page{padding-top:0;background:#09090b;font-family:'Inter','Han
 .cinema-shell-header .logo{font-size:0!important;font-family:'Bebas Neue',sans-serif!important;letter-spacing:.08em!important}
 .cinema-shell-header .logo::after{content:'TFLIX';display:block;font-size:1.72rem;line-height:1}
 @media(max-width:560px){.cinema-shell-header .logo::after{font-size:1.38rem}}
+
+/* Exact TFlix shell geometry: the rail stays visible at every supported
+   viewport size instead of collapsing into a top bar. */
+body.cinema-shell-page{padding-top:0;background:#09090b;font-family:'Inter','Hanken Grotesk',system-ui,sans-serif}
+.cinema-shell-header{top:0;right:auto;bottom:0;left:0;width:116px;height:100vh;padding:22px 0;display:flex;flex-direction:column;align-items:center;gap:0;background:#0c0c10;border-right:1px solid rgba(255,255,255,.07);border-bottom:0}
+.cinema-shell-header .logo{width:100%;margin:0 0 30px;text-align:center;font-family:'Inter','Hanken Grotesk',system-ui,sans-serif!important;font-size:.76rem!important;font-weight:800;letter-spacing:-.03em!important;line-height:1.15;color:var(--shell-accent);text-shadow:0 0 22px rgba(229,9,20,.38);white-space:normal}
+.cinema-shell-header .logo::after{display:none}
+.cinema-shell-header .nav-links{width:100%;display:flex!important;flex-direction:column;align-items:stretch;gap:5px}
+.cinema-shell-header .nav-link,.cinema-shell-header .library-nav-btn{display:flex;align-items:center;justify-content:center;min-height:44px;width:100%;padding:7px 8px;color:#a1a1aa;font-size:.67rem;font-weight:600;text-align:center;white-space:normal;border-radius:0;transition:color .18s,background .18s}
+.cinema-shell-header .nav-link:hover,.cinema-shell-header .library-nav-btn:hover,.cinema-shell-header .nav-link.active{color:#fff;background:rgba(229,9,20,.13)}
+.cinema-shell-header .nav-link.active:after{left:0;right:auto;top:7px;bottom:7px;width:3px;height:auto;border-radius:0 3px 3px 0}
+.cinema-shell-header .nav-dropdown{width:100%}.cinema-shell-header .nav-dropdown>.nav-link{width:100%}
+.cinema-shell-header .nav-submenu{top:0;left:calc(100% + 8px);transform:none;min-width:190px;border-radius:7px;background:#141419;border-color:rgba(255,255,255,.11)}
+.cinema-shell-header #favorites-nav{margin-top:6px}
+.cinema-shell-header .nav-right{width:100%;margin:auto 0 0;padding-top:14px;flex-direction:column;gap:8px}
+.cinema-shell-header .search-toggle,.cinema-shell-header .theme-toggle{width:42px;height:42px;border-radius:6px;background:transparent;border:1px solid transparent}
+.cinema-shell-header .search-toggle:hover,.cinema-shell-header .theme-toggle:hover{background:#18181f;border-color:var(--shell-line)}
+.cinema-shell-header .search-wrap input{position:fixed;left:126px;bottom:22px;z-index:500;width:260px;height:42px;padding:0 2.4rem 0 1rem;background:#141419;border-radius:6px}
+.cinema-shell-header .search-wrap>button:last-child{position:fixed;left:356px;right:auto;bottom:32px;top:auto;z-index:501}
+.cinema-shell-header .contribute-btn{display:none!important}
+.mobile-nav-toggle{display:none!important}
+.cinema-shell-page>main,.cinema-shell-page>.shell-hero,.cinema-shell-page>footer.site-footer,#hero,#main,#search-results-section,.site-footer{margin-left:116px}
+.cinema-shell-page>.shell-hero,#hero{width:calc(100% - 116px)}
+.cinema-shell-page>.shell-hero .shell-hero-copy,.hero-content{left:clamp(2rem,4vw,4rem)}
