@@ -1,0 +1,22 @@
+/* Fresh, cache-independent TFlix navigation overrides. */
+#header .nav-link,
+#header .library-nav-btn,
+#header .search-toggle {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  color: #a1a1aa !important;
+}
+
+#header .nav-link:hover,
+#header .library-nav-btn:hover,
+#header .search-toggle:hover,
+#header .nav-link.active {
+  background: rgba(255,255,255,.08) !important;
+  border: 0 !important;
+  color: #f4f4f5 !important;
+  box-shadow: none !important;
+}
+
+#header .theme-toggle { display: none !important; }
