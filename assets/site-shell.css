@@ -98,3 +98,12 @@ body.cinema-shell-page{padding-top:0;background:#09090b;font-family:'Inter','Han
 .cinema-shell-header .search-toggle span,.cinema-shell-header .theme-toggle span{font-size:11px;font-weight:600;line-height:1.1}
 .cinema-shell-header .search-toggle:hover,.cinema-shell-header .theme-toggle:hover{background:rgba(255,255,255,.08);border:0;transform:none;color:#f4f4f5}
 .cinema-shell-header .search-wrap input{left:126px;bottom:22px}
+
+/* TFlix palette parity: keep the shell colors identical to the reference UI. */
+html.cinema-shell-page,body.cinema-shell-page{background:#09090b!important;color:#f4f4f5!important;font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif!important}
+.cinema-shell-header{background:#0c0c10!important;border-right-color:rgba(255,255,255,.06)!important;color:#f4f4f5!important}
+.cinema-shell-header .logo{color:#e50914!important;text-shadow:none!important}
+.cinema-shell-header .nav-link,.cinema-shell-header .library-nav-btn,.cinema-shell-header .search-toggle,.cinema-shell-header .theme-toggle{color:#a1a1aa!important;background:transparent!important}
+.cinema-shell-header .nav-link:hover,.cinema-shell-header .library-nav-btn:hover,.cinema-shell-header .search-toggle:hover,.cinema-shell-header .theme-toggle:hover,.cinema-shell-header .nav-link.active{color:#f4f4f5!important;background:rgba(255,255,255,.08)!important;border-color:transparent!important}
+.cinema-shell-header .nav-link.active:after{display:none!important}
+.cinema-shell-header .logo::after{background:rgba(229,9,20,.2)!important;border-color:#e50914!important;color:#e50914!important}
