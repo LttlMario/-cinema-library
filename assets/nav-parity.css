@@ -132,3 +132,21 @@ html.keynav :is(#header, .cinema-shell-header) .kf {
   pointer-events: auto !important;
 }
 #search-clear { z-index: 601 !important; }
+
+/* The rail is itself a fixed containing block on some browsers. Use viewport units
+   so the search field and suggestions remain centered instead of centering in the rail. */
+#search {
+  left: 50vw !important;
+  transform: translateX(-50%) !important;
+}
+#search-suggestions {
+  left: 50vw !important;
+  transform: translateX(-50%) !important;
+}
+#search-clear {
+  position: fixed !important;
+  left: calc(50vw + min(210px, 30vw) - 30px) !important;
+  right: auto !important;
+  top: 25px !important;
+  bottom: auto !important;
+}
