@@ -63,6 +63,7 @@
         event.preventDefault();
         event.stopPropagation();
         searchWrap.classList.add('search-open');
+        searchWrap.classList.remove('open');
         search.focus();
       });
       search.addEventListener('keydown', (event) => {
