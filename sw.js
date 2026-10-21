@@ -1,4 +1,4 @@
-const CACHE = 'cinema-library-shell-v11';
+const CACHE = 'cinema-library-shell-v12-tflix-nav';
 const SHELL = [
   './', './index.html', './catalog.html', './genres.html', './stream/index.html',
   './404.html', './contribute.html', './manifest.webmanifest',
@@ -39,4 +39,3 @@ self.addEventListener('fetch', event => {
     return response;
   }).catch(() => caches.match(request).then(response => response || caches.match('./404.html'))));
 });
-
