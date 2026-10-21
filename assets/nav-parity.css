@@ -85,6 +85,20 @@ html.keynav #header .kf {
   z-index: 600 !important;
 }
 
+#header .search-wrap:hover input,
+#header .search-wrap:has(#search-toggle:focus) input {
+  display: block !important;
+  position: fixed !important;
+  top: 14px !important;
+  left: 50% !important;
+  bottom: auto !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(420px, 60vw) !important;
+  height: 42px !important;
+  z-index: 600 !important;
+}
+
 /* Final active state: only the item for the current page is red. */
 #header .nav-link.active {
   background: #e50914 !important;
