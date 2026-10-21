@@ -1,6 +1,6 @@
 (function () {
   function bind() {
-    const header = document.querySelector('.cinema-shell-header');
+    const header = document.querySelector('.cinema-shell-header, #header');
     if (!header || header.dataset.homeNavFix === '1') return;
     header.dataset.homeNavFix = '1';
 
@@ -13,15 +13,16 @@
       : currentPage === 'index.html' || currentPage === '' ? 'home' : '';
     const restoreActive = () => {
       header.querySelectorAll('.nav-link').forEach((item) => {
-        const key = item.dataset.shellMenu || (item.getAttribute('href') || '').endsWith('index.html') ? 'home' : '';
-        const shouldBeActive = activeKey === 'home'
-          ? item.tagName === 'A' && (item.getAttribute('href') || '').endsWith('index.html')
-          : item.dataset.shellMenu === activeKey;
+        const shouldBeActive = header.id === 'header'
+          ? (activeKey === 'home' && item.dataset.nav === 'home')
+          : (activeKey === 'home'
+            ? item.tagName === 'A' && (item.getAttribute('href') || '').endsWith('index.html')
+            : item.dataset.shellMenu === activeKey);
         item.classList.toggle('active', shouldBeActive);
       });
     };
     restoreActive();
-    setTimeout(restoreActive, 250);
+    [0, 250, 1000].forEach((delay) => setTimeout(restoreActive, delay));
 
     const pageBase = new URL('./', location.href);
     const go = (path) => { location.href = new URL(path, pageBase).href; };
