@@ -132,6 +132,13 @@
       });
     }
 
+    // Search can already be open on the results page after navigation.
+    if (searchWrap.classList.contains('open')
+      || searchWrap.classList.contains('search-open')
+      || search.value.trim()) {
+      centerSearch();
+    }
+
     if (!document.body.dataset.homeNavFixCloseBound) {
       document.body.dataset.homeNavFixCloseBound = '1';
       document.addEventListener('click', () => {
