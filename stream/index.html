@@ -339,6 +339,41 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* TV readability: enlarge the surrounding interface and the custom
+       controller, while keeping the video surface itself at its native size. */
+    body.tv-mode:not(.embedded) header { min-height: 76px; height: 76px; }
+    body.tv-mode:not(.embedded) .back-btn { width: 48px; height: 48px; }
+    body.tv-mode:not(.embedded) .logo { font-size: 1.8rem; }
+    body.tv-mode:not(.embedded) .now-title { font-size: 1.1rem; }
+    body.tv-mode:not(.embedded) main { gap: 1.35rem; padding-top: 1.35rem; }
+    body.tv-mode:not(.embedded) .panel { padding: 1.35rem 1.4rem; }
+    body.tv-mode:not(.embedded) .panel-title { font-size: .78rem; }
+    body.tv-mode:not(.embedded) .sel,
+    body.tv-mode:not(.embedded) .nextep-btn { min-height: 48px; font-size: 1rem; }
+    body.tv-mode:not(.embedded) .player-actions { gap: .7rem; padding-top: 1.2rem; }
+    body.tv-mode:not(.embedded) .player-action { padding: .8rem 1rem; font-size: .9rem; }
+    body.tv-mode:not(.embedded) .player-details { padding: 1.35rem; }
+    body.tv-mode:not(.embedded) .player-details h1 { font-size: 1.55rem; }
+    body.tv-mode:not(.embedded) .player-details p { font-size: .98rem; }
+    body.tv-mode .custom-controls { gap: 8px; padding: 16px 14px 14px; }
+    body.tv-mode .custom-controls button,
+    body.tv-mode .custom-controls select { min-height: 40px; padding: 8px 10px; font-size: 13px; }
+    body.tv-mode #own-play { width: 44px; min-width: 44px; font-size: 17px; }
+    body.tv-mode #own-restart,
+    body.tv-mode #own-back10,
+    body.tv-mode #own-forward10,
+    body.tv-mode #own-captions,
+    body.tv-mode #own-fullscreen,
+    body.tv-mode #own-next { min-width: 44px; padding-inline: 7px; }
+    body.tv-mode #own-timeline { height: 6px; }
+    body.tv-mode #own-timeline::-webkit-slider-runnable-track { height: 6px; }
+    body.tv-mode #own-timeline::-webkit-slider-thumb { width: 16px; height: 16px; margin-top: -5px; }
+    body.tv-mode #own-timeline::-moz-range-track,
+    body.tv-mode #own-timeline::-moz-range-progress { height: 6px; }
+    body.tv-mode #own-timeline::-moz-range-thumb { width: 14px; height: 14px; }
+    body.tv-mode #own-time { font-size: 13px; }
+    body.tv-mode .player-back-action { min-height: 44px; padding: .58rem .9rem; font-size: 13px; }
+
     /* ─── PANELS ─── */
     .panel {
       background: var(--bg-elev); border: 1px solid var(--line);
@@ -1226,6 +1261,9 @@ async function showEndRecommendations() {
   const panel = $('end-recommendations');
   const grid = $('end-recommendation-grid');
   if (!panel || !grid || !state?.media || endRecommendationsShownForToken === playerLoadToken) return;
+  // Recommendations are meaningful for films and, only when TMDB gives us
+  // reliable season metadata, for the final episode of the final season.
+  if (state.type === 'tv' && !isFinalTvEpisode()) return;
   endRecommendationsShownForToken = playerLoadToken;
 
   const genres = [
@@ -1266,6 +1304,17 @@ async function showEndRecommendations() {
   } catch {
     // Recommendations are optional; playback remains uninterrupted if TMDB is unavailable.
   }
+}
+
+function isFinalTvEpisode() {
+  if (state?.type !== 'tv') return false;
+  const seasons = (tvData?.seasons || [])
+    .filter(season => Number(season.season_number) > 0 && Number(season.episode_count) > 0);
+  if (!seasons.length) return false;
+  const finalSeason = Math.max(...seasons.map(season => Number(season.season_number)));
+  if (Number(state.season) !== finalSeason) return false;
+  const finalEpisodeCount = episodeCountFor(finalSeason);
+  return Number.isFinite(finalEpisodeCount) && finalEpisodeCount > 0 && Number(state.episode) >= finalEpisodeCount;
 }
 
 function normalizePlayerPayload(message) {
@@ -1882,14 +1931,16 @@ window.addEventListener('beforeunload', persistCurrentPlayback);
     // The timeline is the first visual row; every player button is underneath
     // it. This makes Down enter the buttons and Up return to the timeline.
     const playerBack = [$('player-back-action')].filter(vis);
-    if (playerBack.length) secs.push({ items: playerBack });
+    if (playerBack.length) secs.push({ key: 'back', items: playerBack });
     const playerTimeline = [$('own-timeline')].filter(vis);
-    const playerButtons = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture'), $('own-next'), $('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
-    if (playerTimeline.length) secs.push({ items: playerTimeline });
-    if (playerButtons.length) secs.push({ items: playerButtons });
+    const playerButtons = [$('own-restart'), $('own-play'), $('own-back10'), $('own-forward10'), $('own-quality'), $('own-picture'), $('own-mute'), $('own-volume'), $('own-captions'), $('own-fullscreen')].filter(vis);
+    if (playerTimeline.length) secs.push({ key: 'timeline', items: playerTimeline });
+    if (playerButtons.length) secs.push({ key: 'player-buttons', items: playerButtons });
+    const completionItems = getCompletionFocusItems();
+    if (completionItems.length) secs.push({ key: 'completion', items: completionItems });
     const resumeActions = [$('resume-continue'), $('resume-restart')].filter(vis);
     if (resumeActions.length) secs.push({ items: resumeActions, axis: 'vertical' });
-    const playerExtras = [$('next-episode-action'), $('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
+    const playerExtras = [$('open-internet-action'), $('enhancer-toggle'), $('enhancer-reset')].filter(vis);
     const watchCheck = [$('watch-check-continue'), $('watch-check-stop')].filter(vis);
     if (watchCheck.length) playerExtras.push(...watchCheck);
     if (playerExtras.length) secs.push({ items: playerExtras });
@@ -1905,6 +1956,16 @@ window.addEventListener('beforeunload', persistCurrentPlayback);
     const player = $('player-wrap');
     if (vis(player)) secs.push({ items: [player] });
     return secs;
+  }
+
+  function getCompletionFocusItems() {
+    const recommendations = [...document.querySelectorAll('#end-recommendation-grid .recommendation-card')].filter(vis);
+    if (recommendations.length) return recommendations;
+    const ownNext = $('own-next');
+    if (vis(ownNext)) return [ownNext];
+    const inlineNext = $('next-episode-action');
+    if (vis(inlineNext)) return [inlineNext];
+    return [];
   }
 
   function focusInitial() {
@@ -1948,6 +2009,13 @@ window.addEventListener('beforeunload', persistCurrentPlayback);
     const sec = secs[si];
     const ii = sec.items.indexOf(cur);
 
+    // The end-of-video row behaves like the next-episode row: left/right
+    // selects an item, Up goes to Back, and Down returns to the timeline.
+    if (sec.key === 'completion' && dy) {
+      const target = dy < 0 ? $('player-back-action') : $('own-timeline');
+      if (target && vis(target)) { setFocus(target, false); return; }
+    }
+
     if (dx) {
       if (sec.axis === 'vertical') return;
       const ni = ii + dx;
@@ -1977,7 +2045,7 @@ window.addEventListener('beforeunload', persistCurrentPlayback);
     const k = e.key;
     const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
-    if (['Escape', 'Backspace', 'BrowserBack', 'GoBack', 'Back'].includes(k)) {
+    if (['Escape', 'Backspace', 'BrowserBack', 'GoBack', 'Back', 'XF86Back'].includes(k) || e.keyCode === 10009 || e.keyCode === 461) {
       const watchCheck = $('watch-check-prompt');
       if (watchCheck && !watchCheck.hidden) {
         e.preventDefault();
@@ -2039,6 +2107,11 @@ window.addEventListener('beforeunload', persistCurrentPlayback);
     }
     if (cur === $('own-timeline') && k === 'ArrowUp') {
       e.preventDefault();
+      const completion = getCompletionFocusItems();
+      if (completion.length) {
+        setFocus(completion[0], false);
+        return;
+      }
       hideOwnControls();
       const back = $('player-back-action');
       back?.classList.remove('tv-hidden');
