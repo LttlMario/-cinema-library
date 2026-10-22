@@ -110,7 +110,7 @@
        make its controls easier to read from the sofa. Desktop/mobile keep the
        original dimensions. */
     html.tv-mode {
-      font-size: 112%;
+      font-size: 120%;
     }
     html.tv-mode header {
       height: 98px;
@@ -132,6 +132,20 @@
     html.tv-mode .card-info-meta { font-size: .82rem; }
     html.tv-mode .filter-tab { font-size: 1rem; padding: .7rem 1.05rem; }
     html.tv-mode .modal-title { font-size: 2.4rem; }
+    /* Keep the TV interface readable from the sofa. This affects the catalog
+       and navigation only; the separate stream page controls its own player
+       scale so the video surface is not enlarged by the catalog zoom. */
+    html.tv-mode .nav-link,
+    html.tv-mode .library-nav-btn { min-height: 52px; display: inline-flex; align-items: center; }
+    html.tv-mode .hero-overview { font-size: 1.05rem; line-height: 1.55; }
+    html.tv-mode .hero-actions button { min-height: 50px; padding-inline: 1.2rem; font-size: 1rem; }
+    html.tv-mode .row { gap: 1.25rem; }
+    html.tv-mode .row-title { margin-bottom: 1rem; }
+    html.tv-mode .card-badge { font-size: .78rem; padding: .24rem .45rem; }
+    html.tv-mode .card-info-title { font-size: 1.04rem; }
+    html.tv-mode .card-info-meta { font-size: .88rem; }
+    html.tv-mode .card-action { width: 34px; height: 34px; font-size: 1.05rem; }
+    html.tv-mode .filter-tab { min-height: 48px; }
 
     .logo {
       font-family: 'Bricolage Grotesque', sans-serif;
