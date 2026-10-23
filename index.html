@@ -1370,7 +1370,8 @@ document.querySelectorAll('[data-menu]').forEach(button => button.addEventListen
   event.stopPropagation();
   const menu = $(button.dataset.menu);
   document.querySelectorAll('.nav-submenu.open').forEach(x => x !== menu && x.classList.remove('open'));
-  menu.classList.toggle('open');
+  const open = menu.classList.toggle('open');
+  button.setAttribute('aria-expanded', String(open));
 }));
 document.addEventListener('click', () => document.querySelectorAll('.nav-submenu.open').forEach(x => x.classList.remove('open')));
 
@@ -2618,6 +2619,8 @@ $('clear-filters').addEventListener('click', () => {
   let active = false;
   let cur = null;        // element the engine currently points at
   let lastCard = null;   // card that opened the modal (refocused on close)
+  let openMenuParent = null;
+  let contentReturn = null;
   const mem = new Map(); // section key -> last item index
 
   const vis = el => !!(el && el.getClientRects().length);
@@ -2653,6 +2656,11 @@ $('clear-filters').addEventListener('click', () => {
         s.push({ key: null, items: [$('season-select'), $('episode-select')] });
       s.push({ key: null, items: [$('modal-watch-btn'), $('modal-watched-btn'), $('modal-later-btn'), $('modal-favorite-btn'), $('modal-report-btn'), $('official-link')].filter(vis) });
       return s;
+    }
+    const openSubmenu = document.querySelector('.nav-submenu.open');
+    if (openSubmenu) {
+      const menuItems = [...openSubmenu.querySelectorAll('a,button')].filter(vis);
+      if (menuItems.length) return [{ key: 'submenu', axis: 'vertical', items: menuItems }];
     }
     if (genreMenu && genreMenu.classList.contains('open'))
       return [...genreMenu.querySelectorAll('.genre-option')].map(i => ({ key: null, items: [i] }));
@@ -2721,14 +2729,34 @@ $('clear-filters').addEventListener('click', () => {
       // mixing sidebar buttons with cards.
       if (sec.key === 'header') {
         if (dx > 0) {
+          if (contentReturn?.element && vis(contentReturn.element)) {
+            setFocus(contentReturn.element);
+            return;
+          }
           const content = secs.find(section => section.key !== 'header' && section.key !== 'tabs');
           if (content?.items.length) setFocus(content.items[mem.get(content.key) ?? 0]);
         }
         return;
       }
+      if (sec.key === 'submenu' && dx < 0) {
+        const parent = openMenuParent || document.querySelector('.nav-dropdown > .nav-link[aria-expanded="true"]');
+        if (parent && vis(parent)) {
+          const menu = parent.dataset.menu && $(parent.dataset.menu);
+          menu?.classList.remove('open');
+          parent.setAttribute('aria-expanded', 'false');
+          openMenuParent = null;
+          setFocus(parent, false);
+          return;
+        }
+      }
+      if (sec.axis === 'vertical') return;
       if (dx < 0 && sec.key !== 'header' && sec.key !== 'tabs' && ii === 0) {
         const headerSec = secs.find(section => section.key === 'header');
-        if (headerSec?.items.length) { setFocus(headerSec.items[0]); return; }
+        if (headerSec?.items.length) {
+          contentReturn = { element: cur, section: sec.key, index: ii };
+          setFocus(headerSec.items[0]);
+          return;
+        }
       }
       if (sec.key === 'hero') {            // ←/→ on the hero switch slides
         goToHero(heroIndex + dx);
@@ -2804,6 +2832,15 @@ $('clear-filters').addEventListener('click', () => {
       const el = cur;
       el.click();
       requestAnimationFrame(() => {
+        if (el.dataset.menu) {
+          const menu = $(el.dataset.menu);
+          const first = menu?.classList.contains('open') && menu.querySelector('a,button');
+          if (first && vis(first)) {
+            openMenuParent = el;
+            setFocus(first, false);
+            return;
+          }
+        }
         if (el.classList.contains('nav-link') && el.dataset.nav && el.dataset.nav !== 'home') {
           // Jump straight into the row the nav link scrolled to
           const sc = document.querySelector(`.row[data-anchor="${el.dataset.nav}"] .scroller`);
